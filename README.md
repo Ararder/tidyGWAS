@@ -26,6 +26,16 @@ You can install the development version of tidyGWAS from
 ``` r
 # install.packages("devtools")
 devtools::install_github("Ararder/tidyGWAS")
+
+# To install the Bioconductor packages required to use dbSNP
+BiocManager::install(version = "3.16")
+BiocManager::install("BSgenome")
+BiocManager::install("Biostrings")
+BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
+BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
+
 ```
 
 ## Example
