@@ -45,6 +45,9 @@ tidyGWAS <- function(tbl, bsgenome_objects,logfile=FALSE,name, outdir, ...) {
   cli::cli_inform("Starting at {Sys.time()}")
   rows_start <- nrow(tbl)
 
+  # write raw file
+  cli::cli_inform("Writing out raw sumstats")
+  data.table::fwrite(tbl, paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # run initial checks
   struct <- initiate_struct(tbl = tbl, ..., filepaths = filepaths)
