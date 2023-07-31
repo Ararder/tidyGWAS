@@ -22,7 +22,24 @@ library(tidyGWAS)
 
 TO BE ADDED
 
-```{r}
+```{r, eval=FALSE}
+
+devtools::install_github("ararder/tidyGWAS")
+# or
+remotes::install_github("ararder/tidyGWAS")
+
+
+# if you want to be able to repair CHR:POS or RSID, you need to download the following
+# bioconductor packages:
+if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(version = "3.16")
+BiocManager::install("BSgenome")
+BiocManager::install("Biostrings")
+BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
+BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
+
 
 ```
 
