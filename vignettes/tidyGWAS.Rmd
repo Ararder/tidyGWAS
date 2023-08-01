@@ -81,14 +81,14 @@ googledrive::drive_download(file)
 ```
 
 ```{r}
-Sys.getenv("rs_merge_arch")
-rs_merge_arch <- data.table::fread(Sys.getenv("rs_merge_arch"))
+# use the small example file stored with tidyGWAS package
+rs_merge_arch <- tidyGWAS::rs_merge_arch
 
 ```
 
 ```{r, collapse=TRUE}
 tictoc::tic("Run tidyGWAS for 100k rows without alignment to dbSNP")
-tidyGWAS(test_file, rs_merge_arch = rs_merge_arch)
+tmp <- tidyGWAS(test_file, rs_merge_arch = rs_merge_arch)
 tictoc::toc()
 
 

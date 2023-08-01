@@ -7,8 +7,14 @@ test_file$rowid <- 1:nrow(test_file)
 ## validate RSID -----------------------------------------------------------
 
 test_that("validate RSIDs does not error", {
+  # create rowid
+  tmp <- dplyr::mutate(test_file, rowid = 1:nrow(test_file))
 
-  expect_no_error(suc <- validate_rsid(test_file))
+  only_correct_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(!invalid_rsid)
+  only_incorrect_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(invalid_rsid)
+  expect_message(validate_rsid(tmp), regexp = "Succeded in parsing 307 out of 307 rows*")
+
+  expect_no_error(validate_rsid(only_correct_rsid))
 
 
 })
@@ -25,6 +31,8 @@ test_that("Validate_b can detect a mislabelled odds-ratio column", {
     validate_b(dplyr::mutate(test_file, B = exp(B))),
     regexp = "*indicating that B has been mislabelled*"
   )
+
+  expect_no_error(validate_b(test_file))
 
 
 })
@@ -95,6 +103,23 @@ test_that("Validat CHR runs, and fixes UCSC format", {
   tmp <- dplyr::mutate(test_file, CHR = dplyr::if_else(EffectAllele == "T", as.character(CHR), paste0("chr", CHR)))
   after <- validate_chr(tmp)
   expect_equal(as.character(before), after$CHR)
+
+})
+
+
+
+# validate Z ------------------------------------------------------------
+
+test_that("Z", {
+  tmp <- dplyr::mutate(test_file, Z = B/SE)
+  # unreasonable large Z
+  tmp[100, ]$Z <- 500
+
+  # should detect extremely large Z
+  expect_message(validate_z(tmp), regexp =  "WARNING*")
+  # otherwise should be fine
+  expect_no_error(validate_z(tmp[-100, ]))
+
 
 })
 

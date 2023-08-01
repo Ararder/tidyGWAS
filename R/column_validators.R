@@ -265,22 +265,6 @@ validate_z <- function(tbl) {
   tbl
 }
 
-check_for_missingness <- function(tbl) {
-  message("Calculating the number of missing values for each column: ")
-  na_tibble <- purrr::map_df(tbl, \(X) sum(is.na(X)))
-  print(na_tibble)
-  if(rowSums(na_tibble) > 0) {
-
-    message(glue::glue(
-      "Found {rowSums(na_tibble)} NA values in the provided dataframe. In the current
-      version these are not explicitly handled, and may introduce errors, for example if used
-      to derive missing columns such as Z, B, SE, P, OR. I recommend you handle these NA's before
-      applying this pipeline, either by ignoring these rows and running the pipeline anyways, or filtering them prior
-      to running tidyGWAS"))
-  } else {
-    message("Found no missing values in the dataframe")
-  }
-}
 
 start_message <- function(col, convert_p) {
   if(col == "P") {
