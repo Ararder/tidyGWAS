@@ -71,9 +71,11 @@ test_that("testing validate stats", {
 
 test_that("testing tidyGWAS without RSID", {
   skip("time consuming")
+  rs_merge_arch <- get_ref_data()
+  tbl <- parse_old("~/shared/gwas_sumstats/sumstats/mdd_subtype_severe/mdd_subtype_severe/raw/")
   bsgenome_objects <- get_bsgenome()
   tidyGWAS(
-    tbl = dplyr::select(test_file, -RSID),
+    tbl = tbl
     bsgenome_objects = bsgenome_objects,
     rs_merge_arch = rs_merge_arch,
     logfile = TRUE,

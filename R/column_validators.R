@@ -53,8 +53,8 @@ validate_rsid <- function(tbl) {
       failed$POS <- as.character(failed$POS)
       chr_pos$CHR <- as.character(chr_pos$CHR)
       chr_pos$POS <- as.character(chr_pos$POS)
+      chr_pos_out <- dplyr::bind_rows(failed, chr_pos) |>dplyr::select(-dplyr::any_of("RSID"))
       failed <- NULL
-      chr_pos_out <- dplyr::bind_rows(failed, chr_pos)
     } else {
       chr_pos_out <- dplyr::select(chr_pos, -RSID)
 
