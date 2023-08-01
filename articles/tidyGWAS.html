@@ -72,7 +72,11 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>TO BE ADDED</p>
+<p>tidyGWAS contains some wrapper functions around BSgenome and the <a href="https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html" class="external-link">SNPlocs</a>
+bioconductor packages. These are quite large dependencies, almost ~14GB,
+and are therefore listed as “suggests”.</p>
+<p>If you want to use be able to infer missing RSID, or CHR:POS, these
+packages are required.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span>
@@ -86,6 +90,7 @@
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span>version <span class="op">=</span> <span class="st">"3.16"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"BSgenome"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"Biostrings"</span><span class="op">)</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"GenomicRanges"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"BSgenome.Hsapiens.1000genomes.hs37d5"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"BSgenome.Hsapiens.NCBI.GRCh38"</span><span class="op">)</span></span>
 <span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="st">"SNPlocs.Hsapiens.dbSNP155.GRCh37"</span><span class="op">)</span></span>
@@ -96,22 +101,15 @@
 </h2>
 <p>Automatic parsing of column names has not been implemented (and
 probable never will), so you will have to rename the input dataframe to
-the tidyGWAS format. The following column names are accepted:</p>
+the tidyGWAS format. The following column names are accepted.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">snp_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CHR"</span>, <span class="st">"POS"</span>, <span class="st">"RSID"</span>, <span class="st">"EffectAllele"</span>, <span class="st">"OtherAllele"</span>, <span class="st">"rowid"</span><span class="op">)</span></span>
 <span><span class="va">info_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INFO"</span>, <span class="st">"N"</span>, <span class="st">"CaseN"</span>, <span class="st">"ControlN"</span>, <span class="st">"EAF"</span><span class="op">)</span></span>
 <span><span class="va">stats_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"Z"</span>, <span class="st">"OR"</span>, <span class="st">"P"</span>, <span class="st">"SE"</span><span class="op">)</span></span></code></pre></div>
-<p>tidyGWAS relies on the <a href="https://bioconductor.org/packages/release/bioc/html/BSgenome.html" class="external-link">BSgenome</a>
-package to look up CHR:POS or RSID in dbSNP. The merge with dbSNP (~930
-million rows) is the main consumer of memory and time. If you want to
-run tidyGWAS on several sumstats after each other, it is best to “load”
-the <code>BSgenome</code> data before running tidyGWAS. This will make
-all tidyGWAS calls after the first much faster.</p>
+<p>How the example file looks. The mandatory columns are either RSID, or
+CHR and POS</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">bsgenome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_bsgenome.html">get_bsgenome</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>The input tibble should look like this:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">test_file</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
 <span><span class="va">test_file</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -130,6 +128,16 @@ all tidyGWAS calls after the first much faster.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     2 222<span style="text-decoration: underline;">786</span>280 rs824920 T            G            0.002<span style="text-decoration: underline;">10</span> 0.012  0.150 0.996</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 99,990 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: P &lt;dbl&gt;, CaseN &lt;int&gt;, ControlN &lt;int&gt;</span></span></span></code></pre></div>
+<p>The <a href="https://bioconductor.org/packages/release/bioc/html/BSgenome.html" class="external-link">BSgenome</a>
+and <a href="https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html" class="external-link">SNPlocs</a>
+packages are used to store and query dbSNP and fasta files to get CHR,
+POS, RSID, REF and ALT for all SNPs in dbSNP v155. The first query to
+this dataframe will always be slower than subsequent queries, so
+whenever you want to munge several summary statistics, it’s get to first
+load the points to the bsgenome and snplocs data, which can be done with
+<code>get_bsgenome().</code></p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">bsgenome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_bsgenome.html">get_bsgenome</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>You can skip the step to align with dbSNP, which will significantly
 speed up running time and reduce memory usage, by not providing
 <code>bsgnome_objects</code>. To update the RSID colum, you also need to
@@ -149,7 +157,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-01 15:36:43.707548</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-01 17:04:31.332502</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -190,7 +198,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp8pokdx/2023_08_01_15_36_43.474745/2023_08_01_15_36_43.474745/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpH5U2NN/2023_08_01_17_04_31.30066/2023_08_01_17_04_31.30066/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -250,7 +258,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; invalid_pos: 0</span></span>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp8pokdx/2023_08_01_15_36_43.474745/2023_08_01_15_36_43.474745/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpH5U2NN/2023_08_01_17_04_31.30066/2023_08_01_17_04_31.30066/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Validating the EAF column: </span></span>
@@ -300,17 +308,17 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <p>About 3 seconds for 100k rows</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end</span> <span class="op">-</span> <span class="va">start</span></span>
-<span><span class="co">#&gt; Time difference of 3.432293 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.881778 secs</span></span></code></pre></div>
 <p>If you want the information to be stored in a logfile on disk, you
 can use the logfile flag. Note that by default, tidyGWAS uses a folder
 in <code>tempdir</code> to store all intermediate files. These files are
 not saved indefinitely, so to store the output data, you can also
 provide an output directory where you want the copy over the finished
 tidyGWAS oflder</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/Rtmp8pokdx/2023_08_01_15_36_47.10771/2023_08_01_15_36_47.10771/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpH5U2NN/2023_08_01_17_04_34.367009/2023_08_01_17_04_34.367009/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-01 15:36:47.143485</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-01 17:04:34.394528</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -351,7 +359,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp8pokdx/2023_08_01_15_36_47.10771/2023_08_01_15_36_47.10771/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpH5U2NN/2023_08_01_17_04_34.367009/2023_08_01_17_04_34.367009/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -434,7 +442,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp8pokdx/2023_08_01_15_36_47.10771/2023_08_01_15_36_47.10771/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpH5U2NN/2023_08_01_17_04_34.367009/2023_08_01_17_04_34.367009/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
@@ -530,18 +538,18 @@ tidyGWAS oflder</p>
 <code><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time()</a></code> to create a random name.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">my_outdir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "2023_08_01_15_36_47.10771/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt; [2] "2023_08_01_15_36_47.10771/pipeline_info/start_ids.tsv.gz"     </span></span>
-<span><span class="co">#&gt; [3] "2023_08_01_15_36_47.10771/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt; [4] "2023_08_01_15_36_47.10771/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt; [5] "2023_08_01_15_36_47.10771/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt; [6] "2023_08_01_15_36_47.10771/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt; [7] "2023_08_01_15_36_47.10771/tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "2023_08_01_17_04_34.367009/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt; [2] "2023_08_01_17_04_34.367009/pipeline_info/start_ids.tsv.gz"     </span></span>
+<span><span class="co">#&gt; [3] "2023_08_01_17_04_34.367009/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt; [4] "2023_08_01_17_04_34.367009/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt; [5] "2023_08_01_17_04_34.367009/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [6] "2023_08_01_17_04_34.367009/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [7] "2023_08_01_17_04_34.367009/tidyGWAS_logfile.txt"</span></span></code></pre></div>
 <p>This can be controlled with the <code>name</code> argument:</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/Rtmp8pokdx/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpH5U2NN/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-01 15:36:51.102267</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-01 17:04:38.018383</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -582,7 +590,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/Rtmp8pokdx/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpH5U2NN/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -665,7 +673,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp8pokdx/first_gwas/first_gwas/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpH5U2NN/first_gwas/first_gwas/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
@@ -757,24 +765,150 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; validate_snps: 307</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt;  [1] "2023_08_01_15_36_47.10771/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt;  [2] "2023_08_01_15_36_47.10771/pipeline_info/start_ids.tsv.gz"     </span></span>
-<span><span class="co">#&gt;  [3] "2023_08_01_15_36_47.10771/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt;  [4] "2023_08_01_15_36_47.10771/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt;  [5] "2023_08_01_15_36_47.10771/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt;  [6] "2023_08_01_15_36_47.10771/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt;  [7] "2023_08_01_15_36_47.10771/tidyGWAS_logfile.txt"               </span></span>
-<span><span class="co">#&gt;  [8] "first_gwas/cleaned_GRCh38.gz"                                 </span></span>
-<span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/start_ids.tsv.gz"                    </span></span>
-<span><span class="co">#&gt; [10] "first_gwas/pipeline_info/updated_rsid.log.gz"                 </span></span>
-<span><span class="co">#&gt; [11] "first_gwas/pipeline_info/validate_snps.log.gz"                </span></span>
-<span><span class="co">#&gt; [12] "first_gwas/pipeline_info/validate_stats.log.gz"               </span></span>
-<span><span class="co">#&gt; [13] "first_gwas/raw_sumstats.gz"                                   </span></span>
+<span><span class="co">#&gt;  [1] "2023_08_01_17_04_34.367009/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt;  [2] "2023_08_01_17_04_34.367009/pipeline_info/start_ids.tsv.gz"     </span></span>
+<span><span class="co">#&gt;  [3] "2023_08_01_17_04_34.367009/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt;  [4] "2023_08_01_17_04_34.367009/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt;  [5] "2023_08_01_17_04_34.367009/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt;  [6] "2023_08_01_17_04_34.367009/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt;  [7] "2023_08_01_17_04_34.367009/tidyGWAS_logfile.txt"               </span></span>
+<span><span class="co">#&gt;  [8] "first_gwas/cleaned_GRCh38.gz"                                  </span></span>
+<span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/start_ids.tsv.gz"                     </span></span>
+<span><span class="co">#&gt; [10] "first_gwas/pipeline_info/updated_rsid.log.gz"                  </span></span>
+<span><span class="co">#&gt; [11] "first_gwas/pipeline_info/validate_snps.log.gz"                 </span></span>
+<span><span class="co">#&gt; [12] "first_gwas/pipeline_info/validate_stats.log.gz"                </span></span>
+<span><span class="co">#&gt; [13] "first_gwas/raw_sumstats.gz"                                    </span></span>
 <span><span class="co">#&gt; [14] "first_gwas/tidyGWAS_logfile.txt"</span></span></code></pre>
 <p>Oops! We now have two different folders in our outdir. This is a
 feature. <code>outdir</code> is meant to be used when you have many
 different sumstats that you all want to be in the same directory, with
 the same folder structure.</p>
+<div class="section level3">
+<h3 id="the-functions-within">The functions within<a class="anchor" aria-label="anchor" href="#the-functions-within"></a>
+</h3>
+<p>tidyGWAS exposes several smaller functions that can help when
+interactively working with sumstats.</p>
+</div>
+<div class="section level3">
+<h3 id="getting-b-and-se-from-z-n-and-eaf">Getting B and SE from Z, N and EAF<a class="anchor" aria-label="anchor" href="#getting-b-and-se-from-z-n-and-eaf"></a>
+</h3>
+<p><code><a href="../reference/repair_stats.html">repair_stats()</a></code> can be used to add any missing statistics
+column, such as P, Z, B or SE, depending on which columns exist. Note
+that there some</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">test_file</span>, Z <span class="op">=</span> <span class="va">B</span><span class="op">/</span><span class="va">SE</span>, N <span class="op">=</span> <span class="va">CaseN</span> <span class="op">+</span> <span class="va">ControlN</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">B</span>, <span class="op">-</span><span class="va">SE</span><span class="op">)</span></span>
+<span><span class="va">repaired</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Repairing missing statistics columns:</span></span>
+<span><span class="co">#&gt; 1. Transform OR to B if OR exists</span></span>
+<span><span class="co">#&gt; 2. Remove OR if both OR and B exists</span></span>
+<span><span class="co">#&gt; 3. Impute Z based on B and SE if both B and SE exist and Z is missing</span></span>
+<span><span class="co">#&gt; 4. Impute Z based on P and B if Z and SE is missing</span></span>
+<span><span class="co">#&gt; 5. Impute B and SE if both are missing, and Z, EAF and N is present</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Starting reparations:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Imputing B and SE, using Z, EAF and N </span>. The B and SE will correspond to a standardized scale, which might not always be the same scale that the original betas was on.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for NaN, Inf or NA in numeric columns</span></span>
+<span><span class="co">#&gt; → Found no columns containing NA/Inf/NaN</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Finished repair_stats:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Added 2 new columns: B and SE</span></span>
+<span></span>
+<span><span class="co"># the Betas will be on a standardized scale, and can therefore be different</span></span>
+<span><span class="co"># than what was initially there</span></span>
+<span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">inner_join</a></span><span class="op">(</span><span class="va">test_file</span>, <span class="va">repaired</span>,by <span class="op">=</span> <span class="st">"RSID"</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">B.x</span>, <span class="va">B.y</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">B.x</span>, <span class="va">B.y</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   cor(B.x, B.y)</span></span>
+<span><span class="co">#&gt; 1     0.9956026</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Getting Z, if you only have B and P</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">test_file</span>,  <span class="op">-</span><span class="va">SE</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Repairing missing statistics columns:</span></span>
+<span><span class="co">#&gt; 1. Transform OR to B if OR exists</span></span>
+<span><span class="co">#&gt; 2. Remove OR if both OR and B exists</span></span>
+<span><span class="co">#&gt; 3. Impute Z based on B and SE if both B and SE exist and Z is missing</span></span>
+<span><span class="co">#&gt; 4. Impute Z based on P and B if Z and SE is missing</span></span>
+<span><span class="co">#&gt; 5. Impute B and SE if both are missing, and Z, EAF and N is present</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Starting reparations:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found B and P but not Z. Imputing Z using:</span></span>
+<span><span class="co">#&gt; sign(beta) * sqrt(stats::qchisq(pvalue,1,lower=FALSE))</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Checking for NaN, Inf or NA in numeric columns</span></span>
+<span><span class="co">#&gt; → Found no columns containing NA/Inf/NaN</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Finished repair_stats:</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Added 1 new columns: Z</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="identifying-incorrect-rsids">Identifying incorrect RSIDs<a class="anchor" aria-label="anchor" href="#identifying-incorrect-rsids"></a>
+</h3>
+<p>uses a regex to identify any non RrSs rows.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">flag_incorrect_rsid_format</span><span class="op">(</span><span class="va">test_file</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">invalid_rsid</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="a-fast-function-for-finding-duplications-in-rsid-or-chr">A fast function for finding duplications in RSID or CHR<a class="anchor" aria-label="anchor" href="#a-fast-function-for-finding-duplications-in-rsid-or-chr"></a>
+</h3>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/flag_duplicates.html">flag_duplicates</a></span><span class="op">(</span><span class="va">test_file</span>, column <span class="op">=</span> <span class="st">"rsid"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         CHR       POS        RSID EffectAllele OtherAllele            B     SE</span></span>
+<span><span class="co">#&gt;      1:   6  31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
+<span><span class="co">#&gt;      2:  16  13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
+<span><span class="co">#&gt;      3:   9  85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
+<span><span class="co">#&gt;      4:  19  15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
+<span><span class="co">#&gt;      5:  18   5948313    rs948293            T           C  0.001698557 0.0092</span></span>
+<span><span class="co">#&gt;     ---                                                                       </span></span>
+<span><span class="co">#&gt;  99996:  10 132193006   rs7904068            T           C  0.020096702 0.0102</span></span>
+<span><span class="co">#&gt;  99997:  17  31324100  rs16967856            C           T  0.006101349 0.0252</span></span>
+<span><span class="co">#&gt;  99998:   7  33310046  rs10246533            G           A -0.008102739 0.0086</span></span>
+<span><span class="co">#&gt;  99999:  11 107469336    rs597383            G           C -0.005404578 0.0159</span></span>
+<span><span class="co">#&gt; 100000:   2 101246512  rs10173962            C           T  0.004798469 0.0090</span></span>
+<span><span class="co">#&gt;               EAF  INFO       P CaseN ControlN dup_rsid</span></span>
+<span><span class="co">#&gt;      1: 0.9754088 0.936 0.84440 51235    74087    FALSE</span></span>
+<span><span class="co">#&gt;      2: 0.6407741 0.951 0.05315 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;      3: 0.9160000 0.701 0.89970 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;      4: 0.2556345 0.996 0.80740 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;      5: 0.3318173 0.971 0.85780 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;     ---                                                </span></span>
+<span><span class="co">#&gt;  99996: 0.7658173 0.991 0.04839 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;  99997: 0.9670000 0.930 0.80840 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;  99998: 0.4740000 0.999 0.34810 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt;  99999: 0.9201827 0.997 0.73210 53386    77258    FALSE</span></span>
+<span><span class="co">#&gt; 100000: 0.6391827 0.995 0.58960 53386    77258    FALSE</span></span>
+<span><span class="co"># or </span></span>
+<span><span class="fu"><a href="../reference/flag_duplicates.html">flag_duplicates</a></span><span class="op">(</span><span class="va">test_file</span>, column <span class="op">=</span> <span class="st">"chr_pos"</span><span class="op">)</span></span>
+<span><span class="co">#&gt;         CHR       POS        RSID EffectAllele OtherAllele            B     SE</span></span>
+<span><span class="co">#&gt;      1:   6  31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
+<span><span class="co">#&gt;      2:  16  13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
+<span><span class="co">#&gt;      3:   9  85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
+<span><span class="co">#&gt;      4:  19  15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
+<span><span class="co">#&gt;      5:  18   5948313    rs948293            T           C  0.001698557 0.0092</span></span>
+<span><span class="co">#&gt;     ---                                                                       </span></span>
+<span><span class="co">#&gt;  99996:  10 132193006   rs7904068            T           C  0.020096702 0.0102</span></span>
+<span><span class="co">#&gt;  99997:  17  31324100  rs16967856            C           T  0.006101349 0.0252</span></span>
+<span><span class="co">#&gt;  99998:   7  33310046  rs10246533            G           A -0.008102739 0.0086</span></span>
+<span><span class="co">#&gt;  99999:  11 107469336    rs597383            G           C -0.005404578 0.0159</span></span>
+<span><span class="co">#&gt; 100000:   2 101246512  rs10173962            C           T  0.004798469 0.0090</span></span>
+<span><span class="co">#&gt;               EAF  INFO       P CaseN ControlN dup_chr_pos</span></span>
+<span><span class="co">#&gt;      1: 0.9754088 0.936 0.84440 51235    74087       FALSE</span></span>
+<span><span class="co">#&gt;      2: 0.6407741 0.951 0.05315 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;      3: 0.9160000 0.701 0.89970 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;      4: 0.2556345 0.996 0.80740 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;      5: 0.3318173 0.971 0.85780 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;     ---                                                   </span></span>
+<span><span class="co">#&gt;  99996: 0.7658173 0.991 0.04839 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;  99997: 0.9670000 0.930 0.80840 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;  99998: 0.4740000 0.999 0.34810 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt;  99999: 0.9201827 0.997 0.73210 53386    77258       FALSE</span></span>
+<span><span class="co">#&gt; 100000: 0.6391827 0.995 0.58960 53386    77258       FALSE</span></span></code></pre></div>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
