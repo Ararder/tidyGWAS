@@ -34,9 +34,20 @@ test_that("flag_incorrect_rsid_format detects incorrect formats", {
 
 })
 
+test_that("repair_stats works can impute Z using B and P", {
+  load(test_path("data/sumstats/test_sumstat.rds"))
+  tmp <- dplyr::select(test_file, -SE) |>
+    dplyr::mutate(N = CaseN + ControlN)
+  expect_no_error(repair_stats(tmp))
+
+  # tmp2 <- dplyr::mutate(ll, SE = se_from_z_eaf_n(Z, EAF, N))
+  # expect_equal(tmp2$SE, test_file$SE, tolerance = 0.01)
+
+})
+
 
 test_that("split_rsid_by_regex correctly splits rows", {
-  valid <-   c("Y:10050_T_A", "X:10050_T_A", "14_96458_C_G", "14:96458:C:G")
+  valid <-   c("Y:10050_T_A", "X:10050_T_A", "14_96458_C_G", "14:96458:C:G", "13-1400000")
   not_valid <- c("ss12313", "X:123XY13:A:C", "LL_12123123_A_T", "14:043824YXZ", "rs12331230_A_C", "14:043824:rs12331230")
   examples <- rep(
     c(valid, not_valid),
@@ -89,5 +100,24 @@ test_that("flag_rsid_history works", {
 
   pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
   expect_no_error(updated <- flag_rsid_history(pval_as_char_df, rs_merge_arch))
+
+})
+
+
+test_that("flag duplicates work", {
+  n_dup_rsid <- dplyr::add_row(pval_as_char_df, dplyr::slice(pval_as_char_df, 100)) |>
+    flag_duplicates() |>
+    dplyr::summarise(dup = sum(dup_rsid))
+
+  # n_dup_chr_pos <-
+  tmp <- dplyr::add_row(pval_as_char_df, dplyr::slice(pval_as_char_df, 100))
+
+  tmp[27716, ]$RSID <- "rs7812154071"
+  n_dup_chr_pos <-
+    flag_duplicates(tmp, column = "chr_pos") |>
+    dplyr::summarise(dup = sum(dup_chr_pos))
+
+  expect_true(n_dup_chr_pos$dup == 2)
+  expect_true(n_dup_rsid$dup == 2)
 
 })
