@@ -15,10 +15,10 @@ Imports:
     dplyr,
     glue,
     purrr,
-    R.utils,
     stats,
     stringr,
     tibble,
+    R.utils,
     tidyr,
     withr
 Suggests: 

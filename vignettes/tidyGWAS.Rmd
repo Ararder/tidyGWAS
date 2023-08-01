@@ -20,7 +20,9 @@ library(tidyGWAS)
 
 # Installation
 
-TO BE ADDED
+tidyGWAS contains some wrapper functions around BSgenome and the [SNPlocs](https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html) bioconductor packages. These are quite large dependencies, almost \~14GB, and are therefore listed as "suggests".
+
+If you want to use be able to infer missing RSID, or CHR:POS, these packages are required.
 
 ```{r, eval=FALSE}
 
@@ -35,6 +37,7 @@ if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
 BiocManager::install(version = "3.16")
 BiocManager::install("BSgenome")
 BiocManager::install("Biostrings")
+BiocManager::install("GenomicRanges")
 BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
 BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
 BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
@@ -45,7 +48,7 @@ BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
 
 # Getting started
 
-Automatic parsing of column names has not been implemented (and probable never will), so you will have to rename the input dataframe to the tidyGWAS format. The following column names are accepted:
+Automatic parsing of column names has not been implemented (and probable never will), so you will have to rename the input dataframe to the tidyGWAS format. The following column names are accepted.
 
 ```{r}
 
@@ -54,19 +57,19 @@ info_cols <- c("INFO", "N", "CaseN", "ControlN", "EAF")
 stats_cols <- c("B", "Z", "OR", "P", "SE")
 ```
 
-tidyGWAS relies on the [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html) package to look up CHR:POS or RSID in dbSNP. The merge with dbSNP (\~930 million rows) is the main consumer of memory and time. If you want to run tidyGWAS on several sumstats after each other, it is best to "load" the `BSgenome` data before running tidyGWAS. This will make all tidyGWAS calls after the first much faster.
-
-```{r,eval = FALSE}
-bsgenome <- get_bsgenome()
-
-```
-
-The input tibble should look like this:
+How the example file looks. The mandatory columns are either RSID, or CHR and POS
 
 ```{r}
 test_file <- tidyGWAS::test_file
 test_file |>
   dplyr::tibble()
+```
+
+The [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html) and [SNPlocs](https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html) packages are used to store and query dbSNP and fasta files to get CHR, POS, RSID, REF and ALT for all SNPs in dbSNP v155. The first query to this dataframe will always be slower than subsequent queries, so whenever you want to munge several summary statistics, it's get to first load the points to the bsgenome and snplocs data, which can be done with `get_bsgenome().`
+
+```{r,eval = FALSE}
+bsgenome <- get_bsgenome()
+
 ```
 
 You can skip the step to align with dbSNP, which will significantly speed up running time and reduce memory usage, by not providing `bsgnome_objects`. To update the RSID colum, you also need to provide an RsMergeArch file. tidyGWAS will attempt to read in this file using a filepath provided in the R enviroment "rs_merge_arch".
@@ -93,6 +96,7 @@ end <- Sys.time()
 ```
 
 About 3 seconds for 100k rows
+
 ```{r, collapse=TRUE}
 end - start
 
@@ -123,3 +127,52 @@ list.files(my_outdir, recursive = TRUE)
 ```
 
 Oops! We now have two different folders in our outdir. This is a feature. `outdir` is meant to be used when you have many different sumstats that you all want to be in the same directory, with the same folder structure.
+
+## The functions within
+
+tidyGWAS exposes several smaller functions that can help when interactively working with sumstats.
+
+## Getting B and SE from Z, N and EAF
+
+`repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. Note that there some
+
+```{r}
+# Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)
+tmp <- dplyr::mutate(test_file, Z = B/SE, N = CaseN + ControlN) |> 
+  dplyr::select(-B, -SE)
+repaired <- repair_stats(tmp)
+
+# the Betas will be on a standardized scale, and can therefore be different
+# than what was initially there
+dplyr::inner_join(test_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y) |> 
+  dplyr::summarise(cor(B.x, B.y))
+
+
+# Getting Z, if you only have B and P
+
+```
+
+```{r}
+tmp <-  dplyr::select(test_file,  -SE) |> 
+  repair_stats()
+```
+
+## Identifying incorrect RSIDs
+
+uses a regex to identify any non RrSs rows.
+
+```{r, eval = FALSE}
+flag_incorrect_rsid_format(test_file) |> 
+  dplyr::filter(invalid_rsid)
+
+```
+
+## A fast function for finding duplications in RSID or CHR
+
+```{r}
+flag_duplicates(test_file, column = "rsid")
+# or 
+flag_duplicates(test_file, column = "chr_pos")
+
+
+```

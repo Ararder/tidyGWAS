@@ -83,6 +83,18 @@ split_rsid_by_regex <- function(tbl, regex) {
 # snp_history_path="~/arvhar/extdata/SNPhistory.parquet.gz",
 # without_rs_grch38="~/arvhar/extdata/b151_rs_without_GRCh38_mapping.parquet.gz",
 
+#' Repair statistics column in a GWAS summary statistics tibble
+#' @description
+#' Requires the tidyGWAS column format
+#'
+#' @param tbl input a tibble (data frame) of a GWAS sumamry statistics.
+#'
+#' @return a tibble
+#' @export
+#'
+#' @examples \dontrun{
+#' updated <- repair_stats(my_gwas)
+#' }
 repair_stats <- function(tbl) {
   cli::cli_h3("Repairing missing statistics columns:")
   cli::cli_ol()
@@ -230,8 +242,27 @@ z_from_p_b <- function(pvalue, beta) {
   sign(beta) * sqrt(stats::qchisq(pvalue,1,lower=FALSE))
 }
 
+#' Fast detection of duplicates in RSID or CHR and POS columns
+#' @description
+#' creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
+#' Specifically, flags both rows in a duplication pair, and not just first or
+#' last duplicate row, making it easy to work with all rows that are part of a
+#' duplication
+#'
+#' @param tbl a tibble with tidyGWAS column names
+#' @param column construct id with either 'rsid' or 'chr_pos'
+#'
+#' @return a tibble
+#' @export
+#'
+#' @examples \dontrun{
+#' flag_duplicates(tbl, column = "chr_pos")
+#' flag_duplicates(tbl, column = "crsid")
+#'
+#' }
 flag_duplicates <- function(tbl, column = "rsid") {
   new_name <- glue::glue("dup_{column}")
+  stopifnot("`column`  only takes 'rsid' or 'chr_pos' as arguments" = column %in% c("rsid", "chr_pos"))
   if(column == "rsid") {
     dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,"RSID"]) | duplicated(tbl[,"RSID"], fromLast = TRUE)))
 

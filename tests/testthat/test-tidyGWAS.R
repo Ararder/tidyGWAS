@@ -7,7 +7,10 @@ load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 
 
 
-# test initiate struct
+
+# initiate struct ---------------------------------------------------------
+
+
 
 test_that("Logging, name, and outdir owrks", {
   expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = TRUE, name = "testrun", rs_merge_arch = rs_merge_arch))
@@ -20,10 +23,8 @@ test_that("Logging, name, and outdir owrks", {
 
 
 
-
-
-
 # validate_snps----------------------------------------------------------
+
 
 test_that("validate SNPs work", {
 
@@ -63,61 +64,99 @@ test_that("testing validate stats", {
 
 })
 
+# validate_with_dbsnp -----------------------------------------------------
+
+test_that("validate_with_dbsnp, all cols", {
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
+
+  struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome, make_callback(struct$filepaths$validate_with_dbsnp)))
+
+})
+
+test_that("validate_with_dbsnp, RSID", {
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
+  tmp <- dplyr::select(test_file, -CHR, -POS)
+
+  struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome, make_callback(struct$filepaths$validate_with_dbsnp)))
+
+})
+
+test_that("validate_with_dbsnp, CHR and POS", {
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
+  tmp <- dplyr::select(test_file, -RSID) |>
+    dplyr::mutate(CHR = as.character(CHR))
+
+  struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome, make_callback(struct$filepaths$validate_with_dbsnp)))
+
+})
 
 
-# full run ----------------------------------------------------------------
+# tidyGWAS ----------------------------------------------------------------
 
 
 
-test_that("testing tidyGWAS without RSID", {
-  skip("time consuming")
-  rs_merge_arch <- get_ref_data()
-  tbl <- parse_old("~/shared/gwas_sumstats/sumstats/mdd_subtype_severe/mdd_subtype_severe/raw/")
-  bsgenome_objects <- get_bsgenome()
-  tidyGWAS(
-    tbl = tbl
-    bsgenome_objects = bsgenome_objects,
+test_that("testing tidyGWAS with RSID, CHR and POS", {
+
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
+  expect_no_error(
+    tidyGWAS(
+    tbl = test_file,
     rs_merge_arch = rs_merge_arch,
+    bsgenome_objects = bsgenome,
     logfile = TRUE,
-    name = "full_test"
-    )
+    name = "full"
+    ))
 
 
 
 
 })
 
-test_that("testing tidyGWAS without CHR and POS", {
-  skip("time consuming")
+test_that("testing without CHR and POS", {
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
 
   tbl <- dplyr::select(test_file, -CHR, -POS) |>
     dplyr::tibble()
+  expect_no_error(
+
   tidyGWAS(
     tbl = tbl,
     bsgenome_objects = bsgenome_objects,
     rs_merge_arch = rs_merge_arch,
     logfile = TRUE,
-    name = "full_test"
+    name = "no_chr_pos"
   )
 
+  )
 
 })
 
 
-test_that("Test time consuming functions", {
-  skip("time consuming")
+test_that("Testing without RSID", {
+  mock_dbsnp()
+  bsgenome <- get_bsgenome()
 
-  tbl <-  dplyr::select(test_file, -RSID) |> dplyr::as_tibble()
+  tbl <- dplyr::select(test_file, -RSID) |>
+    dplyr::tibble()
+  expect_no_error(
 
   tidyGWAS(
     tbl = tbl,
     bsgenome_objects = bsgenome_objects,
     rs_merge_arch = rs_merge_arch,
     logfile = TRUE,
-    name = "full_test"
+    name = "no_rsid"
   )
 
-
+  )
 
 })
 

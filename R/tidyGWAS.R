@@ -456,3 +456,6 @@ identify_removed_rows <- function(finished, filepaths) {
 
 }
 
+# Suppress R CMD check note
+#' @importFrom R.utils as.character.binmode
+NULL
