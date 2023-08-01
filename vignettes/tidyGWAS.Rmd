@@ -87,9 +87,14 @@ rs_merge_arch <- tidyGWAS::rs_merge_arch
 ```
 
 ```{r, collapse=TRUE}
-tictoc::tic("Run tidyGWAS for 100k rows without alignment to dbSNP")
+start <- Sys.time()
 tmp <- tidyGWAS(test_file, rs_merge_arch = rs_merge_arch)
-tictoc::toc()
+end <- Sys.time()
+```
+
+About 3 seconds for 100k rows
+```{r, collapse=TRUE}
+end - start
 
 
 ```
@@ -97,10 +102,8 @@ tictoc::toc()
 If you want the information to be stored in a logfile on disk, you can use the logfile flag. Note that by default, tidyGWAS uses a folder in `tempdir` to store all intermediate files. These files are not saved indefinitely, so to store the output data, you can also provide an output directory where you want the copy over the finished tidyGWAS oflder
 
 ```{r, echo = FALSE}
-tictoc::tic("Run tidyGWAS for 100k rows without alignment to dbSNP")
 my_outdir <- withr::local_tempdir("all_my_gwas_files")
 tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, logfile = TRUE, outdir = my_outdir)
-tictoc::toc()
 
 ```
 

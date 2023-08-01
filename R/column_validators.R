@@ -83,11 +83,16 @@ validate_rsid <- function(tbl) {
 validate_chr <- function(tbl) {
 
   start_message("CHR")
-  valid_chr <- c(1:22, "X", "Y")
+  valid_chr <- c(1:22, "X", "Y", "MT")
   tbl <- dplyr::mutate(tbl,
     CHR = as.character(CHR),
     CHR = stringr::str_to_upper(CHR),
+    # can sometimes be chr22, or ch22
     CHR = stringr::str_remove(CHR, "CHR"),
+    CHR = stringr::str_remove(CHR, "CH"),
+    # can now handle
+    CHR = dplyr::if_else(CHR == "23", "X", CHR),
+    CHR = dplyr::if_else(CHR == "M", "MT", CHR),
     invalid_chr = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
     )
 

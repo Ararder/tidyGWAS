@@ -1,4 +1,4 @@
-rs_merge_arch <- get_ref_data()
+rs_merge_arch <- tidyGWAS::rs_merge_arch
 load(test_path("data/sumstats/test_sumstat.rds"))
 load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 

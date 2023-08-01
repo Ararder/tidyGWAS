@@ -1,5 +1,5 @@
 load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
-rs_merge_arch <- get_ref_data()
+rs_merge_arch <- tidyGWAS::rs_merge_arch
 test_that("flag_indel works", {
 
   tmp <- flag_indels(pval_as_char_df) |>
