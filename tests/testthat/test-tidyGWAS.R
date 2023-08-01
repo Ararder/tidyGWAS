@@ -1,5 +1,4 @@
 rs_merge_arch <- get_ref_data()
-bsgenome_objects <- get_bsgenome()
 load(test_path("data/sumstats/test_sumstat.rds"))
 load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 
@@ -72,7 +71,7 @@ test_that("testing validate stats", {
 
 test_that("testing tidyGWAS without RSID", {
   skip("time consuming")
-
+  bsgenome_objects <- get_bsgenome()
   tidyGWAS(
     tbl = dplyr::select(test_file, -RSID),
     bsgenome_objects = bsgenome_objects,
