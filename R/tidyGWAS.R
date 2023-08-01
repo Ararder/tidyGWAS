@@ -27,7 +27,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @examples \dontrun{
 #' tidyGWAS(tbl = "my_dataframe", logfile = "true", name = "test_run", outdir = "gwas_sumstat_dir")
 #' }
-tidyGWAS <- function(tbl, bsgenome_objects,logfile=FALSE,name, outdir, ...) {
+tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
 
   # setup  ------------------------------------------------------------------
