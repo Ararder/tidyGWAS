@@ -6,7 +6,107 @@ utils::globalVariables(c(
   ))
 
 # -------------------------------------------------------------------------
+#' Check that CHR POS and RSID all make sense in a GWAS summary statistic
+#'
+#' @param sumstat sumstat in tibble format, tidyGWAS column names
+#' @param bsgenome_objects use get_bsgenome()
+#' @param build optional, can be used to skip the infer_build step
+#' @param .filter_callback pass a function that is called at the end, optional.
+#'
+#' @return a tibble
+#' @export
+#'
+#' @examples \dontrun{
+#' gwas <- tidyGWAS::test_file
+#' bs <- get_bsgenome()
+#' # make_callback can be passed a filepath to write out removed rows to.
+#' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
+#' verify_chr_pos_rsid(gwas, bs, build = 37)
+#' }
+verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
+  # verify_chr_pos_rsid starts by using CHR and POS to get RSID, through dbSNP
+  # 1) check if RSID from sumstat agrees with RSID from dbSNP
+  # 2)
+  #
 
+  if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
+  dbsnp <- vector("list")
+
+
+  # 1) figure out genome build -------------------------------------------------
+  if(missing(build)) build <- infer_build(sumstat)
+
+  # check if RSIDs agree
+  dbsnp[[as.character(build)]] <- map_to_dbsnp(dplyr::select(sumstat, -RSID), build = build, by = "chr:pos", bsgenome_objects)
+
+  # there are multiple cases where the same CHR:POS maps to multiple RSIDs
+  # in that case, we select the first RSID (smallest rs number, since rsid is arranged by )
+  reduced <- dplyr::distinct(dplyr::arrange(dbsnp[[as.character(build)]], RSID), CHR, POS, .keep_all = TRUE)
+
+  # find the cases where chr_pos could not identify a RSID
+  no_match <- dplyr::anti_join(sumstat, reduced, by = c("CHR", "POS"))
+
+  # check if the provided RSID exists in dbSNP
+  dbsnp[["rsid_mapping"]] <- map_to_dbsnp(dplyr::select(no_match, -CHR, -POS), build = build, by = "rsid", bsgenome_objects)
+  reduced_round2 <- dplyr::distinct(dplyr::arrange(dbsnp[["rsid_mapping"]], RSID), CHR, POS, .keep_all = TRUE)
+
+  # collect
+  first_round_match <- dplyr::inner_join(dplyr::select(sumstat, -RSID), reduced, by = c("CHR", "POS"))
+  second_round_match <- dplyr::inner_join(dplyr::select(no_match, -CHR, -POS), reduced_round2, by = "RSID")
+  merged <- dplyr::bind_rows(first_round_match, second_round_match)
+  merged <- dplyr::distinct(merged, CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
+
+
+  # find removed rows and updated rowws
+  removed <- dplyr::filter(sumstat, !rowid %in% merged$rowid)
+  updated_rows <- dplyr::filter(sumstat, rowid %in% merged$rowid) |>
+    dplyr::anti_join(merged, by = c("rowid", "CHR", "POS","RSID"))
+
+  if(nrow(updated_rows) > 0) cli::cli_alert_info("A total of {nrow(updated_rows)} rows had incompatible CHR:POS and RSID data. These have been updated")
+
+
+  # add flag that EffectAllele/OtherAllele is incompatible with REF/ALT in dbSNP
+  flags <- qc_with_dbsnp(
+    dplyr::select(merged, -ref_allele, -alt_alleles),
+    dbsnp_df = dplyr::select(merged, -EffectAllele, -OtherAllele,rowid)
+  ) |>
+    dplyr::select(dplyr::all_of(c("rowid", "uncompatible_alleles")))
+
+
+  # clean up
+  sumstat <- dplyr::select(sumstat, rowid) |>
+    dplyr::left_join(merged, by = "rowid") |>
+    dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(CHR), TRUE, FALSE)) |>
+    dplyr::left_join(flags, by = "rowid")
+
+
+
+
+
+  #3) add CHR and POS from remaining build ------------------------------------
+
+
+  add_build <- ifelse(build == 38, 37, 38)
+  cli::cli_alert_info("CHR and POS were on GRCh{build}. Acquiring positions on GRCh{add_build}, by mapping to dbSNP with RSID")
+  dbsnp[[as.character(add_build)]] <- map_to_dbsnp(dplyr::filter(sumstat, !is.na(RSID)), build = add_build, by = "rsid", bsgenome_objects = bsgenome_objects) |>
+    dplyr::select(-dplyr::all_of(c("ref_allele", "alt_alleles"))) |>
+    # remove multi-allelic SNPs
+    dplyr::distinct(CHR, POS, RSID)
+
+
+  if(add_build == 38) {
+    final <- dplyr::left_join(dplyr::rename(sumstat, CHR_37 = CHR, POS_37 = POS), dbsnp[[as.character(add_build)]], by = "RSID")
+  } else {
+    final <- dplyr::left_join(sumstat, dplyr::rename(dbsnp[[as.character(add_build)]], CHR_37 = CHR, POS_37 = POS), by = "RSID")
+  }
+
+
+  # 4) use filter callback function if passed  -----------------------------------
+
+  if(!missing(.filter_callback)) final <- .filter_callback(final)
+  final
+
+}
 
 
 #' Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS
@@ -36,7 +136,7 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
   # 2) get RSID and flags  --------------------------------------------------------
   dbsnp[[as.character(build)]] <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", bsgenome_objects)
 
-  # sometimes CHR:POS maps to multiple RSIDs. These cases are removed here
+  # dbSNP contains duplicates?? remove here
   tmp_rsid <- dplyr::distinct(dplyr::select(dbsnp[[as.character(build)]], -ref_allele, -alt_alleles))
 
   # merge in RSID, and add flag any rows that could not find a RSID
@@ -104,7 +204,7 @@ repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
 
   # find duplicate
   dup_vec <- !(duplicated(dbsnp_38[,1:2]) | duplicated(dbsnp_38[,1:2], fromLast = TRUE))
-  cli::cli_alert_warning("Found {sum(!dup_vec)} rows where the same CHR:POS maps to different RSIDs")
+  if(sum(!dup_vec) > 0) cli::cli_alert_warning("Found {sum(!dup_vec)} rows where the same CHR:POS maps to different RSIDs")
   # dbsnp_38 <- dbsnp_38[dup_vec, ]
 
   # add flag to indicate whether RSID was found in dbSNP

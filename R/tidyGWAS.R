@@ -47,6 +47,7 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
 
   # write raw file
   cli::cli_inform("Writing out raw sumstats")
+  if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
   data.table::fwrite(tbl, paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # run initial checks
@@ -71,13 +72,6 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
 
   # check for duplications --------------------------------------------------
   if("RSID" %in% colnames(main)) if(sum(duplicated(main$RSID))> 0) cli::cli_alert_warning("Found {sum(duplicated(main$RSID))} rows with duplicated RSID")
-
-  if(all(c("CHR", "POS") %in% colnames(main))) {
-    dup_ref_alt <- sum(duplicated(stringr::str_c(main$CHR, main$POS, main$EffectAllele, main$OtherAllele, sep = "_")))
-    if(dup_ref_alt > 0) {
-      cli::cli_alert_warning("Found {dup_ref_alt} rows with duplicated CHR:POS")
-    }
-  }
 
 
 
@@ -117,8 +111,8 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
     main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
 
   } else if(struct$has_chr_pos & struct$has_rsid) {
-    cli::cli_alert_info("Found CHR, POS and RSID. Removing CHR and POS and using RSID to get CHR and POS from GRCh38 and GRCh37")
-    main_df <- repair_chr_pos(dplyr::select(struct$sumstat, -CHR, -POS), bsgenome_objects = bsgenome_objects)
+
+    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, ...)
   }
 
 
@@ -170,6 +164,7 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
   # check that either RSID or CHR:POS is present
   stopifnot("Requires either RSID or CHR:POS" = c("RSID") %in% colnames(tbl) | c("CHR", "POS") %in% colnames(tbl))
+  stopifnot("Requires EffectAllele and OtherAllele" = all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
 
   # select valid column
   tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
@@ -180,9 +175,6 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # add build if it exists
   if(missing(build)) struct[["build"]] <- NULL else struct[["build"]] <- build
 
-  # write out the starting row ids
-  data.table::fwrite(dplyr::select(tbl,rowid), struct$filepaths$start_ids)
-
   # add N if CaseN and ControlN exists
   if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
 
@@ -191,6 +183,10 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
   # inform if N is missing
   if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
+
+  # add flags for which identifiers exist
+  struct[["has_chr_pos"]] <- ifelse("CHR"  %in% colnames(tbl) & "POS" %in% colnames(tbl), TRUE, FALSE)
+  struct[["has_rsid"]] <- ifelse("RSID" %in% colnames(tbl), TRUE, FALSE)
 
 
   # remove rows with NA -----------------------------------------------------
@@ -207,6 +203,31 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   } else {
     cli::cli_alert_success("Found no rows with missing values")
   }
+
+
+  # handle duplicates -------------------------------------------------------
+
+  cli::cli_h3("Looking for duplicate rows")
+  cli::cli_inform("arranging by P prior to filtering duplications. In any duplication, the row with the smallest pvalue will be kept.")
+  if(struct$has_chr_pos) {
+    cli::cli_alert_info("Using CHR_POS_REF_ALT as id")
+
+    # keep tmp so we can find which rows were removed
+    no_dups <- dplyr::distinct(dplyr::arrange(tmp, P), CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
+    removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
+    tmp <- no_dups
+  } else {
+    cli::cli_alert_info("Using RSID_REF_ALT as id")
+
+    # keep tmp so we can find which rows were removed
+    no_dups <- dplyr::distinct(dplyr::arrange(tmp, P), RSID, EffectAllele, OtherAllele, .keep_all = TRUE)
+    removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
+    tmp <- no_dups
+
+  }
+
+  if(nrow(removed) > 0) cli::cli_alert_info("Removed {nrow(removed)} rows flagged as duplications")
+
 
 
   # remove indels -----------------------------------------------------------
@@ -259,11 +280,14 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
     data.table::fwrite(dplyr::filter(rsid_info, !is.na(old_RSID)), struct$filepaths$updated_rsid, sep = "\t")
   }
 
+  if(nrow(removed) > 0) {
+    cli::cli_li("{nrow(removed)} rows removed because duplicates: {.file {struct$filepaths$duplicates}}")
+    data.table::fwrite(removed, struct$filepaths$duplicates)
+  }
+
   # split into statistics and snp identifiers -------------------------------
 
   struct$sumstat <- dplyr::select(tmp, dplyr::any_of(c("rowid", snp_cols)))
-  struct[["has_chr_pos"]] <- ifelse("CHR"  %in% colnames(struct$sumstat) & "POS" %in% colnames(struct$sumstat), TRUE, FALSE)
-  struct[["has_rsid"]] <- ifelse("RSID" %in% colnames(struct$sumstat), TRUE, FALSE)
   struct$stats <-   dplyr::select(tmp, dplyr::any_of(c("rowid", stats_cols, info_cols)))
 
 
@@ -366,6 +390,7 @@ setup_pipeline_paths <- function(name, rsid_subset) {
 
   validate_stats <-      paste(pipeline_info, "validate_stats.log.gz", sep = "/")
   start_ids <-           paste(pipeline_info, "start_ids.tsv.gz", sep = "/")
+  duplicates <-          paste(pipeline_info, "duplicates.log.gz", sep = "/")
   validate_snps <-       paste(pipeline_info, "validate_snps.log.gz", sep = "/")
   validate_with_dbsnp <- paste(pipeline_info, "validate_with_dbsnp.log.gz", sep = "/")
   updated_rsid <-        paste(pipeline_info, "updated_rsid.log.gz", sep = "/")
@@ -385,6 +410,7 @@ setup_pipeline_paths <- function(name, rsid_subset) {
     "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
     "cleaned" = paste(workdir, "cleaned_GRCh38.gz", sep = "/"),
     "start_ids" = start_ids,
+    "duplicates" = duplicates,
     "validate_stats" = validate_stats,
     "validate_snps" = validate_snps,
     "validate_with_dbsnp" = validate_with_dbsnp,
@@ -418,7 +444,7 @@ start_message_validate <- function(func,tbl) {
 
 
 identify_removed_rows <- function(finished, filepaths) {
-  start <- data.table::fread(filepaths$start_ids)
+  start <- data.table::fread(paste0(filepaths$base , "/raw_sumstats.gz"), select = "rowid")
 
   removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
 

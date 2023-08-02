@@ -23,7 +23,7 @@ flag_incorrect_rsid_format <- function(tbl, regex = "^[rR][sS]?\\d{1,10}$") {
 
 }
 
-split_rsid_by_regex <- function(tbl, regex) {
+split_rsid_by_regex <- function(tbl) {
   stopifnot(all(c("RSID", "rowid") %in% colnames(tbl)))
 
   df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
@@ -60,8 +60,13 @@ split_rsid_by_regex <- function(tbl, regex) {
 
   cli::cli_alert_success("Succeded in parsing {nrow(out)} out of {nrow(tbl)} rows")
 
+  # Need to provide a consistent out format.
   if(!"EffectAllele" %in% colnames(out)) out$EffectAllele <- NA_character_
   if(!"OtherAllele" %in% colnames(out)) out$OtherAllele <- NA_character_
+  if(!"CHR" %in% colnames(out)) out$CHR <- NA_character_
+  if(!"POS" %in% colnames(out)) out$POS <- NA_integer_
+  if(!"rowid" %in% colnames(out)) out$rowid <- NA_integer_
+  if(!"RSID" %in% colnames(out)) out$RSID <- NA_character_
 
   out
 
@@ -250,7 +255,7 @@ z_from_p_b <- function(pvalue, beta) {
 #' duplication
 #'
 #' @param tbl a tibble with tidyGWAS column names
-#' @param column construct id with either 'rsid' or 'chr_pos'
+#' @param column construct id with either 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt'
 #'
 #' @return a tibble
 #' @export
@@ -262,12 +267,21 @@ z_from_p_b <- function(pvalue, beta) {
 #' }
 flag_duplicates <- function(tbl, column = "rsid") {
   new_name <- glue::glue("dup_{column}")
-  stopifnot("`column`  only takes 'rsid' or 'chr_pos' as arguments" = column %in% c("rsid", "chr_pos"))
+  stopifnot("`column`  only takes 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt' as arguments" = column %in% c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt"))
   if(column == "rsid") {
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,"RSID"]) | duplicated(tbl[,"RSID"], fromLast = TRUE)))
+    columns <- c("RSID")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
 
-  } else {
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,c("CHR", "POS")]) | duplicated(tbl[,c("CHR", "POS")], fromLast = TRUE)))
+  } else if(column == "chr_pos") {
+    columns <- c("CHR", "POS")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
+  } else if(column == "chr_pos_ref_alt") {
+    columns <- c("CHR", "POS", "EffectAllele", "OtherAllele")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+  } else if(column == 'rsid_ref_alt') {
+    columns <- c("RSID", "EffectAllele", "OtherAllele")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
 
   }
 }

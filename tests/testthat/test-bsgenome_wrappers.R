@@ -58,6 +58,21 @@ test_that("Repair_rsid works", {
 
 
 
+test_that("verify_chr_pos_rsid works", {
+  mock_dbsnp()
+  tmp <-
+    dplyr::mutate(test_file,  CHR = as.character(CHR), rowid = 1:nrow(test_file)) |>
+    dplyr::select(rowid, CHR, POS, RSID, EffectAllele, OtherAllele)
+
+  expect_no_error(verify_chr_pos_rsid(tmp, bsgenome_objects = get_bsgenome()))
+
+
+})
+
+
+
+
+
 test_that("get_ref_data runs", {
   tmp_file <- withr::local_tempfile()
   data.table::fwrite(dplyr::tibble(RSID = "rs2020", new_RSID = "rs1090"), tmp_file)

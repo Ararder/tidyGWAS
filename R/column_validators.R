@@ -36,13 +36,14 @@ validate_rsid <- function(tbl) {
       dplyr::bind_rows(no_ea_oa) |>
       dplyr::select(-dplyr::any_of("missing_ea_oa"))
 
-    # print results to user
-    cli::cli_alert_info("Parsed format: ")
-    cli::cat_print(head(dplyr::select(chr_pos, RSID, CHR, POS, EffectAllele, OtherAllele), 5))
+    # print results to user, if any rows have been parsed correctly
+    if(nrow(chr_pos) > 0) {
+      cli::cli_alert_info("Parsed format: ")
+      cli::cat_print(head(dplyr::select(chr_pos, RSID, CHR, POS, EffectAllele, OtherAllele), 5))
+    }
 
     # check if failed to parse any rows
     failed <- dplyr::anti_join(dplyr::filter(tbl, invalid_rsid), attempt, by = "rowid")
-    if(nrow(failed) > 0) cli::cli_alert_info("Failed to parse {nrow(failed)} rows")
 
     if(all(c("CHR", "POS") %in% colnames(failed))) {
       cli::cli_alert_info("Found CHR and POS in those rows where parsing of RSID failing. Will use CHR and POS columns")
@@ -57,8 +58,6 @@ validate_rsid <- function(tbl) {
       failed <- NULL
     } else {
       chr_pos_out <- dplyr::select(chr_pos, -RSID)
-
-
     }
 
   } else {

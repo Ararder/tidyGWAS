@@ -9,7 +9,7 @@ flag_duplicates(tbl, column = "rsid")
 \arguments{
 \item{tbl}{a tibble with tidyGWAS column names}
 
-\item{column}{construct id with either 'rsid' or 'chr_pos'}
+\item{column}{construct id with either 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt'}
 }
 \value{
 a tibble

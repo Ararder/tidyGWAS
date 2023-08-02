@@ -176,3 +176,17 @@ flag_duplicates(test_file, column = "chr_pos")
 
 
 ```
+
+### working with dbSNP
+Sometimes the same CHR and POS maps to multiple RSIDs.
+Currently, we resolve this by slecting the smallest RSID
+```{r}
+#  CHR        POS RSID         ref_allele alt_alleles
+#   <chr>    <int> <chr>        <chr>      <list>     
+# 1 1     39491595 rs10157617   T          <chr [2]>  
+# 2 1     39491595 rs1638449573 T          <chr [1]>  
+# 3 1     39491595 rs1638449625 T          <chr [1]>  
+# 4 1     39491595 rs1638449683 T          <chr [1]>  
+
+```
+
