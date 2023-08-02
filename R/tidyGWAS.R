@@ -154,7 +154,7 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # check input columns
   cli::cli_alert_info("Columns: {colnames(tbl)[colnames(tbl) %in% valid_column_names]}")
   if(length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)) {
-    cli::cli_warn(c("These columns do not follow column naming convention and are removed:",
+    cli::cli_alert_danger(c("{.strong Removed columns: }",
       "{colnames(tbl)[!colnames(tbl) %in% valid_column_names]}"))
   }
 

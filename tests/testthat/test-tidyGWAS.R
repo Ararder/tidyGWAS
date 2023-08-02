@@ -1,12 +1,3 @@
-load(test_path("fixtures/rs_merge_arch.rds"))
-load(test_path("data/sumstats/test_sumstat.rds"))
-load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
-test_file <- dplyr::tibble(test_file)
-test_file$CHR <- as.character(test_file$CHR)
-
-
-
-
 
 
 # initiate struct ---------------------------------------------------------
@@ -17,7 +8,6 @@ test_that("Logging, name, and outdir owrks", {
   expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = TRUE, name = "testrun", rs_merge_arch = rs_merge_arch))
   expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = FALSE, name = "testrun", rs_merge_arch = rs_merge_arch))
   expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = FALSE, rs_merge_arch = rs_merge_arch))
-  expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = TRUE, name = "auto-test", rs_merge_arch = rs_merge_arch))
 
 })
 
@@ -31,7 +21,7 @@ test_that("validate SNPs work", {
 
   struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(paste0(struct$filepaths$validate_snps))
-  tmp <- validate_snps(struct, .filter_callback = .filter_callback)
+  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback))
 
 
 })
@@ -43,7 +33,7 @@ test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
 
   struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(paste0(struct$filepaths$validate_snps))
-  tmp <- validate_snps(struct, .filter_callback = .filter_callback)
+  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback))
 
 
 })
@@ -113,7 +103,6 @@ test_that("validate_with_dbsnp, CHR and POS", {
 # tidyGWAS ----------------------------------------------------------------
 
 
-
 test_that("testing tidyGWAS with RSID, CHR and POS", {
   skip("covr github actions fail")
   mock_dbsnp()
@@ -154,7 +143,7 @@ test_that("testing without CHR and POS", {
 
 test_that("Testing without RSID", {
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome_objects <- get_bsgenome()
 
   tbl <- dplyr::select(test_file, -RSID) |>
     dplyr::tibble()
@@ -172,7 +161,7 @@ test_that("Testing without RSID", {
 
 })
 
-test_that("verify_chr_pos runs"{
+test_that("verify_chr_pos runs", {
   skip("time consuming")
   bs <- get_bsgenome()
   rs_merge_arch <- get_ref_data()
