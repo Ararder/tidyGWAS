@@ -145,15 +145,14 @@ test_that("Testing without RSID", {
   mock_dbsnp()
   bsgenome_objects <- get_bsgenome()
 
-  tbl <- dplyr::select(test_file, -RSID) |>
-    dplyr::tibble()
+
   expect_no_error(
 
   tidyGWAS(
-    tbl = tbl,
+    tbl = dplyr::select(test_file, -RSID),
     bsgenome_objects = bsgenome_objects,
     rs_merge_arch = rs_merge_arch,
-    logfile = FALSE,
+    logfile = TRUE,
     name = "no_rsid"
   )
 
