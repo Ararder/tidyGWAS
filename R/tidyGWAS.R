@@ -112,7 +112,7 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
 
   } else if(struct$has_chr_pos & struct$has_rsid) {
 
-    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, ...)
+    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
   }
 
 
@@ -213,7 +213,7 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
     cli::cli_alert_info("Using CHR_POS_REF_ALT as id")
 
     # keep tmp so we can find which rows were removed
-    no_dups <- dplyr::distinct(dplyr::arrange(tmp, P), CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
+    no_dups <- dplyr::distinct(tmp, CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
     removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
     tmp <- no_dups
   } else {

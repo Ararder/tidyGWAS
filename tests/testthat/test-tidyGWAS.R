@@ -172,6 +172,19 @@ test_that("Testing without RSID", {
 
 })
 
+test_that("verify_chr_pos runs"{
+  skip("time consuming")
+  bs <- get_bsgenome()
+  rs_merge_arch <- get_ref_data()
+  filepaths <- setup_pipeline_paths("testing")
+  struct <- initiate_struct(dplyr::tibble(test_file), rs_merge_arch = rs_merge_arch, filepaths = filepaths)
+  struct <- validate_snps(struct, .filter_callback = make_callback(struct$filepaths$validate_snps))
+  struct <- validate_stats(struct, .filter_callback = make_callback(struct$filepaths$validate_stats))
+
+  struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bs, .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
+
+
+})
 
 
 

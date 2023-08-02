@@ -27,7 +27,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
   # verify_chr_pos_rsid starts by using CHR and POS to get RSID, through dbSNP
   # 1) check if RSID from sumstat agrees with RSID from dbSNP
   # 2)
-  #
+  start_repair_message("verify_chr_pos_rsid")
 
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   dbsnp <- vector("list")
@@ -78,8 +78,6 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
     dplyr::left_join(merged, by = "rowid") |>
     dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(CHR), TRUE, FALSE)) |>
     dplyr::left_join(flags, by = "rowid")
-
-
 
 
 
@@ -286,11 +284,12 @@ start_repair_message <-  function(func) {
   } else if(func == "repair_rsid") {
     cli::cli_li("{.pkg BSgenome} package is used to acquire RSID, with CHR and POS as input")
 
+  } else if(func == "verify_chr_pos_rsid") {
+    cli::cli_li("Uses CHR and POS to get RSID. For rows where CHR:POS could not find RSID,RSID is used to get CHR:POS")
   }
-  cli::cli_inform(
-    "Creating two TRUE/FALSE flags: {.code incompatible_alleles} and {.code no_dbsnp_entry} to mark
-      rows where EffectAllele/OtherAllele does not match REF/ALT, or if RSID is not in dbsnp "
-  )
+  cli::cli_li("{.code incompatible_alleles} flags where EffectAllele/OtherAllele does not match REF/ALT")
+  cli::cli_li("{.code no_dbsnp_entry} flags rows without dbSNP entry")
+
   cli::cli_li("This will likely take a few minutes...")
 
 }
