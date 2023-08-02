@@ -199,7 +199,7 @@ start_repair_message <-  function(func) {
 # -------------------------------------------------------------------------
 
 
-map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects, remove_dups = TRUE) {
+map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
 
   # validate input types ----------------------------------------------------
 
@@ -286,16 +286,10 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects, remove_
       POS = as.integer(POS),
       RSID = as.character(RSID),
       ref_allele = as.character(ref_allele),
-    )
+    ) |>
+    dplyr::distinct(CHR, POS, RSID, .keep_all = TRUE)
 
-  if(remove_dups) {
-    dup_chr_pos <- duplicated(dbsnp[,c("CHR", "POS")]) | duplicated(dbsnp[,c("CHR", "POS")], fromLast = TRUE)
-    dbsnp <- dbsnp[!dup_chr_pos,]
-    dup_rsid <- duplicated(dbsnp[,"RSID"]) | duplicated(dbsnp[,"RSID"], fromLast = TRUE)
-    if((sum(dup_rsid) + sum(dup_chr_pos)) > 0) cli::cli_alert_info("Found duplicates in CHR:POS {sum(dup_chr_pos)} and {sum(dup_rsid)} duplicates in RSID")
-    dbsnp <- dbsnp[!dup_rsid,]
 
-  }
 
   dbsnp
 
