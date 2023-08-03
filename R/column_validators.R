@@ -4,77 +4,55 @@ validate_rsid <- function(tbl) {
 
   # setup -------------------------------------------------------------------
 
-  rows_before <- nrow(tbl)
   start_message("RSID")
   tbl$RSID <- as.character(tbl$RSID)
   tbl <- flag_incorrect_rsid_format(tbl)
   invalid_rsid_format <- dplyr::filter(tbl, invalid_rsid)
 
 
+  # No invalid RSIDs --------------------------------------------------------
 
-  # if rows with invalid RSID format, try to parse them
-  if(nrow(invalid_rsid_format) > 0) {
-    cli::cli_alert_info("Found {nrow(invalid_rsid_format)} rows with invalid RSID format: ")
-    cli::cli_alert_info("Attempting to parse format...")
-
-
-    # check if its possible to get CHR:POS:REF:ALT or CHR:POS from invalid RSIDs
-    # split_rsid_by_regex can return both CHR:POS:REF:ALT and CHR:POS
-    # in the case that both CHR:POS and and CHR:POS:REF:ALT exists,
-    # we need to use EA/OA information for the rows with only CHR:POS
-    attempt <- split_rsid_by_regex(invalid_rsid_format) |>
-      dplyr::mutate(missing_ea_oa = dplyr::if_else(is.na(EffectAllele) & is.na(OtherAllele), TRUE, FALSE))
-
-    # if RSID matches CHR:POS, then need to add back EA/OA
-    no_ea_oa <- dplyr::filter(attempt, missing_ea_oa) |>
-      dplyr::select(-EffectAllele, -OtherAllele) |>
-      dplyr::inner_join(dplyr::select(tbl, rowid, EffectAllele, OtherAllele), by = "rowid")
-
-    # if already contains EA/OA, no need to process
-    chr_pos <-
-      dplyr::filter(attempt, !missing_ea_oa) |>
-      dplyr::bind_rows(no_ea_oa) |>
-      dplyr::select(-dplyr::any_of("missing_ea_oa"))
-
-    # print results to user, if any rows have been parsed correctly
-    if(nrow(chr_pos) > 0) {
-      cli::cli_alert_info("Parsed format: ")
-      cli::cat_print(head(dplyr::select(chr_pos, RSID, CHR, POS, EffectAllele, OtherAllele), 5))
-    }
-
-    # check if failed to parse any rows
-    failed <- dplyr::anti_join(dplyr::filter(tbl, invalid_rsid), attempt, by = "rowid")
-
-    if(all(c("CHR", "POS") %in% colnames(failed))) {
-      cli::cli_alert_info("Found CHR and POS in those rows where parsing of RSID failing. Will use CHR and POS columns")
-      failed <- dplyr::select(failed, dplyr::any_of(colnames(chr_pos)))
-      # if UCSC style formattig, need to make columns same type.
-      # will then be fixed in validate_chr
-      failed$CHR <- as.character(failed$CHR)
-      failed$POS <- as.character(failed$POS)
-      chr_pos$CHR <- as.character(chr_pos$CHR)
-      chr_pos$POS <- as.character(chr_pos$POS)
-      chr_pos_out <- dplyr::bind_rows(failed, chr_pos) |>dplyr::select(-dplyr::any_of("RSID"))
-      failed <- NULL
-    } else {
-      chr_pos_out <- dplyr::select(chr_pos, -RSID)
-    }
-
-  } else {
-    cli::cli_alert_success("All rows have a valid RSID")
-    chr_pos_out <- NULL
-    failed <- NULL
+  if(nrow(invalid_rsid_format) == 0) {
+    cli::cli_alert_info("Found no rows with invalid RSID format")
+    return(list("data" = tbl,"chr_pos" =  NULL,"failed" = NULL))
   }
 
 
-  # return
-  rows_after <- nrow(tbl)
-  stopifnot("Rows should not be removed by validate_rsid" = rows_before == rows_after)
-  list(
-    "data" = tbl,
-    "chr_pos" =  chr_pos_out,
-    "failed" = failed
-  )
+  # invalid RSIDs, but other columns exist ----------------------------------
+
+  if(all(c("CHR", "POS", "EffectAllele", "OtherAllele") %in% colnames(tbl))) {
+    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. ")
+    return(
+      list(
+        "data" = tbl,
+        "chr_pos" = dplyr::filter(tbl, invalid_rsid) |> dplyr::select(-RSID, -invalid_rsid),
+        "failed" = NULL)
+      )
+  }
+
+
+  # no CHR or POS, so need to parse RSID ------------------------------------
+
+  cli::cli_alert_info("Found {nrow(invalid_rsid_format)} rows with invalid RSID format: ")
+  cli::cli_alert_info("Attempting to parse format...")
+
+
+  # check if its possible to get CHR:POS:REF:ALT or CHR:POS from invalid RSIDs
+  # UPDATE: i think it's much better to always use EffectAllele and OtherAllele
+  # from the sumstats, than trying to infer it, as it's unknown which is the
+  # effect allele when parsing CHR:POS:REF:ALT
+  attempt <- split_rsid_by_regex(invalid_rsid_format) |>
+    dplyr::select(-EffectAllele, -OtherAllele) |>
+    dplyr::inner_join(dplyr::select(tbl, rowid, EffectAllele, OtherAllele), by = "rowid")
+
+
+  # print results to user, if any rows have been parsed correctly
+  if(nrow(attempt) > 0) cli::cli(c(cli::cli_alert_info("Parsed format"), cli::cat_print(head(dplyr::select(chr_pos, RSID, CHR, POS, EffectAllele, OtherAllele), 5), file = stderr())))
+
+  # check if failed to parse any rows
+  failed <- dplyr::anti_join(dplyr::filter(tbl, invalid_rsid), attempt, by = "rowid")
+
+  list("data" = tbl, "chr_pos" =  attempt,"failed" = failed)
 
 }
 

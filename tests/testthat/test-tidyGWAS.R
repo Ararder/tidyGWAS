@@ -71,7 +71,7 @@ test_that("testing validate stats", {
 
 test_that("validate_with_dbsnp, all cols", {
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
 
   struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome, make_callback(struct$filepaths$validate_with_dbsnp)))
@@ -80,7 +80,7 @@ test_that("validate_with_dbsnp, all cols", {
 
 test_that("validate_with_dbsnp, RSID", {
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
   tmp <- dplyr::select(test_file, -CHR, -POS)
 
   struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
@@ -90,7 +90,7 @@ test_that("validate_with_dbsnp, RSID", {
 
 test_that("validate_with_dbsnp, CHR and POS", {
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
   tmp <- dplyr::select(test_file, -RSID) |>
     dplyr::mutate(CHR = as.character(CHR))
 
@@ -106,7 +106,7 @@ test_that("validate_with_dbsnp, CHR and POS", {
 test_that("testing tidyGWAS with RSID, CHR and POS", {
   skip("covr github actions fail")
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
   expect_no_error(
     tidyGWAS(
     tbl = test_file,
@@ -120,30 +120,35 @@ test_that("testing tidyGWAS with RSID, CHR and POS", {
 
 })
 
+
 test_that("testing without CHR and POS", {
   skip("covr github actions fail")
   mock_dbsnp()
-  bsgenome <- get_bsgenome()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
 
-  tbl <- dplyr::select(test_file, -CHR, -POS) |>
+  tmp_file <- data.table::fread("~/shared/gwas_sumstats/sumstats/default/default/raw/ukb_phase1to3_rest_edge_full_dec21_2019_pheno87.fastGWA.gz") |>
+    dplyr::rename(RSID = SNP, EffectAllele = A1, OtherAllele = A2, EAF = AF1, B = BETA) |>
     dplyr::tibble()
-  expect_no_error(
+    # dplyr::slice_sample(n = 1000000)
 
-  tidyGWAS(
-    tbl = tbl,
-    bsgenome_objects = bsgenome_objects,
+  tmp_file <- data.table::fread("~/shared/gwas_sumstats/sumstats/insomnia/insomnia/raw/insomnia.cc.tsv.gz") |>
+    dplyr::rename(RSID = SNP, POS = BP, EffectAllele = A1, OtherAllele = A2, EAF = FREQ, B = BETA) |>
+    dplyr::tibble()
+
+  lk <- tidyGWAS(
+    tbl = tmp_file,
+    bsgenome_objects = bs,
     rs_merge_arch = rs_merge_arch,
     name = "no_chr_pos"
   )
 
-  )
 
 })
 
 
 test_that("Testing without RSID", {
   mock_dbsnp()
-  bsgenome_objects <- get_bsgenome()
+  bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
 
 
   expect_no_error(
@@ -160,19 +165,7 @@ test_that("Testing without RSID", {
 
 })
 
-test_that("verify_chr_pos runs", {
-  skip("time consuming")
-  bs <- get_bsgenome()
-  rs_merge_arch <- get_ref_data()
-  filepaths <- setup_pipeline_paths("testing")
-  struct <- initiate_struct(dplyr::tibble(test_file), rs_merge_arch = rs_merge_arch, filepaths = filepaths)
-  struct <- validate_snps(struct, .filter_callback = make_callback(struct$filepaths$validate_snps))
-  struct <- validate_stats(struct, .filter_callback = make_callback(struct$filepaths$validate_stats))
 
-  struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bs, .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
-
-
-})
 
 
 

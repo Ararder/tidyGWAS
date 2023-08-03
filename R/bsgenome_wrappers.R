@@ -35,6 +35,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
 
   # 1) figure out genome build -------------------------------------------------
   if(missing(build)) build <- infer_build(sumstat)
+  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
   # check if RSIDs agree
   dbsnp[[as.character(build)]] <- map_to_dbsnp(dplyr::select(sumstat, -RSID), build = build, by = "chr:pos", bsgenome_objects)

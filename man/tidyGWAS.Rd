@@ -4,7 +4,15 @@
 \alias{tidyGWAS}
 \title{Clean GWAS summary statistics}
 \usage{
-tidyGWAS(tbl, bsgenome_objects, logfile = FALSE, name, outdir, ...)
+tidyGWAS(
+  tbl,
+  bsgenome_objects,
+  logfile = FALSE,
+  name,
+  outdir,
+  keep_indels = TRUE,
+  ...
+)
 }
 \arguments{
 \item{tbl}{a tibble or filepath}
@@ -16,6 +24,8 @@ tidyGWAS(tbl, bsgenome_objects, logfile = FALSE, name, outdir, ...)
 \item{name}{name of the output directory}
 
 \item{outdir}{where to copy results after finished}
+
+\item{keep_indels}{Should indels be kept? Default is TRUE}
 
 \item{...}{arguments to other functions, such as study_n, build}
 }
