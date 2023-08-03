@@ -19,6 +19,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param outdir where to copy results after finished
 #' @param logfile Write messages to a logfile?
 #' @param name name of the output directory
+#' @param keep_indels Should indels be kept? Default is TRUE
 #' @param ... arguments to other functions, such as study_n, build
 #'
 #' @return a tibble or NULL, depending on outdir
@@ -61,7 +62,7 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, keep_in
 
 
   # Checks against dbSNP ----------------------------------------------------
-  if(!missing(bsgenome_objects)) struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bsgenome_objects, ..., .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
+  if(!missing(bsgenome_objects)) struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bsgenome_objects, .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
 
   if(keep_indels & nrow(struct$indels) > 0) {
     indel_struct <- vector("list")
@@ -107,17 +108,25 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
   create_messages("validate_with_dbsnp")
 
 
-  # depending on input columns, which columns need to be added?
+  # existence of chr:pos or rsid decides which columns to repair
+  # also checks if build has bee provided
   if(!struct$has_chr_pos & struct$has_rsid) {
     main_df <- repair_chr_pos(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
 
   } else if(struct$has_chr_pos & !struct$has_rsid) {
     # build can be passed with ...
-    main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+    if(!is.null(struct$build)) {
+      main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, build = struct$build)
+    } else {
+      main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+    }
 
   } else if(struct$has_chr_pos & struct$has_rsid) {
-
-    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+    if(!is.null(struct$build)) {
+      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, build = struct$build)
+    } else {
+      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+    }
   }
 
 
@@ -192,8 +201,8 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # remove rows with NA -----------------------------------------------------
 
   tmp <- tidyr::drop_na(tbl, -dplyr::any_of(c("CHR", "POS", "RSID")))
-  dropped_because_NA <- dplyr::anti_join(tbl, tmp, by = "rowid")
-  create_messages(func = "drop_na", na_rows = dropped_because_NA)
+  struct$na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid")
+  create_messages(func = "drop_na", struct = struct)
 
   # handle duplicates -------------------------------------------------------
 
@@ -243,10 +252,6 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   cli::cli_h2("Finished initial checks")
   cli::cli_ul()
 
-  if(nrow(dropped_because_NA) > 0) {
-    cli::cli_li("{nrow(dropped_because_NA)} rows removed because of NA: {.file {struct$filepaths$rows_with_na}}")
-    data.table::fwrite(dropped_because_NA, struct$filepaths$rows_with_na, sep = "\t")
-  }
 
   if(sum(!is.na(rsid_info$old_RSID)) > 0) {
     cli::cli_li("{sum(!is.na(rsid_info$old_RSID))} rows with updated RSID: {.file {struct$filepaths$updated_rsid}}")
@@ -403,7 +408,7 @@ setup_pipeline_paths <- function(name, rsid_subset) {
 
 }
 
-create_messages <- function(func,tbl, na_rows) {
+create_messages <- function(func,tbl, struct) {
   if(func== "validate_snps") {
     cli::cli_h2("Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele")
 
@@ -430,13 +435,12 @@ create_messages <- function(func,tbl, na_rows) {
 
 
   else if(func=="drop_na") {
-    stopifnot(!missing(na_rows))
     cli::cli_h3("Examining data for missing values across all columns")
     cli::cli_ul("Using tidyr::drop_na()")
-    if(nrow(na_rows > 0)){
-      cli::cli_alert("Found {nrow(dropped_because_NA)} rows with missing values. These are removed. Printing the first 5 rows")
-      cli::cat_print(dplyr::slice(na_rows, 1:5))
-      data.table::fwrite(na_rows, struct$filepaths$rows_with_na, sep = "\t")
+    if(nrow(struct$na_rows > 0)){
+      cli::cli_alert("Found {nrow(struct$na_rows)} rows with missing values. These are removed. Printing the first 5 rows")
+      cli::cat_print(dplyr::slice(struct$na_rows, 1:5))
+      data.table::fwrite(struct$na_rows, struct$filepaths$rows_with_na, sep = "\t")
     } else {
       cli::cli_alert_success("Found no rows with missing values")
     }

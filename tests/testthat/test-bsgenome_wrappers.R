@@ -1,5 +1,4 @@
-
-
+source(test_path("setup.R"))
 test_that("Repair_chr_pos works", {
 
   mock_dbsnp()
@@ -51,7 +50,7 @@ test_that("verify_chr_pos_rsid works", {
     dplyr::mutate(test_file,  CHR = as.character(CHR), rowid = 1:nrow(test_file)) |>
     dplyr::select(rowid, CHR, POS, RSID, EffectAllele, OtherAllele)
 
-  expect_no_error(verify_chr_pos_rsid(tmp, bsgenome_objects = get_bsgenome()))
+  expect_no_error(verify_chr_pos_rsid(tmp, bsgenome_objects = list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")))
 
 
 })

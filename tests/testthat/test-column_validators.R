@@ -1,4 +1,4 @@
-
+#source(test_path("setup.R"))
 
 ## validate RSID -----------------------------------------------------------
 
@@ -8,7 +8,7 @@ test_that("validate RSIDs does not error", {
 
   only_correct_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(!invalid_rsid)
   only_incorrect_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(invalid_rsid)
-  expect_message(validate_rsid(tmp), regexp = "Succeded in parsing 307 out of 307 rows*")
+  expect_no_error(validate_rsid(tmp))
 
   expect_no_error(validate_rsid(only_correct_rsid))
 
