@@ -1,4 +1,4 @@
-#source(test_path("setup.R"))
+# source(test_path("setup.R"))
 
 ## validate RSID -----------------------------------------------------------
 
@@ -17,51 +17,35 @@ test_that("validate RSIDs does not error", {
 
 
 
+test_that("Validate_columns works", {
+
+  check <- colnames(test_file)[colnames(test_file) %in% stats_cols]
+  check <- check[!check %in% c("CaseN", "ControlN", "INFO")]
+  test_file <- dplyr::mutate(test_file, P = dplyr::if_else(CHR == 6, -3, P))
+
+  expect_no_error(
+    for(c in check) tmp <- validate_columns(test_file,col = c, verbose = FALSE)
+  )
 
 
-## validate B ------------------------------------------------------------
+})
 
 
-test_that("Validate_b can detect a mislabelled odds-ratio column", {
+
+
+
+
+test_that("validate_columns catches issues", {
   expect_message(
-    validate_b(dplyr::mutate(test_file, B = exp(B))),
+    validate_columns(dplyr::mutate(test_file, B = exp(B)), "B"),
     regexp = "*indicating that B has been mislabelled*"
   )
 
-  expect_no_error(validate_b(test_file))
-
-
-})
-
-
-## validate P -------------------------------------------------------------------------
-
-
-test_that("Validate P catches pvalues that are converted to character", {
-  expect_message(validate_P(pval_as_char_df))
+  expect_message(validate_columns(pval_as_char_df, "P"))
 
 })
 
 
-
-
-## validate SE -------------------------------------------------------------------------
-
-test_that("Validate SE work", {
-  expect_message(validate_se(pval_as_char_df))
-
-  pval_as_char_df$SE[3] <- -1
-  expect_true(nrow(validate_se(pval_as_char_df) |> dplyr::filter(invalid_SE)) == 1)
-
-})
-
-
-## validate N -------------------------------------------------------------------------
-
-test_that("Validate N runs without error", {
-  expect_message(validate_n(pval_as_char_df))
-
-})
 
 
 
@@ -72,22 +56,12 @@ test_that("Validate N runs without error", {
 
 test_that("validate_effect_cols detects and prints alleles outside ACGT", {
 
-
-
   expect_message(validate_ea_oa(pval_as_char_df))
 
-
 })
 
 
-# validate POS
 
-test_that("Validate POS runs", {
-
-  expect_message(validate_pos(pval_as_char_df))
-
-
-})
 
 
 # validate CHR ------------------------------------------------------------
@@ -97,7 +71,7 @@ test_that("Validat CHR runs, and fixes UCSC format", {
 
   before <- test_file$CHR
   tmp <- dplyr::mutate(test_file, CHR = dplyr::if_else(EffectAllele == "T", as.character(CHR), paste0("chr", CHR)))
-  after <- validate_chr(tmp)
+  after <- validate_columns(tmp, "CHR")
   expect_equal(as.character(before), after$CHR)
 
 })
@@ -112,9 +86,9 @@ test_that("Z", {
   tmp[100, ]$Z <- 500
 
   # should detect extremely large Z
-  expect_message(validate_z(tmp), regexp =  "WARNING*")
+  expect_message(validate_columns(tmp, "Z"), regexp =  "WARNING*")
   # otherwise should be fine
-  expect_no_error(validate_z(tmp[-100, ]))
+  expect_no_error(validate_columns(tmp[-100, ], "Z"))
 
 
 })

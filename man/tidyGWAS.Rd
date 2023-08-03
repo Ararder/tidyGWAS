@@ -11,6 +11,8 @@ tidyGWAS(
   name,
   outdir,
   keep_indels = TRUE,
+  verbose = FALSE,
+  log_on_err = "tidyGWAS_log.txt",
   ...
 )
 }
@@ -26,6 +28,12 @@ tidyGWAS(
 \item{outdir}{where to copy results after finished}
 
 \item{keep_indels}{Should indels be kept? Default is TRUE}
+
+\item{verbose}{Should tidyGWAS tell you everything it's doing? default is FALSE}
+
+\item{log_on_err}{a filepath, used if logfile = TRUE. If tidyGWAS throws an error, the logfile
+is copied to that file. Useful is running non-interactively, in which case the logfile
+will be deleted if tidyGWAS errors.}
 
 \item{...}{arguments to other functions, such as study_n, build}
 }

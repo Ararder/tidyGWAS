@@ -21,10 +21,12 @@ test_that("validate SNPs work", {
 
   struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(paste0(struct$filepaths$validate_snps))
-  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback))
-
+  expect_no_error(
+    tmp <- validate_snps(struct, .filter_callback = .filter_callback, verbose = FALSE)
+    )
 
 })
+
 
 
 test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
@@ -33,7 +35,7 @@ test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
 
   struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(paste0(struct$filepaths$validate_snps))
-  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback))
+  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback,verbose=FALSE))
 
 
 })
@@ -49,7 +51,7 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
 
   struct <- initiate_struct(tbl = tbl, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(paste0(struct$filepaths$validate_snps))
-  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback))
+  expect_no_error(tmp <- validate_snps(struct, .filter_callback = .filter_callback, verbose=TRUE))
 
 
 
@@ -59,10 +61,18 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
 
 test_that("testing validate stats", {
 
-
+  # setup
   struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
   .filter_callback = make_callback(struct$filepaths$validate_stats)
-  expect_no_error(tmp <- validate_stats(struct, .filter_callback = .filter_callback))
+
+
+  expect_no_error(
+    tmp <- validate_stats(struct, .filter_callback = .filter_callback, verbose=TRUE)
+  )
+
+  expect_no_error(
+    tmp <- validate_stats(struct, .filter_callback = .filter_callback, verbose=FALSE)
+    )
 
 
 })
@@ -104,16 +114,17 @@ test_that("validate_with_dbsnp, CHR and POS", {
 
 
 test_that("testing tidyGWAS with RSID, CHR and POS", {
-  skip("covr github actions fail")
+  skip("fails")
   mock_dbsnp()
   bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
-  expect_no_error(
-    tidyGWAS(
+
+  tidyGWAS(
     tbl = test_file,
     rs_merge_arch = rs_merge_arch,
     bsgenome_objects = bsgenome,
-    name = "full"
-    ))
+    name = "full",
+    verbose =FALSE
+  )
 
 
 

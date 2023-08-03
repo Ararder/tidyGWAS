@@ -37,10 +37,7 @@ validate_rsid <- function(tbl) {
   cli::cli_alert_info("Attempting to parse format...")
 
 
-  # check if its possible to get CHR:POS:REF:ALT or CHR:POS from invalid RSIDs
-  # UPDATE: i think it's much better to always use EffectAllele and OtherAllele
-  # from the sumstats, than trying to infer it, as it's unknown which is the
-  # effect allele when parsing CHR:POS:REF:ALT
+  # use EffectAllele and OtherAllele from sumstats, not from parsed format
   attempt <- split_rsid_by_regex(invalid_rsid_format) |>
     dplyr::select(-EffectAllele, -OtherAllele) |>
     dplyr::inner_join(dplyr::select(tbl, rowid, EffectAllele, OtherAllele), by = "rowid")
@@ -57,63 +54,10 @@ validate_rsid <- function(tbl) {
 }
 
 
-validate_chr <- function(tbl) {
-
-  start_message("CHR")
-  valid_chr <- c(1:22, "X", "Y", "MT")
-  tbl <- dplyr::mutate(tbl,
-    CHR = as.character(CHR),
-    CHR = stringr::str_to_upper(CHR),
-    # can sometimes be chr22, or ch22
-    CHR = stringr::str_remove(CHR, "CHR"),
-    CHR = stringr::str_remove(CHR, "CH"),
-    # can now handle
-    CHR = dplyr::if_else(CHR == "23", "X", CHR),
-    CHR = dplyr::if_else(CHR == "M", "MT", CHR),
-    invalid_chr = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
-    )
-
-  end_message(tbl, "chr")
-  tbl
-
-}
 
 
 
 
-
-validate_pos <- function(tbl) {
-  start_message("POS")
-
-  tbl <- dplyr::mutate(tbl,
-      POS = as.integer(POS),
-      invalid_pos = dplyr::if_else(POS <= 0 | !is.finite(POS) | POS >= 10^9, TRUE, FALSE)
-  )
-  end_message(tbl, "pos")
-  tbl
-
-
-}
-
-validate_P <- function(tbl, convert_p = 2.225074e-308) {
-  start_message("P", convert_p = convert_p)
-
-
-  tbl <-
-    dplyr::mutate(tbl,
-      P = as.double(P),
-      p_was_0 = dplyr::if_else(P == 0, "Yes", "No"),
-      P = dplyr::if_else(p_was_0 == "Yes", convert_p, P),
-      invalid_P = dplyr::if_else(!is.finite(P) | P > 1 | P < 0, TRUE, FALSE),
-      ) |>
-    dplyr::select(-p_was_0)
-
-  end_message(tbl, "P")
-
-
-  tbl
-
-}
 
 
 validate_ea_oa <- function(tbl) {
@@ -163,98 +107,99 @@ validate_ea_oa <- function(tbl) {
 
 
 
-validate_b <- function(tbl) {
-  start_message("B")
-  tbl <- dplyr::mutate(tbl, B = as.double(B))
 
 
-  # check median value ------------------------------------------------------
+validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
+  stopifnot(col %in% c("B", "SE", "EAF", "N", "Z", "P","POS","CHR"))
+  if(verbose) start_message(col)
 
-  median <- median(tbl$B, na.rm = TRUE)
-  if(dplyr::between(median, left = 0.9, right = 1.1)) {
-    cli::cli_alert_danger("WARNING: The median value of B is {median}, indicating that B has been mislabelled and contains odds-ratios")
-  } else if(abs(median) > 0.1) {
-    cli::cli_alert_danger("WARNING: The median value of B is {median}, which seems high")
-  } else {
-    cli::cli_alert_info("The median value of B is {median}, which seems reasonable")
-  }
+  if(col == "B") {
+
+    tbl$B <- as.double(tbl$B)
+    median <- round(median(tbl$B, na.rm = TRUE), 5)
+    if(dplyr::between(median, left = 0.9, right = 1.1)) cli::cli_alert_danger("WARNING: The median value of B is {median}, indicating that B has been mislabelled and contains odds-ratios")
+    if(abs(median) > 0.1)  cli::cli_alert_danger("WARNING: The median value of B is {median}, which seems high")
+    if(abs(median) <= 0.1)  cli::cli_alert_info("The median value of B is {median}, which seems reasonable")
 
 
-  # check for non finite ----------------------------------------------------
+    # check for non finite ----------------------------------------------------
+    tbl <- dplyr::mutate(tbl, invalid_B = dplyr::if_else(!is.finite(B), TRUE, FALSE))
 
-  tbl <- dplyr::mutate(tbl, invalid_B = dplyr::if_else(!is.finite(B), TRUE, FALSE))
+  } else if(col == "SE") {
 
- end_message(tbl, "B")
+    tbl <- dplyr::mutate(tbl, SE = as.double(SE), invalid_SE = dplyr::if_else(SE <= 0 | !is.finite(SE), TRUE, FALSE))
 
-  tbl
-}
+  } else if(col == "EAF") {
 
-validate_se <- function(tbl) {
-  start_message("SE")
+    tbl <-dplyr::mutate(tbl, EAF = as.double(EAF), invalid_EAF = dplyr::if_else(EAF <= 0 | EAF >= 1 | !is.finite(EAF), TRUE, FALSE))
 
-  tbl <- dplyr::mutate(tbl,
-    SE = as.double(SE),
-    invalid_SE = dplyr::if_else(SE <= 0, TRUE, FALSE)
+  } else if(col == "N"){
+
+    tbl <- dplyr::mutate(tbl,N = as.integer(N),invalid_N = dplyr::if_else(N <= 0 | !is.finite(N), TRUE, FALSE))
+
+  } else if(col == "Z") {
+
+    tbl <- dplyr::mutate(tbl, Z = as.double(Z))
+    maxval <- max(abs(tbl$Z))
+
+    if(maxval < 100) {
+      cli::cli_alert_info("Found {maxval} as largest absolute Z score, which seems reasonable")
+    } else {
+      cli::cli_alert_warning("WARNING: Found {maxval} as largest absolute Z score, which seems highy unlikely")
+    }
+    tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
+
+  } else if(col == "P") {
+    tbl <- dplyr::mutate(
+      .data = tbl,
+      P = as.double(P), p_was_0 = dplyr::if_else(P == 0, "Yes", "No"),
+      P = dplyr::if_else(p_was_0 == "Yes", convert_p, P),
+      invalid_P = dplyr::if_else(!is.finite(P) | P > 1 | P < 0, TRUE, FALSE)
+      ) |>
+      dplyr::select(-p_was_0)
+
+  # positional columns ------------------------------------------------------
+
+
+  } else if(col == "POS") {
+
+    tbl <- dplyr::mutate(tbl, POS = as.integer(POS), invalid_pos = dplyr::if_else(POS <= 0 | !is.finite(POS) | POS >= 10^9, TRUE, FALSE))
+
+  } else if(col == "CHR") {
+
+    valid_chr <- c(1:22, "X", "Y", "MT")
+    tbl <- dplyr::mutate(tbl,
+                         CHR = as.character(CHR),
+                         CHR = stringr::str_to_upper(CHR),
+                         # can sometimes be chr22, or ch22
+                         CHR = stringr::str_remove(CHR, "CHR"),
+                         CHR = stringr::str_remove(CHR, "CH"),
+                         # can now handle
+                         CHR = dplyr::if_else(CHR == "23", "X", CHR),
+                         CHR = dplyr::if_else(CHR == "M", "MT", CHR),
+                         invalid_chr = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
     )
 
-  end_message(tbl, "SE")
-  tbl
-
-}
-
-
-validate_eaf <- function(tbl) {
-  stopifnot("EAF" %in% colnames(tbl))
-  start_message("EAF")
-
-
-  tbl <-dplyr::mutate(tbl, EAF = as.double(EAF), invalid_EAF = dplyr::if_else(EAF <= 0 | EAF >= 1 | !is.finite(EAF), TRUE, FALSE))
-  end_message(tbl, "EAF")
-
-  tbl
-
-}
-
-validate_n <- function(tbl) {
-  stopifnot("N" %in% colnames(tbl))
-  start_message("N")
-
-  tbl <- dplyr::mutate(tbl,N = as.integer(N),invalid_N = dplyr::if_else(N <= 0 | !is.finite(N), TRUE, FALSE))
-
-
-  end_message(tbl, "N")
-  tbl
-
-}
-
-validate_z <- function(tbl) {
-  stopifnot("Z" %in% colnames(tbl))
-  tbl <- dplyr::mutate(tbl, Z = as.double(Z))
-  maxval <- max(abs(tbl$Z))
-
-  if(maxval < 100) {
-    cli::cli_alert_info("Found {maxval} as largest absolute Z score, which seems reasonable")
-  } else {
-    cli::cli_alert_warning("WARNING: Found {maxval} as largest absolute Z score, which seems highy unlikely")
   }
 
-
-  tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
-
-  end_message(tbl, "Z")
-
-
+  # finished ----------------------------------------------------------------
+  end_message(tbl, col = col)
   tbl
+
 }
 
 
-start_message <- function(col, convert_p) {
+
+
+
+
+start_message <- function(col) {
   if(col == "P") {
 
     cli::cli_h3("Validating the P column:")
     cli::cli_ol()
     cli::cli_li("Coerce to double {.code base::as.double()}")
-    cli::cli_li("If P == 0, P is converted to {.arg {convert_p}}. Adjust by passing convert_p = 'your_preferred_value'")
+    cli::cli_li("If P == 0, P is converted to {.arg convert_p}")
     cli::cli_li("checks for NA, NaN or Inf")
     cli::cli_li("checks that P is within the range: P >= 0 & P > 1")
   }

@@ -248,8 +248,8 @@ repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
 # -------------------------------------------------------------------------
 
 
-make_callback <- function(outpath) {
-
+make_callback <- function(outpath, append=FALSE) {
+  append <- append
   callback <- function(tbl) {
     # split into filter flags
     flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
@@ -267,14 +267,14 @@ make_callback <- function(outpath) {
 
 
 
-    data.table::fwrite(remove, outpath, sep = "\t")
+    data.table::fwrite(remove, outpath, sep = "\t", append=append)
 
     dplyr::select(tbl, -dplyr::where(is.logical)) |>
       dplyr::filter(!rowid %in% remove$rowid)
   }
+
   callback
 }
-
 
 # -------------------------------------------------------------------------
 

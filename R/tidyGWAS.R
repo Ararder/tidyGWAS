@@ -20,6 +20,10 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param logfile Write messages to a logfile?
 #' @param name name of the output directory
 #' @param keep_indels Should indels be kept? Default is TRUE
+#' @param verbose Should tidyGWAS tell you everything it's doing? default is FALSE
+#' @param log_on_err a filepath, used if logfile = TRUE. If tidyGWAS throws an error, the logfile
+#' is copied to that file. Useful is running non-interactively, in which case the logfile
+#' will be deleted if tidyGWAS errors.
 #' @param ... arguments to other functions, such as study_n, build
 #'
 #' @return a tibble or NULL, depending on outdir
@@ -28,7 +32,16 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @examples \dontrun{
 #' tidyGWAS(tbl = "my_dataframe", logfile = "true", name = "test_run", outdir = "gwas_sumstat_dir")
 #' }
-tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, keep_indels = TRUE, ...) {
+tidyGWAS <- function(
+    tbl,
+    bsgenome_objects,
+    logfile=FALSE,
+    name, outdir,
+    keep_indels = TRUE,
+    verbose = FALSE,
+    log_on_err="tidyGWAS_log.txt",
+    ...
+    ) {
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
 
   # setup  ------------------------------------------------------------------
@@ -38,8 +51,8 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, keep_in
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
     withr::local_message_sink(filepaths$logfile)
     withr::local_output_sink(filepaths$logfile)
+    on.exit(file.copy(filepaths$logfile, "tidyGWAS_log.txt"), add=TRUE)
   }
-
 
   # start pipeline ----------------------------------------------------------
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
@@ -55,10 +68,12 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, keep_in
   struct <- initiate_struct(tbl = tbl, ..., filepaths = filepaths)
 
   # validate SNP identifiers  ----------------------------------------------
-  struct <- validate_snps(struct, .filter_callback = make_callback(struct$filepaths$validate_snps))
+  cb_snps <- make_callback(struct$filepaths$validate_snps)
+  struct <- validate_snps(struct, .filter_callback = cb_snps, verbose = verbose)
 
   # Validate the stats columns ----------------------------------------------
-  struct <- validate_stats(struct, .filter_callback = make_callback(struct$filepaths$validate_stats))
+  cb_stats <- make_callback(struct$filepaths$validate_stats)
+  struct <- validate_stats(struct, .filter_callback = cb_stats, verbose = verbose)
 
 
   # Checks against dbSNP ----------------------------------------------------
@@ -109,12 +124,11 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
 
 
   # existence of chr:pos or rsid decides which columns to repair
-  # also checks if build has bee provided
   if(!struct$has_chr_pos & struct$has_rsid) {
     main_df <- repair_chr_pos(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
 
   } else if(struct$has_chr_pos & !struct$has_rsid) {
-    # build can be passed with ...
+    # nested if else to pass build if it was given in tidyGWAS
     if(!is.null(struct$build)) {
       main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, build = struct$build)
     } else {
@@ -130,15 +144,9 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
   }
 
 
-  # check if there is a subset of SNPs detected as REF:ALT:CHR:POS  ---------
+  # check if there is a subset of SNPs with missing rsid that needs to be repaired
   if(!is.null(struct$without_rsid)) {
-    cli::cli_h1("Found rows from RSID column which could be parsed as CHR:POS:REF:ALT or CHR:POS")
-    cli::cli_inform("Validating the parsed data, and adding RSID")
-    filepaths <- setup_pipeline_paths(rsid_subset = paste0(struct$filepaths$base, "/rsid_subset"))
-    tmp <- initiate_struct(struct$without_rsid, filepaths = filepaths)
-    tmp <- validate_snps(tmp, .filter_callback = make_callback(struct$filepaths$validate_snps))
-
-    tmp <- repair_rsid(tmp$sumstat, bsgenome_objects = bsgenome_objects)
+    tmp <- repair_rsid(struct$without_rsid, bsgenome_objects = bsgenome_objects)
     main_df <- dplyr::bind_rows(main_df, tmp)
   }
 
@@ -274,7 +282,7 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 }
 
-validate_stats <- function(struct, ..., .filter_callback) {
+validate_stats <- function(struct, ..., .filter_callback, verbose=TRUE) {
   create_messages("validate_stats", struct$stats)
   tbl <- struct$stats
   # check for P = 0 and imputation of Z
@@ -282,53 +290,53 @@ validate_stats <- function(struct, ..., .filter_callback) {
 
 
 
-
   # run validators ----------------------------------------------------------
-
-  if("EAF" %in% colnames(tbl)) tbl <- validate_eaf(tbl)
-  if("SE"  %in% colnames(tbl)) tbl <- validate_se(tbl)
-  if("P"   %in% colnames(tbl)) tbl <- validate_P(tbl, ...)
-  if("B"   %in% colnames(tbl)) tbl <- validate_b(tbl)
-  if("Z"   %in% colnames(tbl)) tbl <- validate_z(tbl)
-  if("N"   %in% colnames(tbl)) tbl <- validate_n(tbl)
-
-
+  cols_to_run <- colnames(tbl)[colnames(tbl) %in% c("EAF", "SE", "P", "B", "Z", "N")]
+  for(c in cols_to_run) tbl <- validate_columns(tbl ,col = c, verbose = verbose)
   if(!missing(.filter_callback)) tbl <- .filter_callback(tbl)
-
-
   struct$stats <- tbl
+
   struct
 }
 
 
 
-validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE) {
+validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE, verbose) {
 
   create_messages("validate_snps")
 
   if(struct$has_rsid) {
 
     # unpack validation of RSIDS
-    # need to process any CHR:POS:REF:ALT separately
+
     validated_rsid <- validate_rsid(struct$sumstat)
-    struct$sumstat <- validated_rsid$data
+    struct$sumstat <- validated_rsid$data |> dplyr::filter(!invalid_rsid) |> dplyr::select(-invalid_rsid)
     struct$without_rsid <- validated_rsid$chr_pos
     struct$failed <-  validated_rsid$failed
   }
+  # double if because cannot do second check without first passing
+  if(!is.null(struct$failed)) if(nrow(struct$failed > 0)) data.table::fwrite(struct$failed, struct$filepaths$failed_rsid_parse)
 
-  if(!is.null(struct$failed)) {
-    if(nrow(struct$failed > 0)) data.table::fwrite(struct$failed, struct$filepaths$failed_rsid_parse)
-  }
-
-
-
-  if("CHR" %in% colnames(struct$sumstat)) struct$sumstat <- validate_chr(struct$sumstat)
-  if("POS" %in% colnames(struct$sumstat)) struct$sumstat <- validate_pos(struct$sumstat)
+  # validate main dataframe
+  cols_to_run <- colnames(struct$sumstat)[colnames(struct$sumstat) %in% c("CHR", "POS")]
+  for(c in cols_to_run) struct$sumstat <- validate_columns(struct$sumstat ,col = c, verbose = verbose)
   if(validate_alleles) struct$sumstat <- validate_ea_oa(struct$sumstat)
-
   # use callback
   if(!missing(.filter_callback)) struct$sumstat <- .filter_callback(struct$sumstat)
 
+  # validate subset with invalid RSID
+  if(!is.null(struct$without_rsid)) {
+    if(nrow(struct$without_rsid) > 0) {
+
+    cli::cli_alert_info("Running validation of CHR and POS for invalid_rsid rows")
+    for(c in cols_to_run) struct$without_rsid <- validate_columns(struct$without_rsid ,col = c, verbose = FALSE)
+
+    # use callback
+    cb_new <- make_callback(struct$filepaths$validate_snps, append=TRUE)
+    struct$without_rsid$invalid_ea_oa <- FALSE
+    struct$without_rsid <- cb_new(struct$without_rsid)
+    }
+  }
 
   struct
 
