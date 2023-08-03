@@ -99,7 +99,7 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
 
 
 validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...) {
-  start_message_validate("validate_with_dbsnp")
+  create_messages("validate_with_dbsnp")
 
 
   # depending on input columns, which columns need to be added?
@@ -186,19 +186,9 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
   # remove rows with NA -----------------------------------------------------
 
-  cli::cli_h3("Examining data for missing values across all columns")
-  cli::cli_ul("Using tidyr::drop_na()")
   tmp <- tidyr::drop_na(tbl, -dplyr::any_of(c("CHR", "POS", "RSID")))
   dropped_because_NA <- dplyr::anti_join(tbl, tmp, by = "rowid")
-
-  if(nrow(dropped_because_NA > 0)){
-    cli::cli_alert("Found {nrow(dropped_because_NA)} rows with missing values. These are removed. Printing the first 5 rows")
-    cli::cat_print(dplyr::slice(dropped_because_NA, 1:5))
-    data.table::fwrite(dropped_because_NA, struct$filepaths$rows_with_na, sep = "\t")
-  } else {
-    cli::cli_alert_success("Found no rows with missing values")
-  }
-
+  create_messages(func = "drop_na", na_rows = dropped_because_NA)
 
   # handle duplicates -------------------------------------------------------
 
@@ -225,17 +215,10 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 
   # remove indels -----------------------------------------------------------
-
-  cli::cli_h3("Checking for insertions/deletions ('indels') using: ")
-  cli::cli_ol(c(
-    "EffectAllele or OtherAllele, character length > 1: A vs AA",
-    "EffectAllele or OtherAllele coded as 'D', 'I', or 'R'"
-  ))
+  create_message("indels")
   tmp <- flag_indels(tmp)
-  indels <- dplyr::filter(tmp, .data[["indel"]]) |>
-    dplyr::select(rowid, EffectAllele, OtherAllele)
-  tmp <- dplyr::filter(tmp, !.data[["indel"]]) |>
-    dplyr::select(-indel)
+  indels <-  dplyr::select(dplyr::filter(tmp,  .data[["indel"]]), rowid, EffectAllele, OtherAllele)
+  tmp <-     dplyr::select(dplyr::filter(tmp, !.data[["indel"]]), -indel)
 
 
   # if possible, update RSID ------------------------------------------------
@@ -252,9 +235,6 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 
   # summarise what has been doen --------------------------------------------
-
-  struct$n_after_initiate_struct <- nrow(tmp)
-
   cli::cli_h2("Finished initial checks")
   cli::cli_ul()
 
@@ -270,7 +250,6 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
   if(sum(!is.na(rsid_info$old_RSID)) > 0) {
     cli::cli_li("{sum(!is.na(rsid_info$old_RSID))} rows with updated RSID: {.file {struct$filepaths$updated_rsid}}")
-
     data.table::fwrite(dplyr::filter(rsid_info, !is.na(old_RSID)), struct$filepaths$updated_rsid, sep = "\t")
   }
 
@@ -286,14 +265,12 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 
   # return results ----------------------------------------------------------
-  cli::cli_end(ulid)
-
   struct
 
 }
 
 validate_stats <- function(struct, ..., .filter_callback) {
-  start_message_validate("validate_stats", struct$stats)
+  create_messages("validate_stats", struct$stats)
   tbl <- struct$stats
   # check for P = 0 and imputation of Z
   warning_messages_stats(tbl)
@@ -320,9 +297,9 @@ validate_stats <- function(struct, ..., .filter_callback) {
 
 
 
-validate_snps <- function(struct, .filter_callback) {
+validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE) {
 
-  start_message_validate("validate_snps")
+  create_messages("validate_snps")
 
   if(struct$has_rsid) {
 
@@ -342,7 +319,7 @@ validate_snps <- function(struct, .filter_callback) {
 
   if("CHR" %in% colnames(struct$sumstat)) struct$sumstat <- validate_chr(struct$sumstat)
   if("POS" %in% colnames(struct$sumstat)) struct$sumstat <- validate_pos(struct$sumstat)
-  struct$sumstat <- validate_ea_oa(struct$sumstat)
+  if(validate_alleles) struct$sumstat <- validate_ea_oa(struct$sumstat)
 
   # use callback
   if(!missing(.filter_callback)) struct$sumstat <- .filter_callback(struct$sumstat)
@@ -418,23 +395,57 @@ setup_pipeline_paths <- function(name, rsid_subset) {
 
 }
 
-start_message_validate <- function(func,tbl, na_rows) {
+create_messages <- function(func,tbl, na_rows) {
   if(func== "validate_snps") {
     cli::cli_h2("Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele")
+
+  # validate_with_dbnsp -----------------------------------------------------
+
+
   } else if(func == "validate_with_dbsnp") {
     cli::cli_h2("Validating sumstats using dbSNP")
     cli::cli_ol()
     cli::cli_li("Repair missing CHR, POS or RSID")
     cli::cli_li("Remove rows where REF/ALT in dbSNP is not compatible with EffectAllele / OtherAllele")
     cli::cli_li("Remove rows where rsID does not match any entry in dbSNP v.155")
+
+  # validate_stats ----------------------------------------------------------
+
+
   } else if(func == "validate_stats") {
     cols_in_tbl <- colnames(tbl)[colnames(tbl) %in% stats_cols]
 
     cli::cli_h2("Validating statistics columns: {cols_in_tbl}")
   }
 
+  # drop MISSING ----------------------------------------------------------------
+
+
   else if(func=="drop_na") {
     stopifnot(!missing(na_rows))
+    cli::cli_h3("Examining data for missing values across all columns")
+    cli::cli_ul("Using tidyr::drop_na()")
+    if(nrow(dropped_because_NA > 0)){
+      cli::cli_alert("Found {nrow(dropped_because_NA)} rows with missing values. These are removed. Printing the first 5 rows")
+      cli::cat_print(dplyr::slice(dropped_because_NA, 1:5))
+      data.table::fwrite(dropped_because_NA, struct$filepaths$rows_with_na, sep = "\t")
+    } else {
+      cli::cli_alert_success("Found no rows with missing values")
+    }
+
+
+  # INDELS ------------------------------------------------------------------
+
+
+  } else if(func == "indels") {
+    cli::cli_h3("Checking for insertions/deletions ('indels') using: ")
+    cli::cli_ol(c(
+      "EffectAllele or OtherAllele, character length > 1: A vs AA",
+      "EffectAllele or OtherAllele coded as 'D', 'I', or 'R'"
+    ))
+
+
+
   }
 
 
