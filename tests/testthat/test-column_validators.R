@@ -1,7 +1,3 @@
-load(test_path("data/sumstats/test_sumstat.rds"))
-load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
-test_file$rowid <- 1:nrow(test_file)
-
 
 
 ## validate RSID -----------------------------------------------------------

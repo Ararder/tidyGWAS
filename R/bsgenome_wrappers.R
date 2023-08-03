@@ -125,7 +125,8 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
 repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_rsid")
-  dbsnp <- vector("list", length = 2)
+  dbsnp <- vector("list")
+  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
 
   # 1) figure out genome build -------------------------------------------------
@@ -195,6 +196,7 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
 repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_chr_pos")
+  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
 
   # use RSID to get CHR and POS on GRCh38
@@ -321,24 +323,17 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
   # attempt to use preloaded bsgenome ---------------------------------------
 
 
-  if(missing(bsgenome_objects)) {
-    if(build == 37) {
-      snps <- SNPlocs.Hsapiens.dbSNP155.GRCh37::SNPlocs.Hsapiens.dbSNP155.GRCh37
-      genome <- BSgenome.Hsapiens.1000genomes.hs37d5::BSgenome.Hsapiens.1000genomes.hs37d5
-    } else {
-      snps <- SNPlocs.Hsapiens.dbSNP155.GRCh38::SNPlocs.Hsapiens.dbSNP155.GRCh38
-      genome <- BSgenome.Hsapiens.NCBI.GRCh38::BSgenome.Hsapiens.NCBI.GRCh38
-    }
-  } else {
-    if(build == 37) {
-      snps <- bsgenome_objects$snps_37
-      genome <- bsgenome_objects$genome_37
-    } else {
-      snps <- bsgenome_objects$snps_38
-      genome <- bsgenome_objects$genome_38
-    }
+  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
+  if(build == 37) {
+    snps <- bsgenome_objects$snps_37
+    genome <- bsgenome_objects$genome_37
+  } else {
+    snps <- bsgenome_objects$snps_38
+    genome <- bsgenome_objects$genome_38
   }
+
+
 
 
   # join with dbsnp ---------------------------------------------------------

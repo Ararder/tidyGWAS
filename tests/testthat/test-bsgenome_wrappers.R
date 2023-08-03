@@ -1,16 +1,3 @@
-load(test_path("data/sumstats/test_sumstat.rds"))
-load(test_path("fixtures/b38.rds"))
-load(test_path("fixtures/b37.rds"))
-
-
-# repair_stats ------------------------------------------------------------
-
-
-
-
-
-#  repair_chr_pos and repair_rsid ----------------------------------------
-
 
 
 test_that("Repair_chr_pos works", {
