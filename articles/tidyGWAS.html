@@ -174,7 +174,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 14:20:59.956705</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 17:20:33.494642</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -222,7 +222,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpC1dMGl/2023_08_03_14_20_59.919949/2023_08_03_14_20_59.919949/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_33.401511/2023_08_03_17_20_33.401511/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -238,35 +238,9 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating CHR </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. CHR coerced to character `base::as.character()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. converted to uppercase `stringr::str_to_upper()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. 'CHR' removed (handles UCSC style CHR format)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for values outside 1:22, X, Y</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 5. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass chr validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating POS </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. POS coerced to integer `base::as.integer()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Checks for NA, NaN, Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for POS &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for POS &gt;= 10^9</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass pos validation</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -288,86 +262,39 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_rsid: 307</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_chr: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_pos: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpC1dMGl/2023_08_03_14_20_59.919949/2023_08_03_14_20_59.919949/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the EAF column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for EAF &lt;= 0 &amp; EAF &gt;= 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the SE column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for SE &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the P column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Coerce to double `base::as.double()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. If P == 0, P is converted to `2.225074e-308`. Adjust by passing convert_p =</span></span>
-<span><span class="co">#&gt; 'your_preferred_value'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. checks that P is within the range: P &gt;= 0 &amp; P &gt; 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the B column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for mislabelled OR by looking at median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Print median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.00120072057651888, which seems reasonable</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass B validation</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the N column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to integer: base::as.integer()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for N &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass N validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -383,26 +310,26 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 307 rows were removed. Started with: 100000 rows, ended with: 99693 rows</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> WARNING: Could not track why some rows were removed. This is very surprising</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; validate_snps: 307</span></span>
+<span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="va">end</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>About 3 seconds for 100k rows</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end</span> <span class="op">-</span> <span class="va">start</span></span>
-<span><span class="co">#&gt; Time difference of 2.334743 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.850791 secs</span></span></code></pre></div>
 <p>If you want the information to be stored in a logfile on disk, you
 can use the logfile flag. Note that by default, tidyGWAS uses a folder
 in <code>tempdir</code> to store all intermediate files. These files are
 not saved indefinitely, so to store the output data, you can also
 provide an output directory where you want the copy over the finished
 tidyGWAS oflder</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpC1dMGl/2023_08_03_14_21_02.412227/2023_08_03_14_21_02.412227/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_36.436722/2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 14:21:02.435034</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 17:20:36.485302</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -450,7 +377,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpC1dMGl/2023_08_03_14_21_02.412227/2023_08_03_14_21_02.412227/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_36.436722/2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -466,35 +393,9 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating CHR </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. CHR coerced to character `base::as.character()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. converted to uppercase `stringr::str_to_upper()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. 'CHR' removed (handles UCSC style CHR format)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for values outside 1:22, X, Y</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 5. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass chr validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating POS </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. POS coerced to integer `base::as.integer()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Checks for NA, NaN, Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for POS &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for POS &gt;= 10^9</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass pos validation</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -516,86 +417,39 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_rsid: 307</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_chr: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_pos: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpC1dMGl/2023_08_03_14_21_02.412227/2023_08_03_14_21_02.412227/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the EAF column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for EAF &lt;= 0 &amp; EAF &gt;= 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the SE column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for SE &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the P column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Coerce to double `base::as.double()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. If P == 0, P is converted to `2.225074e-308`. Adjust by passing convert_p =</span></span>
-<span><span class="co">#&gt; 'your_preferred_value'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. checks that P is within the range: P &gt;= 0 &amp; P &gt; 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the B column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for mislabelled OR by looking at median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Print median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.00120072057651888, which seems reasonable</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass B validation</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the N column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to integer: base::as.integer()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for N &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass N validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -611,27 +465,27 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 307 rows were removed. Started with: 100000 rows, ended with: 99693 rows</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> WARNING: Could not track why some rows were removed. This is very surprising</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; validate_snps: 307</span></span>
+<span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="co">#&gt; NULL</span></span></code></pre>
 <p>If you dont provide a name for the sumstat cleaning, tidyGWAS uses
 <code><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time()</a></code> to create a random name.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">my_outdir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "2023_08_03_14_21_02.412227/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt; [2] "2023_08_03_14_21_02.412227/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt; [3] "2023_08_03_14_21_02.412227/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt; [4] "2023_08_03_14_21_02.412227/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt; [5] "2023_08_03_14_21_02.412227/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt; [6] "2023_08_03_14_21_02.412227/tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "2023_08_03_17_20_36.436722/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt; [2] "2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt; [3] "2023_08_03_17_20_36.436722/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt; [4] "2023_08_03_17_20_36.436722/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [5] "2023_08_03_17_20_36.436722/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [6] "2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt"</span></span></code></pre></div>
 <p>This can be controlled with the <code>name</code> argument:</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpC1dMGl/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpnqYW5a/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 14:21:05.386388</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 17:20:39.893107</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -679,7 +533,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpC1dMGl/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -695,35 +549,9 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating CHR </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. CHR coerced to character `base::as.character()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. converted to uppercase `stringr::str_to_upper()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. 'CHR' removed (handles UCSC style CHR format)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for values outside 1:22, X, Y</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 5. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass chr validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating POS </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. POS coerced to integer `base::as.integer()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Checks for NA, NaN, Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for POS &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for POS &gt;= 10^9</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass pos validation</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -745,86 +573,39 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_rsid: 307</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_chr: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_pos: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpC1dMGl/first_gwas/first_gwas/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the EAF column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for EAF &lt;= 0 &amp; EAF &gt;= 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the SE column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for SE &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the P column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Coerce to double `base::as.double()`</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. If P == 0, P is converted to `2.225074e-308`. Adjust by passing convert_p =</span></span>
-<span><span class="co">#&gt; 'your_preferred_value'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. checks that P is within the range: P &gt;= 0 &amp; P &gt; 1</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the B column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to double: base::as.double()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for mislabelled OR by looking at median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. checks for NA, NaN or Inf</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Print median value</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.00120072057651888, which seems reasonable</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass B validation</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass P validation</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the N column: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will coerce to integer: base::as.integer()</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. Check for N &lt;= 0</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Checks for NA, NaN or Inf</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass SE validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass N validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EAF validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -840,24 +621,25 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 307 rows were removed. Started with: 100000 rows, ended with: 99693 rows</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> WARNING: Could not track why some rows were removed. This is very surprising</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; validate_snps: 307</span></span>
+<span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt;  [1] "2023_08_03_14_21_02.412227/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt;  [2] "2023_08_03_14_21_02.412227/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt;  [3] "2023_08_03_14_21_02.412227/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt;  [4] "2023_08_03_14_21_02.412227/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt;  [5] "2023_08_03_14_21_02.412227/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt;  [6] "2023_08_03_14_21_02.412227/tidyGWAS_logfile.txt"               </span></span>
+<span><span class="co">#&gt;  [1] "2023_08_03_17_20_36.436722/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt;  [2] "2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt;  [3] "2023_08_03_17_20_36.436722/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt;  [4] "2023_08_03_17_20_36.436722/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt;  [5] "2023_08_03_17_20_36.436722/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt;  [6] "2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt"               </span></span>
 <span><span class="co">#&gt;  [7] "first_gwas/cleaned_GRCh38.gz"                                  </span></span>
 <span><span class="co">#&gt;  [8] "first_gwas/pipeline_info/updated_rsid.log.gz"                  </span></span>
 <span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/validate_snps.log.gz"                 </span></span>
 <span><span class="co">#&gt; [10] "first_gwas/pipeline_info/validate_stats.log.gz"                </span></span>
 <span><span class="co">#&gt; [11] "first_gwas/raw_sumstats.gz"                                    </span></span>
-<span><span class="co">#&gt; [12] "first_gwas/tidyGWAS_logfile.txt"</span></span></code></pre>
+<span><span class="co">#&gt; [12] "first_gwas/tidyGWAS_log.txt"                                   </span></span>
+<span><span class="co">#&gt; [13] "first_gwas/tidyGWAS_logfile.txt"</span></span></code></pre>
 <p>Oops! We now have two different folders in our outdir. This is a
 feature. <code>outdir</code> is meant to be used when you have many
 different sumstats that you all want to be in the same directory, with

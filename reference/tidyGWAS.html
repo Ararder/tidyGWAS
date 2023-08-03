@@ -52,6 +52,8 @@
 <span>  <span class="va">name</span>,</span>
 <span>  <span class="va">outdir</span>,</span>
 <span>  keep_indels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  log_on_err <span class="op">=</span> <span class="st">"tidyGWAS_log.txt"</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -80,6 +82,16 @@
 
 <dt>keep_indels</dt>
 <dd><p>Should indels be kept? Default is TRUE</p></dd>
+
+
+<dt>verbose</dt>
+<dd><p>Should tidyGWAS tell you everything it's doing? default is FALSE</p></dd>
+
+
+<dt>log_on_err</dt>
+<dd><p>a filepath, used if logfile = TRUE. If tidyGWAS throws an error, the logfile
+is copied to that file. Useful is running non-interactively, in which case the logfile
+will be deleted if tidyGWAS errors.</p></dd>
 
 
 <dt>...</dt>
