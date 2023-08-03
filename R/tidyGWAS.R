@@ -157,16 +157,13 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
     cli::cli_warn(c("These columns do not follow column naming convention and are removed:",
       "{colnames(tbl)[!colnames(tbl) %in% valid_column_names]}"))
   }
-
-  # setup filepaths that will be used
-  struct <- vector("list")
-  struct$filepaths <- filepaths
-
   # check that either RSID or CHR:POS is present
   stopifnot("Requires either RSID or CHR:POS" = c("RSID") %in% colnames(tbl) | c("CHR", "POS") %in% colnames(tbl))
   stopifnot("Requires EffectAllele and OtherAllele" = all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
 
-  # select valid column
+  # setup filepaths that will be used, and remove unwanted columns
+  struct <- vector("list")
+  struct$filepaths <- filepaths
   tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
 
   # add rowid if it doesnt exist
@@ -178,10 +175,8 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # add N if CaseN and ControlN exists
   if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
 
-  # impute_n if argument supplied
+  # impute_n if argument supplied and infor if N is missing
   if(!missing(study_n)) tbl <- dplyr::mutate(tbl, N = {{ study_n }})
-
-  # inform if N is missing
   if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
 
   # add flags for which identifiers exist
@@ -208,24 +203,23 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # handle duplicates -------------------------------------------------------
 
   cli::cli_h3("Looking for duplicate rows")
-  cli::cli_inform("arranging by P prior to filtering duplications. In any duplication, the row with the smallest pvalue will be kept.")
+  cli::cli_inform("If possible, selects the row with smallest pvalue in each duplication unit")
+  if("P" %in% colnames(tmp)) tmp <- dplyr::arrange(tmp, .data[["P"]])
+
   if(struct$has_chr_pos) {
-    cli::cli_alert_info("Using CHR_POS_REF_ALT as id")
-
-    # keep tmp so we can find which rows were removed
-    no_dups <- dplyr::distinct(tmp, CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
-    removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
-    tmp <- no_dups
+    id <- "CHR_POS_REF_ALT"
+    cols_to_use <- c("CHR", "POS", "EffectAllele", "OtherAllele")
   } else {
-    cli::cli_alert_info("Using RSID_REF_ALT as id")
-
-    # keep tmp so we can find which rows were removed
-    no_dups <- dplyr::distinct(dplyr::arrange(tmp, P), RSID, EffectAllele, OtherAllele, .keep_all = TRUE)
-    removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
-    tmp <- no_dups
+    id <- "RSID_REF_ALT"
+    cols_to_use <- c("RSID", "EffectAllele", "OtherAllele")
 
   }
 
+  cli::cli_alert_info("Using {id} as id")
+  # use distinct to remove duplications
+  no_dups <- dplyr::distinct(tmp, dplyr::pick(dplyr::all_of(cols_to_use)), .keep_all = TRUE)
+  removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
+  tmp <- no_dups
   if(nrow(removed) > 0) cli::cli_alert_info("Removed {nrow(removed)} rows flagged as duplications")
 
 
@@ -424,7 +418,7 @@ setup_pipeline_paths <- function(name, rsid_subset) {
 
 }
 
-start_message_validate <- function(func,tbl) {
+start_message_validate <- function(func,tbl, na_rows) {
   if(func== "validate_snps") {
     cli::cli_h2("Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele")
   } else if(func == "validate_with_dbsnp") {
@@ -437,6 +431,10 @@ start_message_validate <- function(func,tbl) {
     cols_in_tbl <- colnames(tbl)[colnames(tbl) %in% stats_cols]
 
     cli::cli_h2("Validating statistics columns: {cols_in_tbl}")
+  }
+
+  else if(func=="drop_na") {
+    stopifnot(!missing(na_rows))
   }
 
 

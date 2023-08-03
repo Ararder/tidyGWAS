@@ -172,7 +172,7 @@ test_that("Testing without RSID", {
 
 })
 
-test_that("verify_chr_pos runs"{
+test_that("verify_chr_pos runs", {
   skip("time consuming")
   bs <- get_bsgenome()
   rs_merge_arch <- get_ref_data()
