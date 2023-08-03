@@ -41,7 +41,7 @@ mock_dbsnp <- function(){
     get_bsgenome = function(...) {
       list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
     },
-    .env = parent.frame()
+    .env = parent.frame(),
   )
 }
 
