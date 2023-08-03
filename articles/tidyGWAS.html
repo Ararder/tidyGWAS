@@ -157,7 +157,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-02 21:27:19.913424</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 09:26:11.250354</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -179,8 +179,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; arranging by P prior to filtering duplications. In any duplication, the row</span></span>
-<span><span class="co">#&gt; with the smallest pvalue will be kept.</span></span>
+<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -206,7 +205,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/2023_08_02_21_27_19.875847/2023_08_02_21_27_19.875847/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpVnlCD8/2023_08_03_09_26_11.206365/2023_08_03_09_26_11.206365/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -266,7 +265,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; invalid_pos: 0</span></span>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/2023_08_02_21_27_19.875847/2023_08_02_21_27_19.875847/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVnlCD8/2023_08_03_09_26_11.206365/2023_08_03_09_26_11.206365/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Validating the EAF column: </span></span>
@@ -316,17 +315,17 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <p>About 3 seconds for 100k rows</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end</span> <span class="op">-</span> <span class="va">start</span></span>
-<span><span class="co">#&gt; Time difference of 3.048577 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.634163 secs</span></span></code></pre></div>
 <p>If you want the information to be stored in a logfile on disk, you
 can use the logfile flag. Note that by default, tidyGWAS uses a folder
 in <code>tempdir</code> to store all intermediate files. These files are
 not saved indefinitely, so to store the output data, you can also
 provide an output directory where you want the copy over the finished
 tidyGWAS oflder</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/2023_08_02_21_27_23.108319/2023_08_02_21_27_23.108319/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpVnlCD8/2023_08_03_09_26_14.015936/2023_08_03_09_26_14.015936/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-02 21:27:23.147166</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 09:26:14.042524</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -348,8 +347,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; arranging by P prior to filtering duplications. In any duplication, the row</span></span>
-<span><span class="co">#&gt; with the smallest pvalue will be kept.</span></span>
+<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -375,7 +373,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/2023_08_02_21_27_23.108319/2023_08_02_21_27_23.108319/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpVnlCD8/2023_08_03_09_26_14.015936/2023_08_03_09_26_14.015936/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -458,7 +456,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/2023_08_02_21_27_23.108319/2023_08_02_21_27_23.108319/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVnlCD8/2023_08_03_09_26_14.015936/2023_08_03_09_26_14.015936/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
@@ -554,17 +552,17 @@ tidyGWAS oflder</p>
 <code><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time()</a></code> to create a random name.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">my_outdir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "2023_08_02_21_27_23.108319/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt; [2] "2023_08_02_21_27_23.108319/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt; [3] "2023_08_02_21_27_23.108319/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt; [4] "2023_08_02_21_27_23.108319/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt; [5] "2023_08_02_21_27_23.108319/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt; [6] "2023_08_02_21_27_23.108319/tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "2023_08_03_09_26_14.015936/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt; [2] "2023_08_03_09_26_14.015936/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt; [3] "2023_08_03_09_26_14.015936/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt; [4] "2023_08_03_09_26_14.015936/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [5] "2023_08_03_09_26_14.015936/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [6] "2023_08_03_09_26_14.015936/tidyGWAS_logfile.txt"</span></span></code></pre></div>
 <p>This can be controlled with the <code>name</code> argument:</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpVnlCD8/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-02 21:27:26.745801</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-03 09:26:17.520592</span></span>
 <span><span class="co">#&gt; Writing out raw sumstats</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -586,8 +584,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; arranging by P prior to filtering duplications. In any duplication, the row</span></span>
-<span><span class="co">#&gt; with the smallest pvalue will be kept.</span></span>
+<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -613,7 +610,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpVnlCD8/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -696,7 +693,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; invalid_ea_oa: 0</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Removed a total of 307 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpPvf7dQ/first_gwas/first_gwas/pipeline_info/validate_snps.log.gz</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVnlCD8/first_gwas/first_gwas/pipeline_info/validate_snps.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating statistics columns: B, P, SE, INFO, N, CaseN, ControlN, and EAF</span> ──</span></span>
@@ -788,12 +785,12 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; validate_snps: 307</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt;  [1] "2023_08_02_21_27_23.108319/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt;  [2] "2023_08_02_21_27_23.108319/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt;  [3] "2023_08_02_21_27_23.108319/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt;  [4] "2023_08_02_21_27_23.108319/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt;  [5] "2023_08_02_21_27_23.108319/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt;  [6] "2023_08_02_21_27_23.108319/tidyGWAS_logfile.txt"               </span></span>
+<span><span class="co">#&gt;  [1] "2023_08_03_09_26_14.015936/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt;  [2] "2023_08_03_09_26_14.015936/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt;  [3] "2023_08_03_09_26_14.015936/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt;  [4] "2023_08_03_09_26_14.015936/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt;  [5] "2023_08_03_09_26_14.015936/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt;  [6] "2023_08_03_09_26_14.015936/tidyGWAS_logfile.txt"               </span></span>
 <span><span class="co">#&gt;  [7] "first_gwas/cleaned_GRCh38.gz"                                  </span></span>
 <span><span class="co">#&gt;  [8] "first_gwas/pipeline_info/updated_rsid.log.gz"                  </span></span>
 <span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/validate_snps.log.gz"                 </span></span>
