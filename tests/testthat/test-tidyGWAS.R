@@ -120,10 +120,11 @@ test_that("testing tidyGWAS with RSID, CHR and POS", {
 
 })
 
-test_that("testing on longleaf with larger sumstat", {
-  skip("Only works on longleaf")
-  bs <- get_bsgenome()
-  rs_merge_arch <- get_ref_data()
+
+test_that("testing without CHR and POS", {
+  skip("covr github actions fail")
+  mock_dbsnp()
+  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
 
   tmp_file <- data.table::fread("~/shared/gwas_sumstats/sumstats/default/default/raw/ukb_phase1to3_rest_edge_full_dec21_2019_pheno87.fastGWA.gz") |>
     dplyr::rename(RSID = SNP, EffectAllele = A1, OtherAllele = A2, EAF = AF1, B = BETA) |>
