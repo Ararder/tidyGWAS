@@ -27,7 +27,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @examples \dontrun{
 #' tidyGWAS(tbl = "my_dataframe", logfile = "true", name = "test_run", outdir = "gwas_sumstat_dir")
 #' }
-tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
+tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, keep_indels = TRUE, ...) {
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
 
   # setup  ------------------------------------------------------------------
@@ -56,7 +56,6 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
   # validate SNP identifiers  ----------------------------------------------
   struct <- validate_snps(struct, .filter_callback = make_callback(struct$filepaths$validate_snps))
 
-
   # Validate the stats columns ----------------------------------------------
   struct <- validate_stats(struct, .filter_callback = make_callback(struct$filepaths$validate_stats))
 
@@ -64,21 +63,27 @@ tidyGWAS <- function(tbl, bsgenome_objects, logfile=FALSE, name, outdir, ...) {
   # Checks against dbSNP ----------------------------------------------------
   if(!missing(bsgenome_objects)) struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bsgenome_objects, ..., .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
 
+  if(keep_indels & nrow(struct$indels) > 0) {
+    indel_struct <- vector("list")
+    indel_struct$sumstat <- dplyr::select(struct$indels, dplyr::any_of(c("rowid", snp_cols)))
+    indel_struct$stats <-   dplyr::select(struct$indels, dplyr::any_of(c("rowid", stats_cols, info_cols)))
+    indel_struct$has_rsid <- FALSE
+    indel_struct <- validate_snps(indel_struct, validate_alleles = FALSE, .filter_callback = make_callback(struct$filepaths$validate_snps_indels))
+    indel_struct <- validate_stats(indel_struct, .filter_callback = make_callback(struct$filepaths$validate_stats_indels))
 
+    # merge back into main struct
+    cli::cli_alert_success("Indels have been merged back into main pipeline")
+    struct$sumstat <- dplyr::bind_rows(struct$sumstat, indel_struct$sumstat)
+    struct$stats <- dplyr::bind_rows(struct$stats, indel_struct$stats)
+  }
 
   # main checks done --------------------------------------------------------
   main <- dplyr::inner_join(struct$sumstat, struct$stats, by = "rowid")
 
 
-  # check for duplications --------------------------------------------------
-  if("RSID" %in% colnames(main)) if(sum(duplicated(main$RSID))> 0) cli::cli_alert_warning("Found {sum(duplicated(main$RSID))} rows with duplicated RSID")
-
-
-
   # print info about end results ----------------------------------------------------------------
-  rows_end <- nrow(main)
   cli::cli_h1("Finished tidyGWAS")
-  cli::cli_alert_info("A total of {rows_start - rows_end} rows were removed. Started with: {rows_start} rows, ended with: {rows_end} rows")
+  cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed. Started with: {rows_start} rows, ended with: {nrow(main)} rows")
 
 
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
@@ -214,10 +219,10 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 
 
-  # remove indels -----------------------------------------------------------
-  create_message("indels")
+  # remove indels from main pipeline ------------------------------------------
+  create_messages("indels")
   tmp <- flag_indels(tmp)
-  indels <-  dplyr::select(dplyr::filter(tmp,  .data[["indel"]]), rowid, EffectAllele, OtherAllele)
+  struct$indels <-  dplyr::select(dplyr::filter(tmp,  .data[["indel"]]), -indel)
   tmp <-     dplyr::select(dplyr::filter(tmp, !.data[["indel"]]), -indel)
 
 
@@ -237,11 +242,6 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # summarise what has been doen --------------------------------------------
   cli::cli_h2("Finished initial checks")
   cli::cli_ul()
-
-  if(nrow(indels > 0)) {
-    cli::cli_li("{nrow(indels)} rows removed because of indel status: {.file {struct$filepaths$indels}}")
-    data.table::fwrite(indels, struct$filepaths$indels, sep = "\t")
-  }
 
   if(nrow(dropped_because_NA) > 0) {
     cli::cli_li("{nrow(dropped_because_NA)} rows removed because of NA: {.file {struct$filepaths$rows_with_na}}")
@@ -348,7 +348,9 @@ setup_pipeline_paths <- function(name, rsid_subset) {
   }
 
   pipeline_info <- paste(workdir,"pipeline_info", sep = "/")
+  indel_dir <- paste(pipeline_info,"indels", sep = "/")
   suppressWarnings(dir.create(pipeline_info, recursive = TRUE))
+  if(!dir.exists(indel_dir)) dir.create(indel_dir)
 
 
 
@@ -359,15 +361,19 @@ setup_pipeline_paths <- function(name, rsid_subset) {
   #
 
 
-  validate_stats <-      paste(pipeline_info, "validate_stats.log.gz", sep = "/")
   start_ids <-           paste(pipeline_info, "start_ids.tsv.gz", sep = "/")
   duplicates <-          paste(pipeline_info, "duplicates.log.gz", sep = "/")
+  validate_stats <-      paste(pipeline_info, "validate_stats.log.gz", sep = "/")
   validate_snps <-       paste(pipeline_info, "validate_snps.log.gz", sep = "/")
   validate_with_dbsnp <- paste(pipeline_info, "validate_with_dbsnp.log.gz", sep = "/")
   updated_rsid <-        paste(pipeline_info, "updated_rsid.log.gz", sep = "/")
-  indels <-              paste(pipeline_info, "indels.log.gz", sep = "/")
   rows_with_na <-        paste(pipeline_info, "rows_with_na.log.gz", sep = "/")
   failed_rsid_parse <-   paste(pipeline_info, "failed_rsid_parse.log.gz", sep = "/")
+
+
+  indels <-              paste(indel_dir, "indels.log.gz", sep = "/")
+  validate_stats_indels <-      paste(indel_dir, "validate_stats.log.gz", sep = "/")
+  validate_snps_indels <-       paste(indel_dir, "validate_snps.log.gz", sep = "/")
 
   invalid_rsid <-  paste(pipeline_info, "invalid_rsid", sep = "/")
   if(!dir.exists(invalid_rsid)) dir.create(invalid_rsid)
@@ -387,7 +393,9 @@ setup_pipeline_paths <- function(name, rsid_subset) {
     "validate_with_dbsnp" = validate_with_dbsnp,
     "updated_rsid"= updated_rsid,
     "failed_rsid_parse" = failed_rsid_parse,
-    "indels" = indels,
+    "indels" =                     paste(indel_dir, "indels.log.gz", sep = "/"),
+    "validate_stats_indels" =      paste(indel_dir, "validate_stats.log.gz", sep = "/"),
+    "validate_snps_indels" =       paste(indel_dir, "validate_snps.log.gz", sep = "/"),
     "invalid_rsid" = invalid_rsid,
     "rows_with_na" = rows_with_na
   )
@@ -425,10 +433,10 @@ create_messages <- function(func,tbl, na_rows) {
     stopifnot(!missing(na_rows))
     cli::cli_h3("Examining data for missing values across all columns")
     cli::cli_ul("Using tidyr::drop_na()")
-    if(nrow(dropped_because_NA > 0)){
+    if(nrow(na_rows > 0)){
       cli::cli_alert("Found {nrow(dropped_because_NA)} rows with missing values. These are removed. Printing the first 5 rows")
-      cli::cat_print(dplyr::slice(dropped_because_NA, 1:5))
-      data.table::fwrite(dropped_because_NA, struct$filepaths$rows_with_na, sep = "\t")
+      cli::cat_print(dplyr::slice(na_rows, 1:5))
+      data.table::fwrite(na_rows, struct$filepaths$rows_with_na, sep = "\t")
     } else {
       cli::cli_alert_success("Found no rows with missing values")
     }
