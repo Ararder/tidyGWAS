@@ -67,6 +67,11 @@ test_that("get_ref_data runs", {
 
 })
 
+test_that("infer_build runs", {
+  mock_dbsnp()
+  expect_no_error(infer_build(test_file))
+})
+
 test_that("flatten_dbsnp runs", {
   expect_no_error(flatten_dbsnp(b38))
 })
