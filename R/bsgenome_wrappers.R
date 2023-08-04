@@ -23,7 +23,7 @@ utils::globalVariables(c(
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
 #' }
-verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
+verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback) {
   # verify_chr_pos_rsid starts by using CHR and POS to get RSID, through dbSNP
   # 1) check if RSID from sumstat agrees with RSID from dbSNP
   # 2)
@@ -103,7 +103,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
   # 4) use filter callback function if passed  -----------------------------------
 
   if(!missing(.filter_callback)) final <- .filter_callback(final)
-  final
+  dplyr::select(final, -dplyr::any_of(c("ref_allele", "alt_alleles")))
 
 }
 
