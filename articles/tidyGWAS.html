@@ -174,69 +174,58 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 17:20:33.494642</span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-04 12:27:28.95715</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, ControlN, and rowid</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Examining data for missing values across all columns </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • Using tidyr::drop_na()</span></span>
+<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Scanning for duplicates.. If P exists, row with smallest pvalue will ke kept</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   1. Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking for insertions/deletions ('indels') using:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Updating RSIDs that have been merged using RsMergeArch </span></span>
+<span><span class="co">#&gt;   ── Updating RSIDs that have been merged using RsMergeArch </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_33.401511/2023_08_03_17_20_33.401511/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele</span> ──</span></span>
+<span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_28.909025/2023_08_04_12_27_28.909025/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EffectAllele validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass OtherAllele validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the RSID column: </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • Checking that RSID follows rs format: [rR][sS][1-10]</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • If rows fail rs format, look for CHR:POS or CHR:POS:REF:ALT format</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
+<span><span class="co">#&gt; ── Running validation of CHR and POS for rows without a valid RSID </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -244,39 +233,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating EffectAllele and OtherAllele: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will error if not type = character</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. EffectAllele and OtherAllele converted to uppercase</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Check for EA/OA values that are not A,C,G or T</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EA/OA validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -298,11 +255,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -319,79 +272,68 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <p>About 3 seconds for 100k rows</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end</span> <span class="op">-</span> <span class="va">start</span></span>
-<span><span class="co">#&gt; Time difference of 2.850791 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 3.478827 secs</span></span></code></pre></div>
 <p>If you want the information to be stored in a logfile on disk, you
 can use the logfile flag. Note that by default, tidyGWAS uses a folder
 in <code>tempdir</code> to store all intermediate files. These files are
 not saved indefinitely, so to store the output data, you can also
 provide an output directory where you want the copy over the finished
 tidyGWAS oflder</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_36.436722/2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_32.577928/2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 17:20:36.485302</span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-04 12:27:32.617603</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, ControlN, and rowid</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Examining data for missing values across all columns </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • Using tidyr::drop_na()</span></span>
+<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Scanning for duplicates.. If P exists, row with smallest pvalue will ke kept</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   1. Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking for insertions/deletions ('indels') using:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Updating RSIDs that have been merged using RsMergeArch </span></span>
+<span><span class="co">#&gt;   ── Updating RSIDs that have been merged using RsMergeArch </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/2023_08_03_17_20_36.436722/2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele</span> ──</span></span>
+<span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_32.577928/2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EffectAllele validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass OtherAllele validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the RSID column: </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • Checking that RSID follows rs format: [rR][sS][1-10]</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • If rows fail rs format, look for CHR:POS or CHR:POS:REF:ALT format</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
+<span><span class="co">#&gt; ── Running validation of CHR and POS for rows without a valid RSID </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -399,39 +341,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating EffectAllele and OtherAllele: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will error if not type = character</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. EffectAllele and OtherAllele converted to uppercase</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Check for EA/OA values that are not A,C,G or T</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EA/OA validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -453,11 +363,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -475,79 +381,68 @@ tidyGWAS oflder</p>
 <code><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time()</a></code> to create a random name.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">my_outdir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "2023_08_03_17_20_36.436722/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt; [2] "2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt; [3] "2023_08_03_17_20_36.436722/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt; [4] "2023_08_03_17_20_36.436722/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt; [5] "2023_08_03_17_20_36.436722/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt; [6] "2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "2023_08_04_12_27_32.577928/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt; [2] "2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt; [3] "2023_08_04_12_27_32.577928/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt; [4] "2023_08_04_12_27_32.577928/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [5] "2023_08_04_12_27_32.577928/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [6] "2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt"</span></span></code></pre></div>
 <p>This can be controlled with the <code>name</code> argument:</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpnqYW5a/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpWG29p1/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-03 17:20:39.893107</span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-04 12:27:36.705367</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, ControlN, and rowid</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Examining data for missing values across all columns </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • Using tidyr::drop_na()</span></span>
+<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Scanning for duplicates.. If P exists, row with smallest pvalue will ke kept</span></span>
 <span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   1. Using CHR_POS_REF_ALT as id</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Looking for duplicate rows </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; If possible, selects the row with smallest pvalue in each duplication unit</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Using CHR_POS_REF_ALT as id</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking for insertions/deletions ('indels') using:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Updating RSIDs that have been merged using RsMergeArch </span></span>
+<span><span class="co">#&gt;   ── Updating RSIDs that have been merged using RsMergeArch </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
+<span><span class="co">#&gt;   <span style="color: #00BB00;">✔</span> Updated RSID in 175 rows</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;   • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;   <span style="color: #0000BB;">/tmp/RtmpnqYW5a/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;   ── <span style="font-weight: bold;">Finished initial checks</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele</span> ──</span></span>
+<span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EffectAllele validation</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass OtherAllele validation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating the RSID column: </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • Checking that RSID follows rs format: [rR][sS][1-10]</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; • If rows fail rs format, look for CHR:POS or CHR:POS:REF:ALT format</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. </span></span>
+<span><span class="co">#&gt; ── Running validation of CHR and POS for rows without a valid RSID </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -555,39 +450,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Validating EffectAllele and OtherAllele: </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. Will error if not type = character</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. EffectAllele and OtherAllele converted to uppercase</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3. Check for EA/OA values that are not A,C,G or T</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 4. Check for NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass EA/OA validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Running validation of CHR and POS for invalid_rsid rows</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass CHR validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> All rows pass POS validation</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -609,11 +472,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows were removed by these flags</span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">No rows were removed</span> ──</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -627,12 +486,12 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt;  [1] "2023_08_03_17_20_36.436722/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt;  [2] "2023_08_03_17_20_36.436722/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt;  [3] "2023_08_03_17_20_36.436722/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt;  [4] "2023_08_03_17_20_36.436722/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt;  [5] "2023_08_03_17_20_36.436722/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt;  [6] "2023_08_03_17_20_36.436722/tidyGWAS_logfile.txt"               </span></span>
+<span><span class="co">#&gt;  [1] "2023_08_04_12_27_32.577928/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt;  [2] "2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt;  [3] "2023_08_04_12_27_32.577928/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt;  [4] "2023_08_04_12_27_32.577928/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt;  [5] "2023_08_04_12_27_32.577928/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt;  [6] "2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt"               </span></span>
 <span><span class="co">#&gt;  [7] "first_gwas/cleaned_GRCh38.gz"                                  </span></span>
 <span><span class="co">#&gt;  [8] "first_gwas/pipeline_info/updated_rsid.log.gz"                  </span></span>
 <span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/validate_snps.log.gz"                 </span></span>
