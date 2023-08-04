@@ -45,6 +45,8 @@ tidyGWAS <- function(
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
 
   # setup  ------------------------------------------------------------------
+
+
   if(missing(name)) name <- stringr::str_replace_all(Sys.time(), pattern = "[:-]", replacement = "_") |> stringr::str_replace(" ", "_")
   filepaths <- setup_pipeline_paths(name = name)
   if(logfile) {
@@ -54,18 +56,16 @@ tidyGWAS <- function(
     on.exit(file.copy(filepaths$logfile, "tidyGWAS_log.txt"), add=TRUE)
   }
 
+
   # start pipeline ----------------------------------------------------------
+
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {Sys.time()}")
   rows_start <- nrow(tbl)
 
-  # write raw file
-  cli::cli_inform("Writing out raw sumstats")
-  if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
-  data.table::fwrite(tbl, paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # run initial checks
-  struct <- initiate_struct(tbl = tbl, ..., filepaths = filepaths)
+  struct <- initiate_struct(tbl = tbl, filepaths = filepaths, verbose = verbose, ...)
 
   # validate SNP identifiers  ----------------------------------------------
   cb_snps <- make_callback(struct$filepaths$validate_snps)
@@ -119,6 +119,9 @@ tidyGWAS <- function(
 }
 
 
+# -------------------------------------------------------------------------
+
+
 validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...) {
   create_messages("validate_with_dbsnp")
 
@@ -160,14 +163,20 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
 }
 
 
+# -------------------------------------------------------------------------
 
 
-initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...) {
 
-  # starting print
+
+initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n, verbose=FALSE) {
+
+
+  # -------------------------------------------------------------------------
+
+
+
+
   cli::cli_h2("Performing initial checks on input data: ")
-  cli::cli_ul()
-  ulid <- cli::cli_ol()
   if(!missing(build)) cli::cli_alert_info("Using GRCh{build} as genome build")
   if(!missing(study_n)) cli::cli_alert_info("Using N={study_n} to impute N if N column is not present")
   if(missing(rs_merge_arch)) rs_merge_arch <- get_ref_data()
@@ -182,6 +191,12 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   # check that either RSID or CHR:POS is present
   stopifnot("Requires either RSID or CHR:POS" = c("RSID") %in% colnames(tbl) | c("CHR", "POS") %in% colnames(tbl))
   stopifnot("Requires EffectAllele and OtherAllele" = all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
+
+  # write raw file
+  tbl <- dplyr::tibble(tbl)
+  cli::cli_inform("Writing out raw sumstats")
+  if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
+  data.table::fwrite(tbl, paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # setup filepaths that will be used, and remove unwanted columns
   struct <- vector("list")
@@ -206,16 +221,31 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
   struct[["has_rsid"]] <- ifelse("RSID" %in% colnames(tbl), TRUE, FALSE)
 
 
-  # remove rows with NA -----------------------------------------------------
+  # 1) First filter - remove rows with NA ---------------------------------------
+
+  cli::cli_ul()
+  cli::cli_li("Scanning for NAs with tidyr::drop_na()")
+  ol <- cli::cli_ol()
 
   tmp <- tidyr::drop_na(tbl, -dplyr::any_of(c("CHR", "POS", "RSID")))
   struct$na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid")
-  create_messages(func = "drop_na", struct = struct)
 
-  # handle duplicates -------------------------------------------------------
+  if(nrow(struct$na_rows) > 0) {
+    cli::cli_li("Found {nrow(struct$na_rows)} rows with missing values. These are removed. Printing the first 5 rows")
+    cli::cat_print(dplyr::slice(struct$na_rows, 1:5), file = stderr())
+    data.table::fwrite(struct$na_rows, struct$filepaths$rows_with_na, sep = "\t")
+  } else {
+    cli::cli_alert_success("Found no rows with missing values")
+  }
 
-  cli::cli_h3("Looking for duplicate rows")
-  cli::cli_inform("If possible, selects the row with smallest pvalue in each duplication unit")
+  cli::cli_end(ol)
+
+
+
+  # 2) handle duplicates -------------------------------------------------------
+
+  cli::cli_li("Scanning for duplicates.. If P exists, row with smallest pvalue will ke kept")
+  ol <- cli::cli_ol()
   if("P" %in% colnames(tmp)) tmp <- dplyr::arrange(tmp, .data[["P"]])
 
   if(struct$has_chr_pos) {
@@ -227,23 +257,23 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
   }
 
-  cli::cli_alert_info("Using {id} as id")
+  cli::cli_li("Using {id} as id")
   # use distinct to remove duplications
   no_dups <- dplyr::distinct(tmp, dplyr::pick(dplyr::all_of(cols_to_use)), .keep_all = TRUE)
   removed <- dplyr::anti_join(tmp, no_dups, by = "rowid")
   tmp <- no_dups
-  if(nrow(removed) > 0) cli::cli_alert_info("Removed {nrow(removed)} rows flagged as duplications")
+  if(nrow(removed) > 0) cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
 
 
 
-  # remove indels from main pipeline ------------------------------------------
-  create_messages("indels")
+  # 3) remove indels from main pipeline ------------------------------------------
+  if(verbose) create_messages("indels")
   tmp <- flag_indels(tmp)
   struct$indels <-  dplyr::select(dplyr::filter(tmp,  .data[["indel"]]), -indel)
   tmp <-     dplyr::select(dplyr::filter(tmp, !.data[["indel"]]), -indel)
 
 
-  # if possible, update RSID ------------------------------------------------
+  # 4) if possible, update RSID ------------------------------------------------
 
   if("RSID" %in% colnames(tmp)) {
     cli::cli_h3("Updating RSIDs that have been merged using RsMergeArch")
@@ -257,6 +287,7 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 
   # summarise what has been doen --------------------------------------------
+
   cli::cli_h2("Finished initial checks")
   cli::cli_ul()
 
@@ -282,6 +313,11 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n,  ...)
 
 }
 
+
+
+# -------------------------------------------------------------------------
+
+
 validate_stats <- function(struct, ..., .filter_callback, verbose=TRUE) {
   create_messages("validate_stats", struct$stats)
   tbl <- struct$stats
@@ -300,35 +336,36 @@ validate_stats <- function(struct, ..., .filter_callback, verbose=TRUE) {
 }
 
 
+# -------------------------------------------------------------------------
 
-validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE, verbose) {
 
-  create_messages("validate_snps")
+
+validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE, verbose=FALSE) {
+
+
 
   if(struct$has_rsid) {
 
     # unpack validation of RSIDS
 
-    validated_rsid <- validate_rsid(struct$sumstat)
+    validated_rsid <- validate_rsid(struct$sumstat, verbose = verbose)
     struct$sumstat <- validated_rsid$data |> dplyr::filter(!invalid_rsid) |> dplyr::select(-invalid_rsid)
     struct$without_rsid <- validated_rsid$chr_pos
     struct$failed <-  validated_rsid$failed
+    if(!is.null(struct$failed)) if(nrow(struct$failed > 0)) data.table::fwrite(struct$failed, struct$filepaths$failed_rsid_parse)
   }
   # double if because cannot do second check without first passing
-  if(!is.null(struct$failed)) if(nrow(struct$failed > 0)) data.table::fwrite(struct$failed, struct$filepaths$failed_rsid_parse)
 
   # validate main dataframe
-  cols_to_run <- colnames(struct$sumstat)[colnames(struct$sumstat) %in% c("CHR", "POS")]
+  cols_to_run <- colnames(struct$sumstat)[colnames(struct$sumstat) %in% c("CHR", "POS", "EffectAllele", "OtherAllele")]
   for(c in cols_to_run) struct$sumstat <- validate_columns(struct$sumstat ,col = c, verbose = verbose)
-  if(validate_alleles) struct$sumstat <- validate_ea_oa(struct$sumstat)
-  # use callback
   if(!missing(.filter_callback)) struct$sumstat <- .filter_callback(struct$sumstat)
 
   # validate subset with invalid RSID
   if(!is.null(struct$without_rsid)) {
     if(nrow(struct$without_rsid) > 0) {
-
-    cli::cli_alert_info("Running validation of CHR and POS for invalid_rsid rows")
+    cols_to_run <- c("CHR", "POS")
+    cli::cli_h3("Running validation of CHR and POS for rows without a valid RSID")
     for(c in cols_to_run) struct$without_rsid <- validate_columns(struct$without_rsid ,col = c, verbose = FALSE)
 
     # use callback
@@ -343,11 +380,18 @@ validate_snps <- function(struct, .filter_callback, validate_alleles=TRUE, verbo
 }
 
 
+
+# -------------------------------------------------------------------------
+
+
 warning_messages_stats <- function(tbl) {
   n_p_0 <- dplyr::filter(tbl, P == 0) |> nrow()
   z_miss <- all(c("B", "P") %in% colnames(tbl)) & !"Z" %in% colnames(tbl)
   if(n_p_0 & z_miss) cli::cli_alert_danger("WARNING: Found {n_p_0} rows with P = 0 and missing Z score. These will not be correctly imputed")
 }
+
+
+# -------------------------------------------------------------------------
 
 
 setup_pipeline_paths <- function(name, rsid_subset) {
@@ -416,6 +460,9 @@ setup_pipeline_paths <- function(name, rsid_subset) {
 
 }
 
+# -------------------------------------------------------------------------
+
+
 create_messages <- function(func,tbl, struct) {
   if(func== "validate_snps") {
     cli::cli_h2("Starting validation of CHR,POS, RSID, EffectAllele and OtherAllele")
@@ -470,6 +517,9 @@ create_messages <- function(func,tbl, struct) {
 
 
 }
+
+# -------------------------------------------------------------------------
+
 
 
 identify_removed_rows <- function(finished, filepaths) {

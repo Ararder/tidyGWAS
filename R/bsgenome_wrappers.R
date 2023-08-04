@@ -256,14 +256,18 @@ make_callback <- function(outpath, append=FALSE) {
     remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
     count_by_flag <- purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T))
 
-    cli::cli_h2("Listing how many rows are removed per flag: ")
+
+
     if(nrow(remove) > 0) {
+      cli::cli_h2("Listing how many rows are removed per flag: ")
       cli::cli_dl(purrr::list_simplify(count_by_flag))
       cli::cli_inform("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
     } else {
-
-      cli::cli_alert_success("No rows were removed by these flags")
+      cli::cli_h2("{.emph No rows were removed}")
     }
+
+
+
 
 
 
@@ -363,6 +367,7 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
       # remove empty entries
       purrr::keep(\(x) nrow(x) > 0) |>
       purrr::list_rbind()
+    if(rlang::is_empty(res)) res <- data.table::data.table("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
 
   }
 
@@ -394,11 +399,11 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
 # -------------------------------------------------------------------------
 
 
-infer_build <- function(tbl, n_snps = 10000) {
-  cli::cli_alert_info("Inferring build by checking matches against GRCh37 and GRCh38")
-  stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(tbl)))
+infer_build <- function(sumstat, n_snps = 10000) {
+  cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
+  stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(sumstat)))
 
-  subset <- dplyr::slice_sample(tbl, n = {{ n_snps }})
+  subset <- dplyr::slice_sample(sumstat, n = {{ n_snps }})
   b38 <- map_to_dbsnp(tbl = subset, build = 38, by = "chr:pos")
   b37 <- map_to_dbsnp(tbl = subset, build = 37, by = "chr:pos")
 

@@ -1,10 +1,10 @@
 utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR"))
-validate_rsid <- function(tbl) {
+validate_rsid <- function(tbl, verbose=FALSE) {
 
 
   # setup -------------------------------------------------------------------
 
-  start_message("RSID")
+  if(verbose) start_message("RSID")
   tbl$RSID <- as.character(tbl$RSID)
   tbl <- flag_incorrect_rsid_format(tbl)
   invalid_rsid_format <- dplyr::filter(tbl, invalid_rsid)
@@ -13,7 +13,7 @@ validate_rsid <- function(tbl) {
   # No invalid RSIDs --------------------------------------------------------
 
   if(nrow(invalid_rsid_format) == 0) {
-    cli::cli_alert_info("Found no rows with invalid RSID format")
+    cli::cli_alert_success("All rows pass RSID validation")
     return(list("data" = tbl,"chr_pos" =  NULL,"failed" = NULL))
   }
 
@@ -21,7 +21,7 @@ validate_rsid <- function(tbl) {
   # invalid RSIDs, but other columns exist ----------------------------------
 
   if(all(c("CHR", "POS", "EffectAllele", "OtherAllele") %in% colnames(tbl))) {
-    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. ")
+    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed")
     return(
       list(
         "data" = tbl,
@@ -44,73 +44,22 @@ validate_rsid <- function(tbl) {
 
 
   # print results to user, if any rows have been parsed correctly
-  if(nrow(attempt) > 0) cli::cli(c(cli::cli_alert_info("Parsed format"), cli::cat_print(head(dplyr::select(chr_pos, RSID, CHR, POS, EffectAllele, OtherAllele), 5), file = stderr())))
+  if(nrow(attempt) > 0) cli::cli(c(cli::cli_alert_info("Parsed format"), cli::cat_print(head(dplyr::select(attempt, RSID, CHR, POS, EffectAllele, OtherAllele), 5), file = stderr())))
 
   # check if failed to parse any rows
   failed <- dplyr::anti_join(dplyr::filter(tbl, invalid_rsid), attempt, by = "rowid")
 
-  list("data" = tbl, "chr_pos" =  attempt,"failed" = failed)
+  list("data" = tbl, "chr_pos" =  dplyr::select(attempt, -RSID) ,"failed" = failed)
 
 }
 
-
-
-
-
-
-
-
-validate_ea_oa <- function(tbl) {
-  stopifnot(all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
-  stopifnot(
-    "EffectAllele and OtherAllele are not character columns, indicating mislabelling of columns" =
-      is.character("EffectAllele") & is.character("OtherAllele")
-  )
-  start_message("EA_OA")
-  # cli::cli_alert_info("Checking EffectAllele and OtherAllele: Only values in [A,C,G,T] are allowed")
-  # cli::cli_alert_info("Converting EffectAllele and OtherAllele to uppercase")
-  cols_to_start <- colnames(tbl)
-
-  tmp <- tbl |>
-    dplyr::mutate(
-      EffectAllele = stringr::str_to_upper(EffectAllele),
-      OtherAllele = stringr::str_to_upper(OtherAllele)
-    )
-  possible_alleles <- c("A", "C","G","T")
-  ea_alleles <- dplyr::count(tmp, EffectAllele)
-  oa_alleles <- dplyr::count(tmp, OtherAllele)
-
-  if(any(!ea_alleles$EffectAllele %in% possible_alleles)) {
-    cli::cli_alert_danger("Found alleles other than A,C,G,T in EffectAllele: ")
-    cli::cat_print(ea_alleles)
-
-  }
-
-  if(any(!oa_alleles$OtherAllele %in% possible_alleles)) {
-    cli::cli_alert_danger("Found alleles other than A,C,G,T in OtherAllele: ")
-    cli::cat_print(oa_alleles)
-  }
-
-
-  tmp <- dplyr::mutate(tmp, invalid_ea_oa = dplyr::if_else(!EffectAllele %in% possible_alleles | !OtherAllele %in% possible_alleles, TRUE, FALSE))
-  n_invalid <- sum(tmp$invalid_ea_oa)
-
-  if(n_invalid > 0) {
-    cli::cli_alert_warning("Found {n_invalid} rows with non-ACGT codes")
-  } else {
-    cli::cli_alert_success("All rows pass EA/OA validation")
-  }
-
-  tmp
-
-}
 
 
 
 
 
 validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
-  stopifnot(col %in% c("B", "SE", "EAF", "N", "Z", "P","POS","CHR"))
+  stopifnot(col %in% c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele"))
   if(verbose) start_message(col)
 
   if(col == "B") {
@@ -121,8 +70,6 @@ validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
     if(abs(median) > 0.1)  cli::cli_alert_danger("WARNING: The median value of B is {median}, which seems high")
     if(abs(median) <= 0.1)  cli::cli_alert_info("The median value of B is {median}, which seems reasonable")
 
-
-    # check for non finite ----------------------------------------------------
     tbl <- dplyr::mutate(tbl, invalid_B = dplyr::if_else(!is.finite(B), TRUE, FALSE))
 
   } else if(col == "SE") {
@@ -150,6 +97,7 @@ validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
     tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
 
   } else if(col == "P") {
+
     tbl <- dplyr::mutate(
       .data = tbl,
       P = as.double(P), p_was_0 = dplyr::if_else(P == 0, "Yes", "No"),
@@ -158,12 +106,11 @@ validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
       ) |>
       dplyr::select(-p_was_0)
 
-  # positional columns ------------------------------------------------------
 
 
   } else if(col == "POS") {
 
-    tbl <- dplyr::mutate(tbl, POS = as.integer(POS), invalid_pos = dplyr::if_else(POS <= 0 | !is.finite(POS) | POS >= 10^9, TRUE, FALSE))
+    tbl <- dplyr::mutate(tbl, POS = as.integer(POS), invalid_POS = dplyr::if_else(POS <= 0 | !is.finite(POS) | POS >= 10^9, TRUE, FALSE))
 
   } else if(col == "CHR") {
 
@@ -177,9 +124,21 @@ validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
                          # can now handle
                          CHR = dplyr::if_else(CHR == "23", "X", CHR),
                          CHR = dplyr::if_else(CHR == "M", "MT", CHR),
-                         invalid_chr = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
+                         invalid_CHR = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
     )
 
+  } else if(col == "EffectAllele" | col == "OtherAllele") {
+
+    stopifnot(all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
+    stopifnot("EffectAllele and OtherAllele are not character columns, indicating mislabelling of columns" = is.character("EffectAllele") & is.character("OtherAllele"))
+    possible_alleles <- c("A", "C","G","T")
+
+    tbl <- dplyr::mutate(tbl, {{ col }} := stringr::str_to_upper(.data[[col]]))
+    existing_alleles <- unique(tbl[[col]])
+    if(!all(existing_alleles %in% possible_alleles)) cli::cli_alert_danger("Found non ACGT alleles in {col}: {existing_alleles}")
+    new_col <- glue::glue("invalid_{col}")
+    tbl <- dplyr::mutate(tbl, {{ new_col }} := dplyr::if_else(!.data[[col]] %in% possible_alleles, TRUE, FALSE))
+    tbl
   }
 
   # finished ----------------------------------------------------------------
@@ -249,12 +208,12 @@ start_message <- function(col) {
     cli::cli_li("If rows fail rs format, look for CHR:POS or CHR:POS:REF:ALT format")
   }
 
-  if(col == "EA_OA") {
-    cli::cli_h3("Validating EffectAllele and OtherAllele:")
+  if(col == "EffectAllele" | col == "OtherAllele") {
+    cli::cli_h3("Validating {col}")
     cli::cli_ol()
     cli::cli_li("Will error if not type = character")
-    cli::cli_li("EffectAllele and OtherAllele converted to uppercase")
-    cli::cli_li("Check for EA/OA values that are not A,C,G or T")
+    cli::cli_li("{col} converted to uppercase")
+    cli::cli_li("Check for values that are not A,C,G or T")
     cli::cli_li("Check for NA")
 
   }

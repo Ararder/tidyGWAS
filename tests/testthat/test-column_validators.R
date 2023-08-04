@@ -12,6 +12,9 @@ test_that("validate RSIDs does not error", {
 
   expect_no_error(validate_rsid(only_correct_rsid))
 
+  # test without chr and pos
+  validate_rsid(dplyr::select(test_file, -CHR, -POS))
+
 
 })
 
@@ -56,7 +59,8 @@ test_that("validate_columns catches issues", {
 
 test_that("validate_effect_cols detects and prints alleles outside ACGT", {
 
-  expect_message(validate_ea_oa(pval_as_char_df))
+  expect_message(validate_columns(pval_as_char_df, "EffectAllele"))
+  expect_message(validate_columns(pval_as_char_df, "OtherAllele"))
 
 })
 
