@@ -5,6 +5,7 @@ mock_dbsnp <- function(){
   # set .env to parent.frame() so the mockings persist in the parent function
   load(test_path("fixtures/b38.rds"))
   load(test_path("fixtures/b37.rds"))
+  load(test_path("fixtures/rs_merge_arch.rds"))
   local_mocked_bindings(
     snpsById = function(x, ids, ...) {
       if(x == 38) {
@@ -40,6 +41,13 @@ mock_dbsnp <- function(){
   local_mocked_bindings(
     get_bsgenome = function(...) {
       list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+    },
+    .env = parent.frame(),
+  )
+
+  local_mocked_bindings(
+    get_ref_data = function() {
+      rs_merge_arch
     },
     .env = parent.frame(),
   )

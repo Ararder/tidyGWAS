@@ -57,17 +57,26 @@ Put the file wherever you want in your enviroment, but specify the absolute file
 in .Renviron file, using "
 ```{r, eval = FALSE}
 # usethis::edit_r_environ()
-# set "rs_merge_arch"=YOUR_FILE_PATH
+# rs_merge_arch="YOUR_FILE_PATH"
 # restart R and check that this works:
 data.table::fread(Sys.getenv("rs_merge_arch"), nrows = 100)
 ```
 
+tidyGWAS will run all analysis in a temporary directory, and the output will not be
+automatically saved. To save the output, use `outdir`.
 ```{r, eval = FALSE}
 bs <- get_bsgenome()
 rs_merge_arch <- data.table::fread(Sys.getenv("rs_merge_arch"))
-tidyGWAS(tbl = my_sumstats, rs_merge_arch = rs_merge_arch,  bsgenome_objects = bs, name = "first_tidyGWAS")
+sumstats_path <- "my_sumstats_filepath"
+df <- data.table::fread(sumstast_path)
+outdir <- getwd()
+tidyGWAS(tbl = df, name = "first_tidyGWAS", outdir = outdir)
 
+```
 
+It's often useful to save output to a logfile
+```{r, eval =FALSE}
+tidyGWAS(tbl = df, logfile=TRUE, bsgenome_objects = bs, name = "first_tidyGWAS", outdir = outdir)
 ```
 
 # Getting started
@@ -113,9 +122,10 @@ rs_merge_arch <- tidyGWAS::rs_merge_arch
 
 ```
 
+We can turn of the use of dbSNP, removing the majority of the running time
 ```{r, collapse=TRUE}
 start <- Sys.time()
-tmp <- tidyGWAS(test_file, rs_merge_arch = rs_merge_arch)
+tmp <- tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, use_dbsnp = FALSE)
 end <- Sys.time()
 ```
 
@@ -131,7 +141,7 @@ If you want the information to be stored in a logfile on disk, you can use the l
 
 ```{r, echo = FALSE}
 my_outdir <- withr::local_tempdir("all_my_gwas_files")
-tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, logfile = TRUE, outdir = my_outdir)
+tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, logfile = TRUE, outdir = my_outdir, use_dbsnp = FALSE)
 
 ```
 
@@ -145,7 +155,7 @@ list.files(my_outdir, recursive = TRUE)
 This can be controlled with the `name` argument:
 
 ```{r, echo = FALSE}
-tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, logfile = TRUE, outdir = my_outdir, name = "first_gwas")
+tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, outdir = my_outdir, name = "first_gwas", use_dbsnp = FALSE)
 list.files(my_outdir, recursive = TRUE)
 
 ```
