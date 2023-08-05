@@ -105,13 +105,22 @@ and are therefore listed as “suggests”.</p>
 absolute filepath in .Renviron file, using ”</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># usethis::edit_r_environ()</span></span>
-<span><span class="co"># set "rs_merge_arch"=YOUR_FILE_PATH</span></span>
+<span><span class="co"># rs_merge_arch="YOUR_FILE_PATH"</span></span>
 <span><span class="co"># restart R and check that this works:</span></span>
 <span><span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"rs_merge_arch"</span><span class="op">)</span>, nrows <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<p>tidyGWAS will run all analysis in a temporary directory, and the
+output will not be automatically saved. To save the output, use
+<code>outdir</code>.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_bsgenome.html">get_bsgenome</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">rs_merge_arch</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"rs_merge_arch"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span>tbl <span class="op">=</span> <span class="va">my_sumstats</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span>,  bsgenome_objects <span class="op">=</span> <span class="va">bs</span>, name <span class="op">=</span> <span class="st">"first_tidyGWAS"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">sumstats_path</span> <span class="op">&lt;-</span> <span class="st">"my_sumstats_filepath"</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="va">sumstast_path</span><span class="op">)</span></span>
+<span><span class="va">outdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/getwd.html" class="external-link">getwd</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span>tbl <span class="op">=</span> <span class="va">df</span>, name <span class="op">=</span> <span class="st">"first_tidyGWAS"</span>, outdir <span class="op">=</span> <span class="va">outdir</span><span class="op">)</span></span></code></pre></div>
+<p>It’s often useful to save output to a logfile</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span>tbl <span class="op">=</span> <span class="va">df</span>, logfile<span class="op">=</span><span class="cn">TRUE</span>, bsgenome_objects <span class="op">=</span> <span class="va">bs</span>, name <span class="op">=</span> <span class="st">"first_tidyGWAS"</span>, outdir <span class="op">=</span> <span class="va">outdir</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
@@ -119,14 +128,14 @@ absolute filepath in .Renviron file, using ”</p>
 <p>Automatic parsing of column names has not been implemented (and
 probable never will), so you will have to rename the input dataframe to
 the tidyGWAS format. The following column names are accepted.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">snp_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"CHR"</span>, <span class="st">"POS"</span>, <span class="st">"RSID"</span>, <span class="st">"EffectAllele"</span>, <span class="st">"OtherAllele"</span>, <span class="st">"rowid"</span><span class="op">)</span></span>
 <span><span class="va">info_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"INFO"</span>, <span class="st">"N"</span>, <span class="st">"CaseN"</span>, <span class="st">"ControlN"</span>, <span class="st">"EAF"</span><span class="op">)</span></span>
 <span><span class="va">stats_cols</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"B"</span>, <span class="st">"Z"</span>, <span class="st">"OR"</span>, <span class="st">"P"</span>, <span class="st">"SE"</span><span class="op">)</span></span></code></pre></div>
 <p>How the example file looks. The mandatory columns are either RSID, or
 CHR and POS</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">test_file</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
 <span><span class="va">test_file</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -153,28 +162,32 @@ this dataframe will always be slower than subsequent queries, so
 whenever you want to munge several summary statistics, it’s get to first
 load the points to the bsgenome and snplocs data, which can be done with
 <code>get_bsgenome().</code></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">bsgenome</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/get_bsgenome.html">get_bsgenome</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>You can skip the step to align with dbSNP, which will significantly
 speed up running time and reduce memory usage, by not providing
 <code>bsgnome_objects</code>. To update the RSID colum, you also need to
 provide an RsMergeArch file. tidyGWAS will attempt to read in this file
 using a filepath provided in the R enviroment “rs_merge_arch”.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># You can download the rs_merge_arch file here:</span></span>
 <span><span class="va">file</span> <span class="op">&lt;-</span> <span class="fu">googledrive</span><span class="fu">::</span><span class="fu">as_dribble</span><span class="op">(</span><span class="st">"https://drive.google.com/file/d/1HaES_q8m6rSDDLXvYr0TjQ-ZlyhdZbFX/view?usp=share_link"</span><span class="op">)</span></span>
 <span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_download</span><span class="op">(</span><span class="va">file</span><span class="op">)</span></span>
 <span><span class="co"># use usethis to set the env variable rs_merge_arch to the filepath to the downloaded file </span></span>
 <span><span class="co"># usethis::edit_r_environ()</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># use the small example file stored with tidyGWAS package</span></span>
 <span><span class="va">rs_merge_arch</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/rs_merge_arch.html">rs_merge_arch</a></span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<p>We can turn of the use of dbSNP, removing the majority of the running
+time</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">start</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span><span class="op">)</span></span>
+<span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">test_file</span>, rs_merge_arch <span class="op">=</span> <span class="va">rs_merge_arch</span>, use_dbsnp <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-04 12:27:28.95715</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-05 22:32:01.753969</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files to <span style="color: #0000BB;">/tmp/RtmpG4Px48/Sat_Aug__5_22_32_01_2023/Sat_Aug__5_22_32_01_2023</span></span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
@@ -183,7 +196,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Keeping track of rows by writing out a rowindex file</span></span>
 <span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
@@ -207,7 +220,7 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_28.909025/2023_08_04_12_27_28.909025/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpG4Px48/Sat_Aug__5_22_32_01_2023/Sat_Aug__5_22_32_01_2023/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -270,19 +283,23 @@ using a filepath provided in the R enviroment “rs_merge_arch”.</p>
 <span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="va">end</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>About 3 seconds for 100k rows</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">end</span> <span class="op">-</span> <span class="va">start</span></span>
-<span><span class="co">#&gt; Time difference of 3.478827 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.314309 secs</span></span></code></pre></div>
 <p>If you want the information to be stored in a logfile on disk, you
 can use the logfile flag. Note that by default, tidyGWAS uses a folder
 in <code>tempdir</code> to store all intermediate files. These files are
 not saved indefinitely, so to store the output data, you can also
 provide an output directory where you want the copy over the finished
 tidyGWAS oflder</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_32.577928/2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt</span></span></span>
+<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpG4Px48/Sat_Aug__5_22_32_04_2023/Sat_Aug__5_22_32_04_2023/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-04 12:27:32.617603</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-05 22:32:04.204859</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files to <span style="color: #0000BB;">/tmp/RtmpG4Px48/Sat_Aug__5_22_32_04_2023/Sat_Aug__5_22_32_04_2023</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Files will be copied to <span style="color: #0000BB;">/tmp/RtmpG4Px48/all_my_gwas_files17b31e9f8e17/Sat_Aug__5_22_32_04_2023</span> when finished</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
@@ -291,7 +308,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Keeping track of rows by writing out a rowindex file</span></span>
 <span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
@@ -315,7 +332,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/2023_08_04_12_27_32.577928/2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpG4Px48/Sat_Aug__5_22_32_04_2023/Sat_Aug__5_22_32_04_2023/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -379,19 +396,22 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; NULL</span></span></code></pre>
 <p>If you dont provide a name for the sumstat cleaning, tidyGWAS uses
 <code><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time()</a></code> to create a random name.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">my_outdir</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "2023_08_04_12_27_32.577928/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt; [2] "2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt; [3] "2023_08_04_12_27_32.577928/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt; [4] "2023_08_04_12_27_32.577928/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt; [5] "2023_08_04_12_27_32.577928/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt; [6] "2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Sat_Aug__5_22_32_04_2023/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt; [2] "Sat_Aug__5_22_32_04_2023/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt; [3] "Sat_Aug__5_22_32_04_2023/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt; [4] "Sat_Aug__5_22_32_04_2023/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [5] "Sat_Aug__5_22_32_04_2023/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [6] "Sat_Aug__5_22_32_04_2023/tidyGWAS_logfile.txt"</span></span></code></pre></div>
 <p>This can be controlled with the <code>name</code> argument:</p>
-<pre><code><span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpWG29p1/first_gwas/first_gwas/tidyGWAS_logfile.txt</span></span></span>
-<span><span class="co">#&gt; </span></span>
+<pre><code><span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.1.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-08-04 12:27:36.705367</span></span>
+<span><span class="co">#&gt; Starting at 2023-08-05 22:32:07.197931</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files to <span style="color: #0000BB;">/tmp/RtmpG4Px48/first_gwas/first_gwas</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Files will be copied to <span style="color: #0000BB;">/tmp/RtmpG4Px48/all_my_gwas_files17b31e9f8e17/first_gwas</span> when finished</span></span>
+<span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">Performing initial checks on input data: </span> ──</span></span>
@@ -400,7 +420,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Columns: CHR, POS, RSID, EffectAllele, OtherAllele, B, SE, EAF, INFO, P, CaseN, and ControlN</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Writing out raw sumstats</span></span>
+<span><span class="co">#&gt; Keeping track of rows by writing out a rowindex file</span></span>
 <span><span class="co">#&gt; • Scanning for NAs with tidyr::drop_na()</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no rows with missing values</span></span>
@@ -424,7 +444,7 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;     • 175 rows with updated RSID:</span></span>
-<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpWG29p1/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
+<span><span class="co">#&gt;     <span style="color: #0000BB;">/tmp/RtmpG4Px48/first_gwas/first_gwas/pipeline_info/updated_rsid.log.gz</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if bsgenome_objects have been passed</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -486,19 +506,17 @@ tidyGWAS oflder</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Listing final breakdown of removed rows:</span></span>
 <span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt;  [1] "2023_08_04_12_27_32.577928/cleaned_GRCh38.gz"                  </span></span>
-<span><span class="co">#&gt;  [2] "2023_08_04_12_27_32.577928/pipeline_info/updated_rsid.log.gz"  </span></span>
-<span><span class="co">#&gt;  [3] "2023_08_04_12_27_32.577928/pipeline_info/validate_snps.log.gz" </span></span>
-<span><span class="co">#&gt;  [4] "2023_08_04_12_27_32.577928/pipeline_info/validate_stats.log.gz"</span></span>
-<span><span class="co">#&gt;  [5] "2023_08_04_12_27_32.577928/raw_sumstats.gz"                    </span></span>
-<span><span class="co">#&gt;  [6] "2023_08_04_12_27_32.577928/tidyGWAS_logfile.txt"               </span></span>
-<span><span class="co">#&gt;  [7] "first_gwas/cleaned_GRCh38.gz"                                  </span></span>
-<span><span class="co">#&gt;  [8] "first_gwas/pipeline_info/updated_rsid.log.gz"                  </span></span>
-<span><span class="co">#&gt;  [9] "first_gwas/pipeline_info/validate_snps.log.gz"                 </span></span>
-<span><span class="co">#&gt; [10] "first_gwas/pipeline_info/validate_stats.log.gz"                </span></span>
-<span><span class="co">#&gt; [11] "first_gwas/raw_sumstats.gz"                                    </span></span>
-<span><span class="co">#&gt; [12] "first_gwas/tidyGWAS_log.txt"                                   </span></span>
-<span><span class="co">#&gt; [13] "first_gwas/tidyGWAS_logfile.txt"</span></span></code></pre>
+<span><span class="co">#&gt;  [1] "first_gwas/cleaned_GRCh38.gz"                                </span></span>
+<span><span class="co">#&gt;  [2] "first_gwas/pipeline_info/updated_rsid.log.gz"                </span></span>
+<span><span class="co">#&gt;  [3] "first_gwas/pipeline_info/validate_snps.log.gz"               </span></span>
+<span><span class="co">#&gt;  [4] "first_gwas/pipeline_info/validate_stats.log.gz"              </span></span>
+<span><span class="co">#&gt;  [5] "first_gwas/raw_sumstats.gz"                                  </span></span>
+<span><span class="co">#&gt;  [6] "Sat_Aug__5_22_32_04_2023/cleaned_GRCh38.gz"                  </span></span>
+<span><span class="co">#&gt;  [7] "Sat_Aug__5_22_32_04_2023/pipeline_info/updated_rsid.log.gz"  </span></span>
+<span><span class="co">#&gt;  [8] "Sat_Aug__5_22_32_04_2023/pipeline_info/validate_snps.log.gz" </span></span>
+<span><span class="co">#&gt;  [9] "Sat_Aug__5_22_32_04_2023/pipeline_info/validate_stats.log.gz"</span></span>
+<span><span class="co">#&gt; [10] "Sat_Aug__5_22_32_04_2023/raw_sumstats.gz"                    </span></span>
+<span><span class="co">#&gt; [11] "Sat_Aug__5_22_32_04_2023/tidyGWAS_logfile.txt"</span></span></code></pre>
 <p>Oops! We now have two different folders in our outdir. This is a
 feature. <code>outdir</code> is meant to be used when you have many
 different sumstats that you all want to be in the same directory, with
@@ -515,7 +533,7 @@ interactively working with sumstats.</p>
 <p><code><a href="../reference/repair_stats.html">repair_stats()</a></code> can be used to add any missing statistics
 column, such as P, Z, B or SE, depending on which columns exist. Note
 that there some</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)</span></span>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">test_file</span>, Z <span class="op">=</span> <span class="va">B</span><span class="op">/</span><span class="va">SE</span>, N <span class="op">=</span> <span class="va">CaseN</span> <span class="op">+</span> <span class="va">ControlN</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">B</span>, <span class="op">-</span><span class="va">SE</span><span class="op">)</span></span>
@@ -545,7 +563,7 @@ that there some</p>
 <span></span>
 <span></span>
 <span><span class="co"># Getting Z, if you only have B and P</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">test_file</span>,  <span class="op">-</span><span class="va">SE</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -569,14 +587,14 @@ that there some</p>
 <h3 id="identifying-incorrect-rsids">Identifying incorrect RSIDs<a class="anchor" aria-label="anchor" href="#identifying-incorrect-rsids"></a>
 </h3>
 <p>uses a regex to identify any non RrSs rows.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">flag_incorrect_rsid_format</span><span class="op">(</span><span class="va">test_file</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">invalid_rsid</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="a-fast-function-for-finding-duplications-in-rsid-or-chr">A fast function for finding duplications in RSID or CHR<a class="anchor" aria-label="anchor" href="#a-fast-function-for-finding-duplications-in-rsid-or-chr"></a>
 </h3>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/flag_duplicates.html">flag_duplicates</a></span><span class="op">(</span><span class="va">test_file</span>, column <span class="op">=</span> <span class="st">"rsid"</span><span class="op">)</span></span>
 <span><span class="co">#&gt;         CHR       POS        RSID EffectAllele OtherAllele            B     SE</span></span>
 <span><span class="co">#&gt;      1:   6  31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
@@ -633,7 +651,7 @@ that there some</p>
 </h4>
 <p>Sometimes the same CHR and POS maps to multiple RSIDs. Currently, we
 resolve this by slecting the smallest RSID</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#  CHR        POS RSID         ref_allele alt_alleles</span></span>
 <span><span class="co">#   &lt;chr&gt;    &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;      &lt;list&gt;     </span></span>
 <span><span class="co"># 1 1     39491595 rs10157617   T          &lt;chr [2]&gt;  </span></span>
