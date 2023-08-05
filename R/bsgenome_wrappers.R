@@ -131,7 +131,7 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
 
 
   # 1) figure out genome build -------------------------------------------------
-  if(missing(build)) build <- infer_build(sumstat)
+  if(missing(build)) build <- infer_build(sumstat, bsgenome_objects=bsgenome_objects)
 
   # 2) get RSID and flags  --------------------------------------------------------
   dbsnp[[as.character(build)]] <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", bsgenome_objects)
@@ -399,13 +399,13 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
 # -------------------------------------------------------------------------
 
 
-infer_build <- function(sumstat, n_snps = 10000) {
+infer_build <- function(sumstat, n_snps = 10000,  ...) {
   cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(sumstat)))
 
   subset <- dplyr::slice_sample(sumstat, n = {{ n_snps }})
-  b38 <- map_to_dbsnp(tbl = subset, build = 38, by = "chr:pos")
-  b37 <- map_to_dbsnp(tbl = subset, build = 37, by = "chr:pos")
+  b38 <- map_to_dbsnp(tbl = subset, build = 38, by = "chr:pos", ...)
+  b37 <- map_to_dbsnp(tbl = subset, build = 37, by = "chr:pos", ...)
 
   if(nrow(b37) > nrow(b38)) build <- 37 else build <- 38
   cli::cli_inform("{nrow(b38)} snps matched GRCh38, {nrow(b37)} for GRCh37, inferring build to be {build}")

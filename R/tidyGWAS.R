@@ -15,16 +15,17 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' Clean GWAS summary statistics
 #'
 #' @param tbl a tibble or filepath
-#' @param bsgenome_objects use get_bsgenome()
-#' @param outdir where to copy results after finished
-#' @param logfile Write messages to a logfile?
-#' @param name name of the output directory
+#' @param use_dbsnp use dbSNP to apply filters?
+#' @param outdir Where should results be saved after a succesful run? Default is tempdir()
+#' @param logfile Direct messages to a logfile? Default is FALSE
+#' @param name name of the output directory. Default is a concotonated call to Sys.time()
 #' @param keep_indels Should indels be kept? Default is TRUE
-#' @param verbose Should tidyGWAS tell you everything it's doing? default is FALSE
-#' @param log_on_err a filepath, used if logfile = TRUE. If tidyGWAS throws an error, the logfile
-#' is copied to that file. Useful is running non-interactively, in which case the logfile
-#' will be deleted if tidyGWAS errors.
-#' @param ... arguments to other functions, such as study_n, build
+#' @param verbose Explain filters in detail? Default is FALSE.
+#' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
+#' This can be very useful if running not interactively, and want to make sure
+#' the log file exists even if the function errors.
+#' @param ... arguments that will be passed to other functions: Currently supports
+#' study_n, build, bsgenome_objects, rs_merge_arch
 #'
 #' @return a tibble or NULL, depending on outdir
 #' @export
@@ -34,26 +35,34 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' }
 tidyGWAS <- function(
     tbl,
-    bsgenome_objects,
+    use_dbsnp = TRUE,
+    name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
+    outdir,
     logfile=FALSE,
-    name, outdir,
+    log_on_err="tidyGWAS_log.txt",
     keep_indels = TRUE,
     verbose = FALSE,
-    log_on_err="tidyGWAS_log.txt",
     ...
     ) {
+
+  # parse tibble --------------------------------------------------------------
+
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
+  stopifnot("tbl is not character or data.frame" = any(c("data.frame", "character") %in% class(tbl)))
+  if("character" %in% class(tbl)) {
+    tbl <- data.table::fread(tbl)
+  } else if("data.frame" %in% class(tbl)) {
+    tbl <- dplyr::tibble(tbl)
+  }
 
-  # setup  ------------------------------------------------------------------
 
-
-  if(missing(name)) name <- stringr::str_replace_all(Sys.time(), pattern = "[:-]", replacement = "_") |> stringr::str_replace(" ", "_")
   filepaths <- setup_pipeline_paths(name = name)
+
   if(logfile) {
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
     withr::local_message_sink(filepaths$logfile)
     withr::local_output_sink(filepaths$logfile)
-    on.exit(file.copy(filepaths$logfile, "tidyGWAS_log.txt"), add=TRUE)
+    if(!missing(log_on_err)) on.exit(file.copy(filepaths$logfile, log_on_err), add=TRUE)
   }
 
 
@@ -61,6 +70,8 @@ tidyGWAS <- function(
 
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {Sys.time()}")
+  cli::cli_alert_info("Saving all files to {.file {filepaths$base}}")
+  if(!missing(outdir)) cli::cli_alert_info("Files will be copied to {.file {paste0(outdir, '/', name)}} when finished")
   rows_start <- nrow(tbl)
 
 
@@ -76,8 +87,25 @@ tidyGWAS <- function(
   struct <- validate_stats(struct, .filter_callback = cb_stats, verbose = verbose)
 
 
-  # Checks against dbSNP ----------------------------------------------------
-  if(!missing(bsgenome_objects)) struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bsgenome_objects, .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
+  # Validate with dbSNP ----------------------------------------------------
+
+
+  if(use_dbsnp) {
+    # use bsgenome_objects from ... if passed
+    if(is.null(list(...)[["bsgenome_objects"]])) {
+      bsgenome_objects <- get_bsgenome()
+    } else {
+      bsgenome_objects <- list(...)[["bsgenome_objects"]]
+    }
+
+    struct$sumstat <- validate_with_dbsnp(struct, bsgenome_objects = bsgenome_objects, .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp))
+
+  }
+
+
+  # indels ------------------------------------------------------------------
+
+
 
   if(keep_indels & nrow(struct$indels) > 0) {
     indel_struct <- vector("list")
@@ -93,16 +121,21 @@ tidyGWAS <- function(
     struct$stats <- dplyr::bind_rows(struct$stats, indel_struct$stats)
   }
 
-  # main checks done --------------------------------------------------------
+
+
+
+
+  # print info about end results ----------------------------------------------
+
   main <- dplyr::inner_join(struct$sumstat, struct$stats, by = "rowid")
-
-
-  # print info about end results ----------------------------------------------------------------
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed. Started with: {rows_start} rows, ended with: {nrow(main)} rows")
-
-
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
+
+
+
+  # return cleaned or write out? ----------------------------------------------
+
 
   if(!missing(outdir)) {
     cleaned <- dplyr::select(main, dplyr::any_of(c("rowid", "CHR", "POS", "RSID","EffectAllele", "OtherAllele")), dplyr::everything())
@@ -122,7 +155,7 @@ tidyGWAS <- function(
 # -------------------------------------------------------------------------
 
 
-validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...) {
+validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback) {
   create_messages("validate_with_dbsnp")
 
 
@@ -168,7 +201,7 @@ validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback, ...)
 
 
 
-initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n, verbose=FALSE) {
+initiate_struct <- function(tbl, filepaths, verbose=FALSE, build, rs_merge_arch, study_n, ...) {
 
 
   # -------------------------------------------------------------------------
@@ -194,9 +227,9 @@ initiate_struct <- function(tbl, build, rs_merge_arch, filepaths, study_n, verbo
 
   # write raw file
   tbl <- dplyr::tibble(tbl)
-  cli::cli_inform("Writing out raw sumstats")
+  cli::cli_inform("Keeping track of rows by writing out a rowindex file")
   if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
-  data.table::fwrite(tbl, paste0(filepaths$base , "/raw_sumstats.gz"))
+  data.table::fwrite(dplyr::select(tbl, rowid), paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # setup filepaths that will be used, and remove unwanted columns
   struct <- vector("list")

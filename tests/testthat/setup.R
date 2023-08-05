@@ -3,6 +3,7 @@ load(test_path("data/sumstats/test_sumstat.rds"))
 load(test_path("data/sumstats/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 load(test_path("fixtures/b38.rds"))
 load(test_path("fixtures/b37.rds"))
+# test_file <- pval_as_char_df
 test_file <- dplyr::tibble(test_file)
 test_file$CHR <- as.character(test_file$CHR)
 test_file$rowid <- 1:nrow(test_file)

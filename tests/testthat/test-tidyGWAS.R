@@ -132,14 +132,6 @@ test_that("validate_with_dbsnp, CHR and POS", {
 
 
 
-# without bsgenome
-test_that("Logging, name, and outdir owrks", {
-  expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = TRUE, name = "testrun", rs_merge_arch = rs_merge_arch))
-  expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = FALSE, name = "testrun", rs_merge_arch = rs_merge_arch))
-  expect_no_error(test <- tidyGWAS(tbl = test_file, logfile = FALSE, rs_merge_arch = rs_merge_arch))
-
-})
-
 
 
 
@@ -153,7 +145,7 @@ test_that("testing tidyGWAS with RSID, CHR and POS", {
       rs_merge_arch = rs_merge_arch,
       bsgenome_objects = bsgenome,
       name = "full",
-      verbose =FALSE
+      verbose = FALSE
   ))
 
 
@@ -223,6 +215,17 @@ test_that("Testing without CHR and POS", {
     )
 
   )
+
+})
+
+
+
+test_that("Testing with minimum input of parameters", {
+  mock_dbsnp()
+  bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+
+
+  expect_no_error(tidyGWAS(test_file))
 
 })
 

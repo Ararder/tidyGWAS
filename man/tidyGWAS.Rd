@@ -6,36 +6,37 @@
 \usage{
 tidyGWAS(
   tbl,
-  bsgenome_objects,
-  logfile = FALSE,
-  name,
+  use_dbsnp = TRUE,
+  name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
   outdir,
+  logfile = FALSE,
+  log_on_err = "tidyGWAS_log.txt",
   keep_indels = TRUE,
   verbose = FALSE,
-  log_on_err = "tidyGWAS_log.txt",
   ...
 )
 }
 \arguments{
 \item{tbl}{a tibble or filepath}
 
-\item{bsgenome_objects}{use get_bsgenome()}
+\item{use_dbsnp}{use dbSNP to apply filters?}
 
-\item{logfile}{Write messages to a logfile?}
+\item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
 
-\item{name}{name of the output directory}
+\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
 
-\item{outdir}{where to copy results after finished}
+\item{logfile}{Direct messages to a logfile? Default is FALSE}
+
+\item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.
+This can be very useful if running not interactively, and want to make sure
+the log file exists even if the function errors.}
 
 \item{keep_indels}{Should indels be kept? Default is TRUE}
 
-\item{verbose}{Should tidyGWAS tell you everything it's doing? default is FALSE}
+\item{verbose}{Explain filters in detail? Default is FALSE.}
 
-\item{log_on_err}{a filepath, used if logfile = TRUE. If tidyGWAS throws an error, the logfile
-is copied to that file. Useful is running non-interactively, in which case the logfile
-will be deleted if tidyGWAS errors.}
-
-\item{...}{arguments to other functions, such as study_n, build}
+\item{...}{arguments that will be passed to other functions: Currently supports
+study_n, build, bsgenome_objects, rs_merge_arch}
 }
 \value{
 a tibble or NULL, depending on outdir
