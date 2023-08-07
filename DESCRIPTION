@@ -22,7 +22,8 @@ Imports:
     tibble,
     R.utils,
     tidyr,
-    withr
+    withr,
+    prettyunits
 Suggests: 
     tictoc,
     rlang,

@@ -11,7 +11,6 @@ utils::globalVariables(c(
 #' @param sumstat sumstat in tibble format, tidyGWAS column names
 #' @param bsgenome_objects use get_bsgenome()
 #' @param build optional, can be used to skip the infer_build step
-#' @param .filter_callback pass a function that is called at the end, optional.
 #'
 #' @return a tibble
 #' @export
@@ -23,18 +22,18 @@ utils::globalVariables(c(
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
 #' }
-verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback) {
-  # verify_chr_pos_rsid starts by using CHR and POS to get RSID, through dbSNP
-  # 1) check if RSID from sumstat agrees with RSID from dbSNP
-  # 2)
-  start_repair_message("verify_chr_pos_rsid")
+verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 
+  # start -------------------------------------------------------------------
+
+  start_repair_message("verify_chr_pos_rsid")
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   dbsnp <- vector("list")
 
 
   # 1) figure out genome build -------------------------------------------------
-  if(missing(build)) build <- infer_build(sumstat)
+
+  if(missing(build)) build <- infer_build(sumstat, bsgenome_objects = bsgenome_objects)
   if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
   # check if RSIDs agree
@@ -58,7 +57,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
   merged <- dplyr::distinct(merged, CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
 
 
-  # find removed rows and updated rowws
+  # find removed rows and updated rows
   removed <- dplyr::filter(sumstat, !rowid %in% merged$rowid)
   updated_rows <- dplyr::filter(sumstat, rowid %in% merged$rowid) |>
     dplyr::anti_join(merged, by = c("rowid", "CHR", "POS","RSID"))
@@ -100,9 +99,10 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
   }
 
 
-  # 4) use filter callback function if passed  -----------------------------------
 
-  if(!missing(.filter_callback)) final <- .filter_callback(final)
+  # return ------------------------------------------------------------------
+
+
   dplyr::select(final, -dplyr::any_of(c("ref_allele", "alt_alleles")))
 
 }
@@ -113,8 +113,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
 #' @param sumstat a dplyr::
 #' tibble with atleast CHR,POS, EffectAllele and OtherAllele
 #' @param bsgenome_objects a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects
-#' @param build genome build, either '37' or '38'
-#' @param .filter_callback a function that will be run at the end, with the dataframe as input
+#' @param build genome build, either 37 or 38
 #'
 #' @return a tibble
 #' @export
@@ -123,7 +122,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build, .filter_callba
 #' sumstat_df <- repair_rsid(sumstat, bsgenome_list)
 #' }
 #'
-repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
+repair_rsid <- function(sumstat, bsgenome_objects, build){
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_rsid")
   dbsnp <- vector("list")
@@ -136,8 +135,8 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
   # 2) get RSID and flags  --------------------------------------------------------
   dbsnp[[as.character(build)]] <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", bsgenome_objects)
 
-  # dbSNP contains duplicates?? remove here
-  tmp_rsid <- dplyr::distinct(dplyr::select(dbsnp[[as.character(build)]], -ref_allele, -alt_alleles))
+  # CHR:POS can map to multiple SNPs, select the
+  tmp_rsid <- dplyr::distinct(dplyr::arrange(dbsnp[[as.character(build)]], RSID), CHR, POS, .keep_all = TRUE)
 
   # merge in RSID, and add flag any rows that could not find a RSID
   sumstat <- dplyr::left_join(sumstat, tmp_rsid, by = c("CHR","POS")) |>
@@ -170,10 +169,10 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
   }
 
 
-  # 4) use filter callback function if passed  -----------------------------------
+  # return --------------------------------------------------------------------
 
-  if(!missing(.filter_callback)) final <- filter_callback(final)
-  final
+
+  dplyr::select(final, -dplyr::any_of(c("ref_allele", "alt_alleles")))
 
 }
 
@@ -186,7 +185,6 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
 #'
 #' @param sumstat a dplyr::tibble with with atleast RSID, EffectAllele and OtherAllele
 #' @param bsgenome_objects a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects
-#' @param .filter_callback a function that can be run at the end.
 #' @return a tibble
 #' @export
 #'
@@ -194,7 +192,8 @@ repair_rsid <- function(sumstat, bsgenome_objects, build, .filter_callback){
 #' sumstat_df <- repair_chr_pos(sumstat, bsgenome_list)
 #' }
 #'
-repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
+repair_chr_pos <- function(sumstat, bsgenome_objects){
+
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_chr_pos")
   if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
@@ -206,7 +205,7 @@ repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
   # find duplicate
   dup_vec <- !(duplicated(dbsnp_38[,1:2]) | duplicated(dbsnp_38[,1:2], fromLast = TRUE))
   if(sum(!dup_vec) > 0) cli::cli_alert_warning("Found {sum(!dup_vec)} rows where the same CHR:POS maps to different RSIDs")
-  # dbsnp_38 <- dbsnp_38[dup_vec, ]
+
 
   # add flag to indicate whether RSID was found in dbSNP
   sumstat <- dplyr::mutate(sumstat, no_dbsnp_entry = dplyr::if_else(!RSID %in% dbsnp_38$RSID, TRUE, FALSE))
@@ -236,9 +235,7 @@ repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
 
 
 
-  # finished ----------------------------------------------------------------
-  if(!missing(.filter_callback)) final <- .filter_callback(tbl = final)
-
+  # return ----------------------------------------------------------------
 
   final
 
@@ -248,11 +245,17 @@ repair_chr_pos <- function(sumstat, bsgenome_objects, .filter_callback){
 # -------------------------------------------------------------------------
 
 
-make_callback <- function(outpath, append=FALSE) {
-  append <- append
+make_callback <- function(outpath) {
+  if(file.exists(outpath)) append <- TRUE else append <- FALSE
+
   callback <- function(tbl) {
     # split into filter flags
     flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
+    if(ncol(flags) == 1) {
+      cli::cli_inform("Found no flags to filter on")
+      return(tbl)
+    }
+
     remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
     count_by_flag <- purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T))
 
@@ -384,8 +387,7 @@ map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
     dplyr::mutate(
       CHR = as.character(CHR),
       POS = as.integer(POS),
-      RSID = as.character(RSID),
-      ref_allele = as.character(ref_allele),
+      RSID = as.character(RSID)
     ) |>
     dplyr::distinct(CHR, POS, RSID, .keep_all = TRUE)
 
@@ -515,9 +517,10 @@ flatten_dbsnp <- function(dbsnp_df) {
   # separated by ","
   # so that i can easily expand the rows with tidyr::separate_longer_delim
   # for this, i need to convert the Biostrings::IUPAC_CODE_MAP
-  updated <- stringr::str_split(Biostrings::IUPAC_CODE_MAP, "") |>
+  updated <-
+    stringr::str_split(Biostrings::IUPAC_CODE_MAP, "") |>
     purrr::map(\(x) stringr::str_flatten(x, collapse=",")) |>
-    purrr::map_chr(c) |>
+    purrr::map_chr(stringr::str_c) |>
     purrr::set_names(names(Biostrings::IUPAC_CODE_MAP))
 
 

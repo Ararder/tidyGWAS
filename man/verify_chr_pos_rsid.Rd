@@ -4,7 +4,7 @@
 \alias{verify_chr_pos_rsid}
 \title{Check that CHR POS and RSID all make sense in a GWAS summary statistic}
 \usage{
-verify_chr_pos_rsid(sumstat, bsgenome_objects, build, .filter_callback)
+verify_chr_pos_rsid(sumstat, bsgenome_objects, build)
 }
 \arguments{
 \item{sumstat}{sumstat in tibble format, tidyGWAS column names}
@@ -12,8 +12,6 @@ verify_chr_pos_rsid(sumstat, bsgenome_objects, build, .filter_callback)
 \item{bsgenome_objects}{use get_bsgenome()}
 
 \item{build}{optional, can be used to skip the infer_build step}
-
-\item{.filter_callback}{pass a function that is called at the end, optional.}
 }
 \value{
 a tibble

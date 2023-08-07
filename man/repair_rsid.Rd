@@ -4,7 +4,7 @@
 \alias{repair_rsid}
 \title{Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS}
 \usage{
-repair_rsid(sumstat, bsgenome_objects, build, .filter_callback)
+repair_rsid(sumstat, bsgenome_objects, build)
 }
 \arguments{
 \item{sumstat}{a dplyr::
@@ -12,9 +12,7 @@ tibble with atleast CHR,POS, EffectAllele and OtherAllele}
 
 \item{bsgenome_objects}{a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects}
 
-\item{build}{genome build, either '37' or '38'}
-
-\item{.filter_callback}{a function that will be run at the end, with the dataframe as input}
+\item{build}{genome build, either 37 or 38}
 }
 \value{
 a tibble

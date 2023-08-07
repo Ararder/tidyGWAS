@@ -4,14 +4,12 @@
 \alias{repair_chr_pos}
 \title{Get CHR and POS from a reference genome with rsID}
 \usage{
-repair_chr_pos(sumstat, bsgenome_objects, .filter_callback)
+repair_chr_pos(sumstat, bsgenome_objects)
 }
 \arguments{
 \item{sumstat}{a dplyr::tibble with with atleast RSID, EffectAllele and OtherAllele}
 
 \item{bsgenome_objects}{a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects}
-
-\item{.filter_callback}{a function that can be run at the end.}
 }
 \value{
 a tibble

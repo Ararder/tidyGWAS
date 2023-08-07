@@ -9,6 +9,7 @@ tidyGWAS(
   use_dbsnp = TRUE,
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
   outdir,
+  bsgenome_objects,
   logfile = FALSE,
   log_on_err = "tidyGWAS_log.txt",
   keep_indels = TRUE,
@@ -19,7 +20,7 @@ tidyGWAS(
 \arguments{
 \item{tbl}{a tibble or filepath}
 
-\item{use_dbsnp}{use dbSNP to apply filters?}
+\item{use_dbsnp}{use dbSNP to apply filters? Default is TRUE}
 
 \item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
 

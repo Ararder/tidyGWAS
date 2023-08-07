@@ -7,13 +7,22 @@
 repair_stats(tbl)
 }
 \arguments{
-\item{tbl}{input a tibble (data frame) of a GWAS sumamry statistics.}
+\item{tbl}{input a tibble (data frame).}
 }
 \value{
 a tibble
 }
 \description{
-Requires the tidyGWAS column format
+`tidyGWAS::repar_stats()` is a collection of functions that can be used to
+infer missing columns in GWAS summary statistics. The functions are based on
+functionality found online.
+}
+\details{
+`repair_stats()` uses the tidyGWAS column specification. The functionality
+has been tested assuming the input data.frame is a tibble.
+
+reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
+Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
 }
 \examples{
 \dontrun{

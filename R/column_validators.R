@@ -122,6 +122,7 @@ validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
                          CHR = stringr::str_remove(CHR, "CHR"),
                          CHR = stringr::str_remove(CHR, "CH"),
                          # can now handle
+                         CHR = dplyr::if_else(CHR == "XY", "Y", CHR),
                          CHR = dplyr::if_else(CHR == "23", "X", CHR),
                          CHR = dplyr::if_else(CHR == "M", "MT", CHR),
                          invalid_CHR = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)

@@ -89,10 +89,19 @@ split_rsid_by_regex <- function(tbl) {
 # without_rs_grch38="~/arvhar/extdata/b151_rs_without_GRCh38_mapping.parquet.gz",
 
 #' Repair statistics column in a GWAS summary statistics tibble
-#' @description
-#' Requires the tidyGWAS column format
 #'
-#' @param tbl input a tibble (data frame) of a GWAS sumamry statistics.
+#' `tidyGWAS::repar_stats()` is a collection of functions that can be used to
+#' infer missing columns in GWAS summary statistics. The functions are based on
+#' functionality found online.
+#'
+#' `repair_stats()` uses the tidyGWAS column specification. The functionality
+#' has been tested assuming the input data.frame is a tibble.
+#'
+#' reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
+#' Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
+#'
+#'
+#' @param tbl input a tibble (data frame).
 #'
 #' @return a tibble
 #' @export
