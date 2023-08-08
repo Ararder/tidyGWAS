@@ -250,9 +250,10 @@ repair_chr_pos <- function(sumstat, bsgenome_objects){
 
 # -------------------------------------------------------------------------
 
-
 make_callback <- function(outpath) {
-  if(file.exists(outpath)) append <- TRUE else append <- FALSE
+  # update the filepath if it exists
+  i <- 0
+  while(file.exists(outpath)) outpath <- glue::glue(stringr::str_remove(outpath, "(_\\d{1})?\\.log.gz"), "_", (i <- i +1), ".log.gz")
 
   callback <- function(tbl) {
     # split into filter flags
@@ -277,10 +278,7 @@ make_callback <- function(outpath) {
 
 
 
-
-
-
-    data.table::fwrite(remove, outpath, sep = "\t", append=append)
+    data.table::fwrite(remove, outpath, sep = "\t")
 
     dplyr::select(tbl, -dplyr::where(is.logical)) |>
       dplyr::filter(!rowid %in% remove$rowid)

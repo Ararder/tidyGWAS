@@ -37,10 +37,11 @@ tidyGWAS <- function(
     tbl,
     use_dbsnp = TRUE,
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
+    repair_cols = TRUE,
     outdir,
     bsgenome_objects,
     logfile=FALSE,
-    log_on_err="tidyGWAS_log.txt",
+    log_on_err="tidyGWAS_logfile.txt",
     keep_indels = TRUE,
     verbose = FALSE,
     ...
@@ -114,31 +115,32 @@ tidyGWAS <- function(
     cli::cli_alert_success("Indels have been merged back into main pipeline")
     struct$sumstat <- dplyr::bind_rows(struct$sumstat, indel_struct$sumstat)
   }
+
   main <- struct$sumstat
+  if(repair_cols) main <- repair_stats(struct$sumstat)
+
 
   # Finished! wrap up ----------------------------------------------
 
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
+  end_time <- Sys.time()
+  cli::cli_li("Total running time: {prettyunits::pretty_dt(end_time - start_time)}")
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
 
 
 
 
   # return cleaned or write out? ----------------------------------------------
-
-
   if(!missing(outdir)) {
     cleaned <- dplyr::select(main, dplyr::any_of(c("rowid", "CHR", "POS", "RSID","EffectAllele", "OtherAllele")), dplyr::everything())
     data.table::fwrite(cleaned, struct$filepaths$cleaned)
     file.copy("tidyGWAS_log.txt", paste0(struct$filepaths$base,"/tidyGWAS_log.txt"))
     file.copy(struct$filepaths$base, outdir, recursive = TRUE)
-    cli::cli_li("Total running time: {prettyunits::pretty_dt(end_time - start_time)}")
+
 
 
   } else {
-    end_time <- Sys.time()
-    cli::cli_li("Total running time: {prettyunits::pretty_dt(end_time - start_time)}")
     main
   }
 
@@ -343,23 +345,26 @@ validate_sumstat <- function(struct, remove_cols="", verbose=FALSE, filter_rows=
 
   if(struct$has_rsid) {
     validated_rsid <- validate_rsid(struct$sumstat, verbose = verbose)
+
     # after calling validation, rows with valid RSIDs are kept in main pipeline
-    struct$sumstat <- validated_rsid$data |> dplyr::filter(!invalid_rsid) |> dplyr::select(-invalid_rsid)
+    struct$sumstat <- dplyr::filter(validated_rsid$data, !invalid_rsid) |> dplyr::select(-invalid_rsid)
+
     # succesful parses follow another path, and will have their rsid repair in validate_with_dbsnp
     struct$without_rsid <- validated_rsid$chr_pos
+
     # failed parsed are removed
-    struct$failed <-  validated_rsid$failed
-    if(!is.null(struct$failed)) if(nrow(struct$failed > 0)) data.table::fwrite(struct$failed, struct$filepaths$failed_rsid_parse)
+    if(!is.null(validated_rsid$failed)) if(nrow(validated_rsid$failed > 0)) data.table::fwrite(validated_rsid$failed, struct$filepaths$failed_rsid_parse)
     if(is.null(struct$without_rsid)) struct$without_rsid <- dplyr::tibble(.rows = 0)
+
     # validate the subset without RSID (CHR,POS, EA, OA)
     if(nrow(struct$without_rsid) != 0) {
       cli::cli_h3("Running validation of rows without a valid RSID")
       cols_to_run <- colnames(struct$without_rsid)[colnames(struct$without_rsid) %in% impl_validators]
-      for(c in cols_to_run) struct$without_rsid <- validate_columns(struct$without_rsid, col = c, verbose = FALSE)
-      tbl <- repair_stats(tbl)
+
+      for(c in cols_to_run) struct$without_rsid <- validate_columns(struct$without_rsid, col = c, verbose = verbose)
 
 
-      cb_new <- make_callback(struct$filepaths$validate_snps)
+      cb_new <- make_callback(struct$filepaths$validate_sumstat)
       struct$without_rsid <- cb_new(struct$without_rsid)
     }
   }
@@ -369,18 +374,17 @@ validate_sumstat <- function(struct, remove_cols="", verbose=FALSE, filter_rows=
 
   # run validators on main data------------------------------------------------
 
+  cli::cli_h3("Running validation for other rows")
   tbl <- struct$sumstat
   warning_messages_stats(tbl)
 
-  cli::cli_h3("Running validation for other rows")
   cols_in_sumstat <- colnames(tbl)[colnames(tbl) %in% impl_validators]
   for(c in cols_in_sumstat) tbl <- validate_columns(tbl, col = c, verbose = verbose)
 
-  tbl <- repair_stats(tbl)
   # write failed rows to disk if passed
   if(filter_rows) {
     # if some rows have already been removed in validate SNPs, need to make sure to not overwrite file
-    filtering_function <- make_callback(outpath = struct$filepaths$validate_snps)
+    filtering_function <- make_callback(outpath = struct$filepaths$validate_sumstat)
     tbl <- filtering_function(tbl)
   }
   struct$sumstat <- tbl
@@ -407,68 +411,72 @@ warning_messages_stats <- function(tbl) {
 # -------------------------------------------------------------------------
 
 
-setup_pipeline_paths <- function(name, rsid_subset) {
+setup_pipeline_paths <- function(name) {
 
-  if(missing(rsid_subset)) {
-    if(!dir.exists(tempdir())) dir.create(tempdir())
-    workdir <- paste(tempdir(), name, name, sep = "/")
-
-  } else {
-    workdir <- rsid_subset
-  }
-
+  # define workdir
+  stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
+  workdir <- paste(tempdir(), name, name, sep = "/")
   pipeline_info <- paste(workdir,"pipeline_info", sep = "/")
-  indel_dir <- paste(pipeline_info,"indels", sep = "/")
-  suppressWarnings(dir.create(pipeline_info, recursive = TRUE))
-  if(!dir.exists(indel_dir)) dir.create(indel_dir)
-
-
-
-  # name/name/:
-  # /pipeline_info/
-  # /raw
-  # /cleaned
-  #
-
-
-  start_ids <-           paste(pipeline_info, "start_ids.tsv.gz", sep = "/")
-  duplicates <-          paste(pipeline_info, "duplicates.log.gz", sep = "/")
-  validate_stats <-      paste(pipeline_info, "validate_stats.log.gz", sep = "/")
-  validate_snps <-       paste(pipeline_info, "validate_snps.log.gz", sep = "/")
-  validate_with_dbsnp <- paste(pipeline_info, "validate_with_dbsnp.log.gz", sep = "/")
-  updated_rsid <-        paste(pipeline_info, "updated_rsid.log.gz", sep = "/")
-  rows_with_na <-        paste(pipeline_info, "rows_with_na.log.gz", sep = "/")
-  failed_rsid_parse <-   paste(pipeline_info, "failed_rsid_parse.log.gz", sep = "/")
-
-
-  indels <-              paste(indel_dir, "indels.log.gz", sep = "/")
-  validate_stats_indels <-      paste(indel_dir, "validate_stats.log.gz", sep = "/")
-  validate_snps_indels <-       paste(indel_dir, "validate_snps.log.gz", sep = "/")
-
-  invalid_rsid <-  paste(pipeline_info, "invalid_rsid", sep = "/")
-  if(!dir.exists(invalid_rsid)) dir.create(invalid_rsid)
-  invalid_rsid <-  paste0(workdir, "/pipeline_info/invalid_rsid")
-
-
+  if(!dir.exists(workdir)) dir.create(workdir, recursive = TRUE)
+  if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
 
 
   list(
     "base" = workdir,
     "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
     "cleaned" = paste(workdir, "cleaned_GRCh38.gz", sep = "/"),
-    "start_ids" = start_ids,
-    "duplicates" = duplicates,
-    "validate_stats" = validate_stats,
-    "validate_snps" = validate_snps,
-    "validate_with_dbsnp" = validate_with_dbsnp,
-    "updated_rsid"= updated_rsid,
-    "failed_rsid_parse" = failed_rsid_parse,
-    "indels" =                     paste(indel_dir, "indels.log.gz", sep = "/"),
-    "validate_stats_indels" =      paste(indel_dir, "validate_stats.log.gz", sep = "/"),
-    "validate_snps_indels" =       paste(indel_dir, "validate_snps.log.gz", sep = "/"),
-    "invalid_rsid" = invalid_rsid,
-    "rows_with_na" = rows_with_na
+
+    #
+    "start_ids" = paste(pipeline_info, "start_ids.tsv.gz", sep = "/"),
+    "duplicates" = paste(pipeline_info, "removed_duplicates.log.gz", sep = "/"),
+    "rows_with_na" = paste(pipeline_info, "removed_rows_with_na.log.gz", sep = "/"),
+    "updated_rsid"= paste(pipeline_info, "updated_rsid.log.gz", sep = "/"),
+
+    "validate_sumstat" = paste(pipeline_info, "removed_validate_sumstat.log.gz", sep = "/"),
+    "validate_with_dbsnp" = paste(pipeline_info, "removed_validate_with_dbsnp.log.gz", sep = "/"),
+    "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.log.gz", sep = "/")
   )
+
+
+}
+
+# -------------------------------------------------------------------------
+
+identify_removed_rows <- function(finished, filepaths) {
+  start <- data.table::fread(paste0(filepaths$base , "/raw_sumstats.gz"), select = "rowid")
+
+  removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
+
+  # remove the file with all rowids
+  files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), full.names = TRUE, pattern = "*.gz")
+  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "start_ids.tsv.gz")]
+  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "updated_rsid.log.gz")]
+
+
+  removed_rows_with_flags <-
+    files_in_dir |>
+    purrr::set_names(base::basename) |>
+    purrr::map(data.table::fread) |>
+    purrr::map(\(x) dplyr::select(x, rowid)) |>
+    purrr::list_rbind(names_to = "reason") |>
+    dplyr::select(rowid, reason) |>
+    dplyr::mutate(reason = stringr::str_remove(reason, ".log.gz"))
+
+  if(sum(!removed_rows$rowid %in% removed_rows_with_flags$rowid)) {
+    cli::cli_alert_danger("WARNING: Could not track why some rows were removed. This is very surprising")
+  }
+
+  breakdown <-
+    removed_rows_with_flags |>
+    dplyr::semi_join(removed_rows, by = "rowid") |>
+    dplyr::count(reason)
+
+  vec <- c(breakdown$n)
+  names(vec) <- breakdown$reason
+  cli::cli_h3("Listing final breakdown of removed rows: ")
+  cli::cli_dl(vec)
+
+
 
 
 }
@@ -535,44 +543,6 @@ create_messages <- function(func,tbl, struct) {
 # -------------------------------------------------------------------------
 
 
-identify_removed_rows <- function(finished, filepaths) {
-  start <- data.table::fread(paste0(filepaths$base , "/raw_sumstats.gz"), select = "rowid")
-
-  removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
-
-  # remove the file with all rowids
-  files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), full.names = TRUE, pattern = "*.gz")
-  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "start_ids.tsv.gz")]
-  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "updated_rsid.log.gz")]
-
-
-  removed_rows_with_flags <-
-    files_in_dir |>
-    purrr::set_names(base::basename) |>
-    purrr::map(data.table::fread) |>
-    purrr::map(\(x) dplyr::select(x, rowid)) |>
-    purrr::list_rbind(names_to = "reason") |>
-    dplyr::select(rowid, reason) |>
-    dplyr::mutate(reason = stringr::str_remove(reason, ".log.gz"))
-
-  if(sum(!removed_rows$rowid %in% removed_rows_with_flags$rowid)) {
-    cli::cli_alert_danger("WARNING: Could not track why some rows were removed. This is very surprising")
-  }
-
-  breakdown <-
-    removed_rows_with_flags |>
-    dplyr::semi_join(removed_rows, by = "rowid") |>
-    dplyr::count(reason)
-
-  vec <- c(breakdown$n)
-  names(vec) <- breakdown$reason
-  cli::cli_h3("Listing final breakdown of removed rows: ")
-  cli::cli_dl(vec)
-
-
-
-
-}
 
 # Suppress R CMD check note
 #' @importFrom R.utils as.character.binmode

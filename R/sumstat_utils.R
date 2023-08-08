@@ -160,17 +160,6 @@ repair_stats <- function(tbl) {
 
 
 
-  cli::cli_alert_info("Checking for NaN, Inf or NA in numeric columns")
-  issues <- purrr::map(dplyr::select(tbl, dplyr::where(is.numeric)), \(X) sum(!is.finite(X))) |>
-    purrr::keep(\(X) X != 0)
-  if(length(issues) > 0) {
-    cli::cli_alert_warning("Found the following number of rows with Inf/Nan/NA per column: ")
-    cli::cat_print(issues)
-  } else {
-    cli::cli_alert("Found no columns containing NA/Inf/NaN")
-  }
-
-
   # end message -------------------------------------------------------------
 
   end_cols <- colnames(tbl)

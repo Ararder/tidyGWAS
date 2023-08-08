@@ -24,7 +24,7 @@ test_that("Validate_columns works", {
 
   check <- colnames(test_file)[colnames(test_file) %in% stats_cols]
   check <- check[!check %in% c("CaseN", "ControlN", "INFO")]
-  test_file <- dplyr::mutate(test_file, P = dplyr::if_else(CHR == 6, -3, P))
+  test_file <- dplyr::mutate(test_file, P = dplyr::if_else(CHR == 6, "-3", P))
 
   expect_no_error(
     for(c in check) tmp <- validate_columns(test_file,col = c, verbose = FALSE)
@@ -74,8 +74,10 @@ test_that("Validat CHR runs, and fixes UCSC format", {
 
 
   before <- test_file$CHR
+
   tmp <- dplyr::mutate(test_file, CHR = dplyr::if_else(EffectAllele == "T", as.character(CHR), paste0("chr", CHR)))
   after <- validate_columns(tmp, "CHR")
+  before <- dplyr::if_else(before == "23", "X", before)
   expect_equal(as.character(before), after$CHR)
 
 })

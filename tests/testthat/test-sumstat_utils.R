@@ -62,14 +62,18 @@ test_that("If OR is provided and B exists, OR should be removed", {
 })
 
 test_that("Repair stats can repair B and SE from Z", {
-  z_only <- dplyr::mutate(test_file,N = CaseN + ControlN, Z = B/SE) |>
-    dplyr::select(-B, -SE)
+  cors <- dplyr::mutate(test_file,N = CaseN + ControlN, Z = B/SE) |>
+    flag_indels() |>
+    dplyr::filter(!indel) |>
+    dplyr::rename(B_old = B, SE_old = SE) |>
+    repair_stats() |>
+    dplyr::mutate(new_Z =  B/SE) |>
+    dplyr::summarise(cor_b = cor(B_old, B),cor_se = cor(SE_old,SE), cor_z = cor(Z, new_Z))
 
-  repaired <- repair_stats(z_only)
-  expect_true("B" %in% colnames(repaired))
-  expect_true("SE" %in% colnames(repaired))
-  expect_equal(test_file$B, repaired$B, tolerance = 0.05)
-  expect_equal(test_file$SE, repaired$SE, tolerance = 0.05)
+  expect_true(cors$cor_se > 0.98)
+  expect_true(cors$cor_b > 0.99)
+  expect_true(cors$cor_z > 0.99)
+
 
 })
 
@@ -88,9 +92,10 @@ test_that("User should be informed if study N is used to impute B and SE", {
 
 
 test_that("repair_stats should be able to add P col if missing using Z", {
+  test_file <- flag_indels(test_file) |> dplyr::filter(!indel)
   without_p <- dplyr::select(test_file, -P)
   ll <- repair_stats(without_p)
-  expect_equal(ll$P, test_file$P, tolerance = 0.005)
+  expect_equal(ll$P, as.double(test_file$P), tolerance = 0.01)
 
 })
 

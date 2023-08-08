@@ -6,6 +6,7 @@ mock_dbsnp <- function(){
   load(test_path("fixtures/b38.rds"))
   load(test_path("fixtures/b37.rds"))
   load(test_path("fixtures/rs_merge_arch.rds"))
+
   local_mocked_bindings(
     snpsById = function(x, ids, ...) {
       if(x == 38) {
