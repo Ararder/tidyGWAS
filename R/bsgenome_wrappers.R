@@ -45,14 +45,20 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 
   # find the cases where chr_pos could not identify a RSID
   no_match <- dplyr::anti_join(sumstat, reduced, by = c("CHR", "POS"))
+  first_round_match <- dplyr::inner_join(dplyr::select(sumstat, -RSID), reduced, by = c("CHR", "POS"))
 
   # check if the provided RSID exists in dbSNP
-  dbsnp[["rsid_mapping"]] <- map_to_dbsnp(dplyr::select(no_match, -CHR, -POS), build = build, by = "rsid", bsgenome_objects)
-  reduced_round2 <- dplyr::distinct(dplyr::arrange(dbsnp[["rsid_mapping"]], RSID), CHR, POS, .keep_all = TRUE)
+  if(nrow(no_match > 0)) {
+    dbsnp[["rsid_mapping"]] <- map_to_dbsnp(dplyr::select(no_match, -CHR, -POS), build = build, by = "rsid", bsgenome_objects)
+    reduced_round2 <- dplyr::distinct(dplyr::arrange(dbsnp[["rsid_mapping"]], RSID), CHR, POS, .keep_all = TRUE)
+    second_round_match <- dplyr::inner_join(dplyr::select(no_match, -CHR, -POS), reduced_round2, by = "RSID")
+
+  } else {
+    second_round_match <- dplyr::tibble(RSID ="tmp", .rows = 0)
+  }
 
   # collect
-  first_round_match <- dplyr::inner_join(dplyr::select(sumstat, -RSID), reduced, by = c("CHR", "POS"))
-  second_round_match <- dplyr::inner_join(dplyr::select(no_match, -CHR, -POS), reduced_round2, by = "RSID")
+
   merged <- dplyr::bind_rows(first_round_match, second_round_match)
   merged <- dplyr::distinct(merged, CHR, POS, EffectAllele, OtherAllele, .keep_all = TRUE)
 

@@ -59,6 +59,7 @@ tidyGWAS <- function(
   }
   rows_start <- nrow(tbl)
   start_time <- Sys.time()
+
   # use withr to create a sink that cancels on exit
   if(logfile) {
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
@@ -92,8 +93,7 @@ tidyGWAS <- function(
   if(use_dbsnp) {
     struct$sumstat <- validate_with_dbsnp(
       struct,
-      bsgenome_objects = bsgenome_objects,
-      .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp)
+      bsgenome_objects = bsgenome_objects
       )
   }
 
@@ -119,7 +119,7 @@ tidyGWAS <- function(
   # Finished! wrap up ----------------------------------------------
 
   cli::cli_h1("Finished tidyGWAS")
-  cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed. Started with: {rows_start} rows, ended with: {nrow(main)} rows")
+  cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
 
 
@@ -150,9 +150,9 @@ tidyGWAS <- function(
 # -------------------------------------------------------------------------
 
 
-validate_with_dbsnp <- function(struct, bsgenome_objects, .filter_callback) {
+validate_with_dbsnp <- function(struct, bsgenome_objects) {
   create_messages("validate_with_dbsnp")
-
+  .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp)
 
   # existence of chr:pos or rsid decides which columns to repair
   if(!struct$has_chr_pos & struct$has_rsid) {
