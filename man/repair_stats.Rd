@@ -7,7 +7,7 @@
 repair_stats(tbl)
 }
 \arguments{
-\item{tbl}{input a tibble (data frame).}
+\item{tbl}{input a tibble (data frame)}
 }
 \value{
 a tibble
@@ -20,9 +20,6 @@ functionality found online.
 \details{
 `repair_stats()` uses the tidyGWAS column specification. The functionality
 has been tested assuming the input data.frame is a tibble.
-
-reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
-Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
 }
 \examples{
 \dontrun{

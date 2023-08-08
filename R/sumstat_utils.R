@@ -96,12 +96,7 @@ split_rsid_by_regex <- function(tbl) {
 #'
 #' `repair_stats()` uses the tidyGWAS column specification. The functionality
 #' has been tested assuming the input data.frame is a tibble.
-#'
-#' reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
-#' Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
-#'
-#'
-#' @param tbl input a tibble (data frame).
+#' @param tbl input a tibble (data frame)
 #'
 #' @return a tibble
 #' @export
@@ -110,6 +105,8 @@ split_rsid_by_regex <- function(tbl) {
 #' updated <- repair_stats(my_gwas)
 #' }
 repair_stats <- function(tbl) {
+  # reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
+  # Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
   cli::cli_h3("Repairing missing statistics columns:")
   cli::cli_ol()
   cli::cli_li("Transform OR to B if OR exists")

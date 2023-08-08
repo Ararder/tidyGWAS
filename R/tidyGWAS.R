@@ -20,7 +20,9 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param logfile Direct messages to a logfile? Default is FALSE
 #' @param name name of the output directory. Default is a concotonated call to Sys.time()
 #' @param keep_indels Should indels be kept? Default is TRUE
+#' @param repair_cols Should any missing columns be repaired? Default is TRUE
 #' @param verbose Explain filters in detail? Default is FALSE.
+#' @param bsgenome_objects pass list from get_bsgenome()
 #' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
 #' This can be very useful if running not interactively, and want to make sure
 #' the log file exists even if the function errors.
@@ -125,7 +127,8 @@ tidyGWAS <- function(
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
   end_time <- Sys.time()
-  cli::cli_li("Total running time: {prettyunits::pretty_dt(end_time - start_time)}")
+  fmt <- prettyunits::pretty_dt(end_time - start_time)
+  cli::cli_li("Total running time: {fmt}")
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
 
 

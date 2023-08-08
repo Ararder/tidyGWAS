@@ -1,4 +1,3 @@
-source(test_path("setup.R"))
 test_that("Repair_chr_pos works", {
 
   mock_dbsnp()
