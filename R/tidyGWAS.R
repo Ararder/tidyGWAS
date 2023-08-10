@@ -1,7 +1,7 @@
 utils::globalVariables(c(
   "chr_pos", "n", "n_chr_pos",
   ".data", "invalid_rsid", "maps_to_dbsnp", "new_rsid", "merged_into_new_rsid",
-  "bsgenome_objects", "has_rsid", "head", "merge_history", "only_b37", "history",
+  "has_rsid", "head", "merge_history", "only_b37", "history",
   "exists_only_on_grch37", "reason", "filter_callback", "no_dbsnp_entry", "logfile"))
 
 snp_cols <- c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "rowid")
@@ -21,13 +21,13 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param name name of the output directory. Default is a concotonated call to Sys.time()
 #' @param keep_indels Should indels be kept? Default is TRUE
 #' @param repair_cols Should any missing columns be repaired? Default is TRUE
+#' @param implementation Use arrow or bsgenome as backend to interact with dbSNP?
 #' @param verbose Explain filters in detail? Default is FALSE.
-#' @param bsgenome_objects pass list from get_bsgenome()
 #' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
 #' This can be very useful if running not interactively, and want to make sure
 #' the log file exists even if the function errors.
 #' @param ... arguments that will be passed to other functions: Currently supports
-#' study_n, build, bsgenome_objects, rs_merge_arch
+#' study_n, build, rs_merge_arch
 #'
 #' @return a tibble or NULL, depending on outdir
 #' @export
@@ -40,8 +40,8 @@ tidyGWAS <- function(
     use_dbsnp = TRUE,
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
     repair_cols = TRUE,
+    implementation = "arrow",
     outdir,
-    bsgenome_objects,
     logfile=FALSE,
     log_on_err="tidyGWAS_logfile.txt",
     keep_indels = TRUE,
@@ -71,8 +71,7 @@ tidyGWAS <- function(
     if(!missing(log_on_err)) on.exit(file.copy(filepaths$logfile, log_on_err), add=TRUE)
   }
 
-  # check for bsgenome_object
-  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
+
 
 
   # welcome message ----------------------------------------------------------
@@ -94,16 +93,10 @@ tidyGWAS <- function(
 
   # Validate with dbSNP
   if(use_dbsnp) {
-    struct$sumstat <- validate_with_dbsnp(
-      struct,
-      bsgenome_objects = bsgenome_objects
-      )
+    struct$sumstat <- validate_with_dbsnp(struct)
   }
 
-
-
-
-  # merge indels back?
+  # handle indels
   if(keep_indels & nrow(struct$indels) > 0) {
     indel_struct <- vector("list")
     indel_struct$sumstat <- struct$indels
@@ -118,17 +111,19 @@ tidyGWAS <- function(
     struct$sumstat <- dplyr::bind_rows(struct$sumstat, indel_struct$sumstat)
   }
 
-  main <- struct$sumstat
-  if(repair_cols) main <- repair_stats(struct$sumstat)
+
+
+  if(repair_cols) struct$sumstat <- repair_stats(struct$sumstat)
 
 
   # Finished! wrap up ----------------------------------------------
 
   cli::cli_h1("Finished tidyGWAS")
-  cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
+  cli::cli_alert_info("A total of {rows_start - nrow(struct$sumstat)} rows were removed")
   end_time <- Sys.time()
   fmt <- prettyunits::pretty_dt(end_time - start_time)
   cli::cli_li("Total running time: {fmt}")
+  main <- struct$sumstat
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
 
 
@@ -155,27 +150,27 @@ tidyGWAS <- function(
 # -------------------------------------------------------------------------
 
 
-validate_with_dbsnp <- function(struct, bsgenome_objects) {
+validate_with_dbsnp <- function(struct) {
   create_messages("validate_with_dbsnp")
   .filter_callback = make_callback(struct$filepaths$validate_with_dbsnp)
 
   # existence of chr:pos or rsid decides which columns to repair
   if(!struct$has_chr_pos & struct$has_rsid) {
-    main_df <- repair_chr_pos(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+    main_df <- repair_chr_pos(sumstat = struct$sumstat)
 
   } else if(struct$has_chr_pos & !struct$has_rsid) {
     # nested if else to pass build if it was given in tidyGWAS
     if(!is.null(struct$build)) {
-      main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, build = struct$build)
+      main_df <- repair_rsid(sumstat = struct$sumstat, build = struct$build)
     } else {
-      main_df <- repair_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+      main_df <- repair_rsid(sumstat = struct$sumstat)
     }
 
   } else if(struct$has_chr_pos & struct$has_rsid) {
     if(!is.null(struct$build)) {
-      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects, build = struct$build)
+      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, build = struct$build)
     } else {
-      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, bsgenome_objects = bsgenome_objects)
+      main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat)
     }
   }
 
@@ -183,7 +178,7 @@ validate_with_dbsnp <- function(struct, bsgenome_objects) {
   # check if there is a subset of SNPs with missing rsid that needs to be repaired
   if(!is.null(struct$without_rsid)) {
     if(nrow(struct$without_rsid) > 0) {
-      tmp <- repair_rsid(struct$without_rsid, bsgenome_objects = bsgenome_objects)
+      tmp <- repair_rsid(struct$without_rsid)
       main_df <- dplyr::bind_rows(main_df, tmp)
     }
   }

@@ -1,15 +1,14 @@
-# Todo - what happens if input a RSID without a hit?
 utils::globalVariables(c(
   "RSID", "POS", "CHR", "EffectAllele", "OtherAllele",
   "seqnames", "pos", "RefSNP_id", "ref_allele", "alt_alleles",
   "a1_is_ref", "a2_is_ref","uncompatible_alleles", "rowid"
   ))
 
+
 # -------------------------------------------------------------------------
-#' Check that CHR POS and RSID all make sense in a GWAS summary statistic
+#' Compare CHR, POS and RSID with dbSNP reference data
 #'
 #' @param sumstat sumstat in tibble format, tidyGWAS column names
-#' @param bsgenome_objects use get_bsgenome()
 #' @param build optional, can be used to skip the infer_build step
 #'
 #' @return a tibble
@@ -22,7 +21,7 @@ utils::globalVariables(c(
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
 #' }
-verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
+verify_chr_pos_rsid <- function(sumstat, build) {
 
   # start -------------------------------------------------------------------
 
@@ -33,14 +32,14 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 
   # 1) figure out genome build -------------------------------------------------
 
-  if(missing(build)) build <- infer_build(sumstat, bsgenome_objects = bsgenome_objects)
-  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
+  if(missing(build)) build <- infer_build(sumstat)
+
 
   # check if RSIDs agree
-  dbsnp[[as.character(build)]] <- map_to_dbsnp(dplyr::select(sumstat, -RSID), build = build, by = "chr:pos", bsgenome_objects)
+  dbsnp[[as.character(build)]] <- map_to_dbsnp(dplyr::select(sumstat, -RSID), build = build, by = "chr:pos")
 
   # there are multiple cases where the same CHR:POS maps to multiple RSIDs
-  # in that case, we select the first RSID (smallest rs number, since rsid is arranged by )
+  # in that case, we select the first RSID (smallest rs number)
   reduced <- dplyr::distinct(dplyr::arrange(dbsnp[[as.character(build)]], RSID), CHR, POS, .keep_all = TRUE)
 
   # find the cases where chr_pos could not identify a RSID
@@ -49,7 +48,7 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 
   # check if the provided RSID exists in dbSNP
   if(nrow(no_match > 0)) {
-    dbsnp[["rsid_mapping"]] <- map_to_dbsnp(dplyr::select(no_match, -CHR, -POS), build = build, by = "rsid", bsgenome_objects)
+    dbsnp[["rsid_mapping"]] <- map_to_dbsnp(dplyr::select(no_match, -CHR, -POS), build = build, by = "rsid")
     reduced_round2 <- dplyr::distinct(dplyr::arrange(dbsnp[["rsid_mapping"]], RSID), CHR, POS, .keep_all = TRUE)
     second_round_match <- dplyr::inner_join(dplyr::select(no_match, -CHR, -POS), reduced_round2, by = "RSID")
 
@@ -89,36 +88,16 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 
   #3) add CHR and POS from remaining build ------------------------------------
 
-
-  add_build <- ifelse(build == 38, 37, 38)
-  cli::cli_alert_info("CHR and POS were on GRCh{build}. Acquiring positions on GRCh{add_build}, by mapping to dbSNP with RSID")
-  dbsnp[[as.character(add_build)]] <- map_to_dbsnp(dplyr::filter(sumstat, !is.na(RSID)), build = add_build, by = "rsid", bsgenome_objects = bsgenome_objects) |>
-    dplyr::select(-dplyr::all_of(c("ref_allele", "alt_alleles"))) |>
-    # remove multi-allelic SNPs
-    dplyr::distinct(CHR, POS, RSID)
-
-
-  if(add_build == 38) {
-    final <- dplyr::left_join(dplyr::rename(sumstat, CHR_37 = CHR, POS_37 = POS), dbsnp[[as.character(add_build)]], by = "RSID")
-  } else {
-    final <- dplyr::left_join(sumstat, dplyr::rename(dbsnp[[as.character(add_build)]], CHR_37 = CHR, POS_37 = POS), by = "RSID")
-  }
-
-
-
-  # return ------------------------------------------------------------------
-
-
-  dplyr::select(final, -dplyr::any_of(c("ref_allele", "alt_alleles")))
+  sumstat <- add_missing_build(sumstat, ifelse(build == 38, 37, 38))
+  dplyr::select(sumstat, -dplyr::any_of(c("ref_allele", "alt_alleles")))
 
 }
 
 
 #' Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS
 #'
-#' @param sumstat a dplyr::
-#' tibble with atleast CHR,POS, EffectAllele and OtherAllele
-#' @param bsgenome_objects a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects
+#' @param sumstat a tibble with CHR,POS, EffectAllele and OtherAllele
+#'
 #' @param build genome build, either 37 or 38
 #'
 #' @return a tibble
@@ -128,18 +107,17 @@ verify_chr_pos_rsid <- function(sumstat, bsgenome_objects, build) {
 #' sumstat_df <- repair_rsid(sumstat, bsgenome_list)
 #' }
 #'
-repair_rsid <- function(sumstat, bsgenome_objects, build){
+repair_rsid <- function(sumstat, build){
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_rsid")
   dbsnp <- vector("list")
-  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
 
   # 1) figure out genome build -------------------------------------------------
-  if(missing(build)) build <- infer_build(sumstat, bsgenome_objects=bsgenome_objects)
+  if(missing(build)) build <- infer_build(sumstat)
 
   # 2) get RSID and flags  --------------------------------------------------------
-  dbsnp[[as.character(build)]] <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", bsgenome_objects)
+  dbsnp[[as.character(build)]] <- map_to_dbsnp(sumstat, build = build, by = "chr:pos")
 
   # CHR:POS can map to multiple SNPs, select the
   tmp_rsid <- dplyr::distinct(dplyr::arrange(dbsnp[[as.character(build)]], RSID), CHR, POS, .keep_all = TRUE)
@@ -158,39 +136,19 @@ repair_rsid <- function(sumstat, bsgenome_objects, build){
 
 
   #3) add CHR and POS from remaining build ------------------------------------
+  sumstat <- add_missing_build(sumstat, ifelse(build == 38, 37, 38))
 
-
-  add_build <- ifelse(build == 38, 37, 38)
-  cli::cli_alert_info("CHR and POS were on GRCh{build}. Acquiring positions on GRCh{add_build}, by mapping to dbSNP with RSID")
-  dbsnp[[as.character(add_build)]] <- map_to_dbsnp(sumstat, build = add_build, by = "rsid", bsgenome_objects = bsgenome_objects) |>
-    dplyr::select(-dplyr::all_of(c("ref_allele", "alt_alleles"))) |>
-    # remove multi-allelic SNPs
-    dplyr::distinct(CHR, POS, RSID)
-
-
-  if(add_build == 38) {
-    final <- dplyr::left_join(dplyr::rename(sumstat, CHR_37 = CHR, POS_37 = POS), dbsnp[[as.character(add_build)]], by = "RSID")
-  } else {
-    final <- dplyr::left_join(sumstat, dplyr::rename(dbsnp[[as.character(add_build)]], CHR_37 = CHR, POS_37 = POS), by = "RSID")
-  }
-
-
-  # return --------------------------------------------------------------------
-
-
-  dplyr::select(final, -dplyr::any_of(c("ref_allele", "alt_alleles")))
+  dplyr::select(sumstat, -dplyr::any_of(c("ref_allele", "alt_alleles")))
 
 }
 
 
-# -------------------------------------------------------------------------
 
 
 
-#' Get CHR and POS from a reference genome with rsID
+#' Get CHR and POS using RSID
 #'
 #' @param sumstat a dplyr::tibble with with atleast RSID, EffectAllele and OtherAllele
-#' @param bsgenome_objects a list containing BSgenome genoms and snp_locs. see get_bsgenome_objects
 #' @return a tibble
 #' @export
 #'
@@ -198,15 +156,14 @@ repair_rsid <- function(sumstat, bsgenome_objects, build){
 #' sumstat_df <- repair_chr_pos(sumstat, bsgenome_list)
 #' }
 #'
-repair_chr_pos <- function(sumstat, bsgenome_objects){
+repair_chr_pos <- function(sumstat) {
 
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_chr_pos")
-  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
 
 
   # use RSID to get CHR and POS on GRCh38
-  dbsnp_38 <- map_to_dbsnp(sumstat, build = 38, by = "rsid", bsgenome_objects =  bsgenome_objects)
+  dbsnp_38 <- map_to_dbsnp(sumstat, build = 38, by = "rsid")
 
   # find duplicate
   dup_vec <- !(duplicated(dbsnp_38[,1:2]) | duplicated(dbsnp_38[,1:2], fromLast = TRUE))
@@ -222,7 +179,7 @@ repair_chr_pos <- function(sumstat, bsgenome_objects){
 
 
   # get CHR and POS from GRCh37 ---------------------------------------------
-  dbsnp_37 <- map_to_dbsnp(sumstat, build = 37, by = "rsid", bsgenome_objects = bsgenome_objects) |>
+  dbsnp_37 <- map_to_dbsnp(sumstat, build = 37, by = "rsid") |>
     dplyr::select(CHR_37 = CHR, POS_37 = POS, RSID) |>
     dplyr::distinct()
 
@@ -247,6 +204,28 @@ repair_chr_pos <- function(sumstat, bsgenome_objects){
 
 }
 
+
+# -------------------------------------------------------------------------
+
+
+add_missing_build <- function(sumstat, build) {
+
+
+  dbsnp <- map_to_dbsnp(sumstat, build = build, by = "rsid") |>
+    dplyr::select(-dplyr::all_of(c("ref_allele", "alt_alleles"))) |>
+    # remove multi-allelic SNPs
+    dplyr::distinct(CHR, POS, RSID)
+
+
+  if(build == 38) {
+    sumstat <- dplyr::rename(sumstat, CHR_37 = CHR, POS_37 = POS)
+  } else {
+    dbsnp <- dplyr::rename(dbsnp, CHR_37 = CHR, POS_37 = POS)
+  }
+
+  dplyr::left_join(sumstat, dbsnp, by = "RSID")
+
+}
 
 # -------------------------------------------------------------------------
 
@@ -309,109 +288,23 @@ start_repair_message <-  function(func) {
 }
 
 
-# -------------------------------------------------------------------------
-
-
-map_to_dbsnp <- function(tbl, build = 37, by = "rsid", bsgenome_objects) {
-
-  # validate input types ----------------------------------------------------
-
-
-  stopifnot("Can only map using 'rsid' or 'chr:pos'" = by %in% c("rsid", "chr:pos"))
-  stopifnot("tbl should be a tibble" = "tbl" %in% class(tbl))
-  stopifnot("tbl is empty" = nrow(tbl) > 0)
-  if(by == "rsid") {
-    stopifnot("RSID" %in% colnames(tbl))
-    stopifnot(is.character(tbl$RSID))
-
-  } else {
-    stopifnot("'CHR' and 'POS' need to be present in tbl" =  all(c("CHR", "POS") %in% colnames(tbl)))
-    stopifnot(is.character(tbl$CHR) & is.integer(tbl$POS))
-  }
-  stopifnot("Only supports GRCh37 or GRCh38" = build %in% c(37, 38))
-
-
-
-  # attempt to use preloaded bsgenome ---------------------------------------
-
-
-  if(missing(bsgenome_objects)) bsgenome_objects <- get_bsgenome()
-
-  if(build == 37) {
-    snps <- bsgenome_objects$snps_37
-    genome <- bsgenome_objects$genome_37
-  } else {
-    snps <- bsgenome_objects$snps_38
-    genome <- bsgenome_objects$genome_38
-  }
 
 
 
 
-  # join with dbsnp ---------------------------------------------------------
 
-  if(by == "rsid") {
-
-    res <- BSgenome::snpsById(
-      x = snps,
-      genome = genome,
-      # make sure only valid RSIDs are passed to snpsById
-      ids = dplyr::filter(tbl, stringr::str_detect(RSID, "rs\\d{1,9}"))[["RSID"]],
-      ifnotfound="drop"
-    ) |>
-      data.table::as.data.table()
-
-  } else {
-
-    res <-
-      # splitting by chromosome reduces memory usage of BSgenome::snpsByOverlaps
-      split(tbl, tbl$CHR) |>
-      purrr::map(\(chr_df) dplyr::arrange(chr_df, POS)) |>
-      # convert to GPos object
-      purrr::map(\(chr_df) GenomicRanges::GPos(chr_df[["CHR"]], chr_df[["POS"]])) |>
-      purrr::map(\(chr_df_as_gpos) BSgenome::snpsByOverlaps(ranges = chr_df_as_gpos, x = snps, genome = genome)) |>
-      purrr::map(data.table::as.data.table) |>
-      # remove empty entries
-      purrr::keep(\(x) nrow(x) > 0) |>
-      purrr::list_rbind()
-    if(rlang::is_empty(res)) res <- data.table::data.table("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
-
-  }
-
-
-  # clean up and return results ---------------------------------------------
-
-
-  dbsnp <- res |>
-    tibble::as_tibble() |>
-    dplyr::rename(CHR = seqnames, POS = pos, RSID = RefSNP_id) |>
-    dplyr::select(-dplyr::any_of(c("strand", "alleles_as_ambig", "genome_compat"))) |>
-    # this will ensure correct types AND that these columns exist
-    # while possible superfluous, ensures type safety from output of BSgenome::snpsByXX functions
-    dplyr::mutate(
-      CHR = as.character(CHR),
-      POS = as.integer(POS),
-      RSID = as.character(RSID)
-    ) |>
-    dplyr::distinct(CHR, POS, RSID, .keep_all = TRUE)
-
-
-
-  dbsnp
-
-}
 
 
 # -------------------------------------------------------------------------
 
 
-infer_build <- function(sumstat, n_snps = 10000,  ...) {
+infer_build <- function(sumstat, n_snps = 10000) {
   cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(sumstat)))
 
   subset <- dplyr::slice_sample(sumstat, n = {{ n_snps }})
-  b38 <- map_to_dbsnp(tbl = subset, build = 38, by = "chr:pos", ...)
-  b37 <- map_to_dbsnp(tbl = subset, build = 37, by = "chr:pos", ...)
+  b38 <- map_to_dbsnp(tbl = subset, build = 38, by = "chr:pos")
+  b37 <- map_to_dbsnp(tbl = subset, build = 37, by = "chr:pos")
 
   if(nrow(b37) > nrow(b38)) build <- 37 else build <- 38
   cli::cli_inform("{nrow(b38)} snps matched GRCh38, {nrow(b37)} for GRCh37, inferring build to be {build}")
@@ -561,25 +454,4 @@ get_ref_data <- function() {
 }
 
 
-# -------------------------------------------------------------------------
 
-
-#' load SNPlocs and REF genome for GRCh 37 and 38
-#'
-#' @return a list of SNPlocs and BSgenome objects
-#' @export
-#'
-#' @examples \dontrun{
-#' bsgenome <- get_bsgenome()
-#' }
-get_bsgenome <- function() {
-  list(
-    SNPlocs.Hsapiens.dbSNP155.GRCh37::SNPlocs.Hsapiens.dbSNP155.GRCh37,
-    BSgenome.Hsapiens.1000genomes.hs37d5::BSgenome.Hsapiens.1000genomes.hs37d5,
-    SNPlocs.Hsapiens.dbSNP155.GRCh38::SNPlocs.Hsapiens.dbSNP155.GRCh38,
-    BSgenome.Hsapiens.NCBI.GRCh38::BSgenome.Hsapiens.NCBI.GRCh38
-    # BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
-  ) |>
-    purrr::set_names(c("snps_37", "genome_37", "snps_38", "genome_38"))
-
-}
