@@ -151,9 +151,9 @@ test_that("split_rsid_by_regex correctly splits rows", {
 
 
 test_that("flag_rsid_history works", {
-
+  mock_arrow()
   pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
-  expect_no_error(updated <- flag_rsid_history(pval_as_char_df, rs_merge_arch))
+  expect_no_error(updated <- flag_rsid_history(pval_as_char_df))
 
 })
 

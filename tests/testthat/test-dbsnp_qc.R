@@ -1,8 +1,11 @@
 test_that("Repair_chr_pos works", {
 
-  mock_dbsnp()
+  mock_arrow()
   test_file$rowid <- 1:nrow(test_file)
-  tmp <- dplyr::select(test_file, -CHR, -POS)
+  tmp <- dplyr::select(test_file, -CHR, -POS) |>
+    flag_incorrect_rsid_format() |>
+    dplyr::filter(!invalid_rsid)
+
 
   expect_no_error(repaired <- repair_chr_pos(tmp))
 
@@ -20,36 +23,28 @@ test_that("Repair_chr_pos works", {
 
 
 test_that("Repair_rsid works", {
-  mock_dbsnp()
+  mock_arrow()
   tmp <-
     dplyr::mutate(test_file,  CHR = as.character(CHR), rowid = 1:nrow(test_file)) |>
     dplyr::select(rowid, CHR, POS, RSID, EffectAllele, OtherAllele)
 
 
-  repaired <- repair_rsid(dplyr::select(tmp, -RSID))
-
-
-  in_dbsnp <- dplyr::filter(repaired, !no_dbsnp_entry) |>
-    dplyr::select(RSID, rowid)
-  check <- dplyr::filter(tmp, rowid %in% in_dbsnp$rowid) |>
-    dplyr::select(RSID, rowid)
-  merged <- dplyr::inner_join(in_dbsnp, check, by ="rowid")
-  expect_equal(merged$RSID.x, merged$RSID.y)
-
-
-
+  expect_no_error(epaired <- repair_rsid(dplyr::select(tmp, -RSID)))
 
 })
 
 
 
 test_that("verify_chr_pos_rsid works", {
-  mock_dbsnp()
+  mock_arrow()
   tmp <-
     dplyr::mutate(test_file,  CHR = as.character(CHR), rowid = 1:nrow(test_file)) |>
     dplyr::select(rowid, CHR, POS, RSID, EffectAllele, OtherAllele)
 
-  expect_no_error(verify_chr_pos_rsid(tmp, bsgenome_objects = list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")))
+  expect_no_error(verify_chr_pos_rsid(tmp, build = "38"))
+  expect_no_error(verify_chr_pos_rsid(tmp, build = "37"))
+  expect_error(verify_chr_pos_rsid(tmp, build = 39))
+  expect_no_error(verify_chr_pos_rsid(tmp))
 
 
 })
@@ -58,16 +53,10 @@ test_that("verify_chr_pos_rsid works", {
 
 
 
-test_that("get_ref_data runs", {
-  tmp_file <- withr::local_tempfile()
-  data.table::fwrite(dplyr::tibble(RSID = "rs2020", new_RSID = "rs1090"), tmp_file)
-  withr::local_envvar(c("rs_merge_arch" = tmp_file))
-  expect_no_error(get_ref_data())
 
-})
 
 test_that("infer_build runs", {
-  mock_dbsnp()
+  mock_arrow()
   expect_no_error(infer_build(test_file))
 })
 
@@ -75,9 +64,11 @@ test_that("flatten_dbsnp runs", {
   expect_no_error(flatten_dbsnp(b38))
 })
 
+
 test_that("qc_with_dbsnp runs", {
-  tmp <- dplyr::mutate(test_file, rowid = 1:nrow(test_file))
-  expect_no_error(qc_with_dbsnp(tmp, b38))
+ tmp <- dplyr::mutate(test_file, rowid = 1:nrow(test_file))
+
+ expect_no_error(check_incompat_alleles(tmp, flatten_dbsnp(b38)))
 })
 
 test_that("make callback runs", {

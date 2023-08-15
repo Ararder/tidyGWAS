@@ -6,12 +6,10 @@
 
 
 test_that("validate SNPs work", {
+  filepaths = setup_pipeline_paths("test")
 
-  struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
-
-  expect_no_error(
-    tmp <- validate_sumstat(struct, verbose = FALSE)
-    )
+  withr::local_envvar("rs_merge_arch" = test_path("fixtures/RsMergeArch.parquet"))
+  struct <- initiate_struct(tbl = test_file, filepaths)
 
   # if indels get passed initiate struct, should print weird alleles
   struct$sumstat <- pval_as_char_df
@@ -23,10 +21,11 @@ test_that("validate SNPs work", {
 
 
 test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
+  withr::local_envvar("rs_merge_arch" = test_path("fixtures/RsMergeArch.parquet"))
   tmp <- flag_incorrect_rsid_format(test_file) |>
     dplyr::mutate(RSID = dplyr::if_else(invalid_rsid, ".", RSID))
 
-  struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
 
   expect_no_error(tmp <- validate_sumstat(struct))
 
@@ -42,7 +41,7 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
     EAF = 0.986, B =  -0.0262, SE = 0.0426, P = "0.539",
     CaseN = 106346, ControlN = 100000, INFO = 0.9)
 
-  struct <- initiate_struct(tbl = tbl, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tbl, filepaths = setup_pipeline_paths("test"))
 
   expect_no_error(tmp <- validate_sumstat(struct, verbose=TRUE))
 
@@ -60,10 +59,10 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
 
 })
 
-test_that("testing validate stats", {
+test_that("test that validate_sumstat catches errors in columns", {
 
   # setup
-  struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = test_file,filepaths = setup_pipeline_paths("test"))
 
 
 
@@ -73,6 +72,7 @@ test_that("testing validate stats", {
   struct$sumstat[100, "SE"] <- 0
   struct$sumstat[103, "N"] <- 0
   struct$sumstat[104, "EAF"] <- 1
+  # five less rows should exist after validation
   expect_no_error(tmp <- validate_sumstat(struct, verbose=FALSE))
 
 
@@ -85,32 +85,33 @@ test_that("testing validate stats", {
 # validate_with_dbsnp -----------------------------------------------------
 
 test_that("validate_with_dbsnp, all cols", {
-  mock_dbsnp()
-  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
 
-  struct <- initiate_struct(tbl = test_file, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
-  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome))
+  mock_arrow()
+  struct <- initiate_struct(tbl = test_file, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct))
+  ll <- verify_chr_pos_rsid(struct$sumstat)
+
 
 })
 
 test_that("validate_with_dbsnp, RSID", {
-  mock_dbsnp()
-  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+  mock_arrow()
+
   tmp <- dplyr::select(test_file, -CHR, -POS)
 
-  struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
-  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct))
 
 })
 
 test_that("validate_with_dbsnp, CHR and POS", {
-  mock_dbsnp()
-  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+  mock_arrow()
+
   tmp <- dplyr::select(test_file, -RSID) |>
     dplyr::mutate(CHR = as.character(CHR))
 
-  struct <- initiate_struct(tbl = tmp, rs_merge_arch = rs_merge_arch, filepaths = setup_pipeline_paths("test"))
-  expect_no_error(validate_with_dbsnp(struct, bsgenome_objects = bsgenome))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
+  expect_no_error(validate_with_dbsnp(struct))
 
 })
 
@@ -125,53 +126,41 @@ test_that("validate_with_dbsnp, CHR and POS", {
 
 
 test_that("testing tidyGWAS with RSID, CHR and POS", {
-  mock_dbsnp()
-  bsgenome <- bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+  mock_arrow()
 
   expect_no_error(
-      tidyGWAS(
+      test_out <- tidyGWAS(
       tbl = test_file,
-      rs_merge_arch = rs_merge_arch,
-      bsgenome_objects = bsgenome,
       name = "full",
       verbose = FALSE
   ))
 
-
-
-
-
 })
+
 
 
 
 
 test_that("Testing with CHR and POS", {
-  mock_dbsnp()
-  bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+  mock_arrow()
 
 
   expect_no_error(
-
-  tidyGWAS(
-    tbl = dplyr::select(test_file, -RSID),
-    bsgenome_objects = bsgenome_objects,
-    rs_merge_arch = rs_merge_arch,
-    logfile = TRUE,
-    name = "no_rsid"
-  )
-
+    tidyGWAS(
+      tbl = dplyr::select(test_file, -RSID),
+      logfile = TRUE,
+      name = "no_rsid"
+    )
   )
 
 })
 
 test_that("Testing with RSID", {
-  mock_dbsnp()
-  bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+  mock_arrow()
+
 
 
   expect_no_error(
-
     tidyGWAS(
       tbl = dplyr::select(test_file, -CHR, -POS),
       bsgenome_objects = bsgenome_objects,
@@ -186,40 +175,39 @@ test_that("Testing with RSID", {
 
 
 test_that("Testing with minimum input of parameters", {
-  mock_dbsnp()
-  bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
-
-
+  mock_arrow()
   expect_no_error(tidyGWAS(test_file))
+
+})
+
+test_that("Run with 10 mil rows", {
+
+
 
 })
 
 
 
-# test filewrite helpers
+
 
 
 test_that("Handles edge cases", {
 
-    mock_dbsnp()
-    bsgenome_objects <- list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
+    mock_arrow()
+
 
     tfile <-   flag_incorrect_rsid_format(test_file)
     tfile <- dplyr::mutate(tfile, CHR = dplyr::if_else(invalid_rsid, "50", CHR))
     tfile <- dplyr::mutate(tfile,  SE = dplyr::if_else(!invalid_rsid & CHR == "6", -50, SE))
 
     # edge case 1 - errors in both without_rsid and main
-    expect_no_error(tidyGWAS(tfile, bsgenome_objects = bsgenome_objects))
+    expect_no_error(tidyGWAS(tfile))
 
     # test with indels
-    expect_no_error(tidyGWAS(pval_as_char_df, bsgenome_objects = bsgenome_objects))
+    expect_no_error(tidyGWAS(pval_as_char_df))
 
 
 })
-
-
-
-
 
 
 

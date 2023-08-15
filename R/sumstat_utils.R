@@ -1,5 +1,5 @@
 utils::globalVariables(c(
-  "new_RSID", "old_RSID", "retracted","reactivated", ":="
+  "new_RSID", "old_RSID", "retracted","reactivated", ":=", "RSID.y"
 ))
 
 flag_indels <- function(tbl) {
@@ -84,9 +84,6 @@ split_rsid_by_regex <- function(tbl) {
 # https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/database/organism_data/RsMergeArch.bcp.gz
 
 # TEMP DURING DEVELOPMENT: THESE FILES ARE HERE ON LONGLEAF
-# rs_merge_arch_path = "~/arvhar/extdata/RsMergeArch.parquet",
-# snp_history_path="~/arvhar/extdata/SNPhistory.parquet.gz",
-# without_rs_grch38="~/arvhar/extdata/b151_rs_without_GRCh38_mapping.parquet.gz",
 
 #' Repair statistics column in a GWAS summary statistics tibble
 #'
@@ -173,18 +170,25 @@ repair_stats <- function(tbl) {
 
 }
 
-flag_rsid_history <- function(tbl, rs_merge_arch) {
+flag_rsid_history <- function(tbl, impl = "arrow") {
 
 
+  dset <- arrow::open_dataset(Sys.getenv("rs_merge_arch"))
 
-  # merge with RsMergeArch, and update where RSID matches old RSID
-  dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID"))) |>
-    dplyr::left_join(rs_merge_arch, by = "RSID") |>
-    # if RSID has been merged, update to correct one
-    dplyr::mutate(new_RSID = dplyr::if_else(is.na(new_RSID), RSID, new_RSID)) |>
-    dplyr::rename(old_RSID = RSID, RSID = new_RSID) |>
-    dplyr::mutate(old_RSID = dplyr::if_else(RSID != old_RSID, old_RSID, NA_character_)) |>
-    dplyr::select(dplyr::all_of(c("rowid", "old_RSID", "RSID")))
+  df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
+
+  updates <- dplyr::semi_join(dset, df,  by = c("old_RSID" = "RSID")) |>
+    dplyr::collect()
+
+  out <- dplyr::left_join(df, updates, by = c("RSID" = "old_RSID")) |>
+    dplyr::mutate(
+      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
+      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
+      ) |>
+    dplyr::select(rowid, RSID = new_RSID, old_RSID)
+
+
+  out
 
 
 }

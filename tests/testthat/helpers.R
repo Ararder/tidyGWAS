@@ -40,9 +40,10 @@ mock_dbsnp <- function(){
 
 
   local_mocked_bindings(
-    get_bsgenome = function(...) {
+    get_bsgenome = function() {
       list("snps_37" = 37, "snps_38" = 38, "genome_37" = "genome", "genome_38" = "genome")
     },
+    .package = "tidyGWAS",
     .env = parent.frame(),
   )
 
@@ -54,6 +55,22 @@ mock_dbsnp <- function(){
   )
 }
 
+mock_arrow <- function() {
+  withr::local_envvar(
+    "rs_merge_arch" = test_path("fixtures/RsMergeArch.parquet"),
+    .local_envir = parent.frame()
+    )
+
+  withr::local_envvar(
+    "grch37" = test_path("fixtures/dbSNP/GRCh37"),
+    .local_envir = parent.frame()
+  )
+  withr::local_envvar(
+    "grch38" = test_path("fixtures/dbSNP/GRCh38"),
+    .local_envir = parent.frame()
+  )
+
+}
 
 
 

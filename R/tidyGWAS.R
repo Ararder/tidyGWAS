@@ -21,7 +21,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param name name of the output directory. Default is a concotonated call to Sys.time()
 #' @param keep_indels Should indels be kept? Default is TRUE
 #' @param repair_cols Should any missing columns be repaired? Default is TRUE
-#' @param implementation Use arrow or bsgenome as backend to interact with dbSNP?
+#' @param implementation Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow
 #' @param verbose Explain filters in detail? Default is FALSE.
 #' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
 #' This can be very useful if running not interactively, and want to make sure
@@ -37,22 +37,31 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' }
 tidyGWAS <- function(
     tbl,
-    use_dbsnp = TRUE,
+    ...,
+    output_format = c("hivestyle", "parquet", "tsv"),
+    outdir = tempdir(),
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
-    repair_cols = TRUE,
-    implementation = "arrow",
-    outdir,
-    logfile=FALSE,
-    log_on_err="tidyGWAS_logfile.txt",
+    use_dbsnp = TRUE,
     keep_indels = TRUE,
-    verbose = FALSE,
-    ...
+    repair_cols = TRUE,
+    implementation = c("arrow","bsgenome"),
+    logfile = FALSE,
+    log_on_err="tidyGWAS_logfile.txt",
+    verbose = FALSE
     ) {
 
-  # parse data and input checks ------------------------------------------------
+
+  # tbl is mandatory --------------------------------------------------------
 
   stopifnot("tbl is a mandatory argument" = !missing(tbl))
   stopifnot("tbl is not character or data.frame" = any(c("data.frame", "character") %in% class(tbl)))
+
+
+  # parse arguments ---------------------------------------------------------
+
+
+  output_format <- rlang::arg_match(output_format)
+  implementation <- rlang::arg_match(implementation)
   filepaths <- setup_pipeline_paths(name = name)
 
   if("character" %in% class(tbl)) {
@@ -60,10 +69,9 @@ tidyGWAS <- function(
   } else if("data.frame" %in% class(tbl)) {
     tbl <- dplyr::tibble(tbl)
   }
-  rows_start <- nrow(tbl)
-  start_time <- Sys.time()
 
-  # use withr to create a sink that cancels on exit
+
+  # create logifle
   if(logfile) {
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
     withr::local_message_sink(filepaths$logfile)
@@ -73,28 +81,29 @@ tidyGWAS <- function(
 
 
 
-
   # welcome message ----------------------------------------------------------
+
+  rows_start <- nrow(tbl)
+  start_time <- Sys.time()
 
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {start_time}")
-  cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}}")
-  if(!missing(outdir)) cli::cli_alert_info("Files will be copied to {.file {paste(outdir,name, sep = '/')}} when finished")
+  cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
+  cli::cli_alert_info("After execution, files will be stored in {.file {paste(outdir,name, sep = '/')}}")
 
 
 
   # start the pipeline ------------------------------------------------------
 
   # run initial checks
-  struct <- initiate_struct(tbl = tbl, filepaths = filepaths, verbose = verbose, ...)
+  struct <- initiate_struct(tbl = tbl, filepaths = filepaths, verbose = verbose)
 
   # validate sumstats
   struct <- validate_sumstat(struct, verbose = verbose)
 
   # Validate with dbSNP
-  if(use_dbsnp) {
-    struct$sumstat <- validate_with_dbsnp(struct)
-  }
+  if(use_dbsnp) struct$sumstat <- validate_with_dbsnp(struct)
+
 
   # handle indels
   if(keep_indels & nrow(struct$indels) > 0) {
@@ -104,6 +113,7 @@ tidyGWAS <- function(
 
     # We can't validate RSIDs for indels, as indels are not in the BSgenome dbsnp version. Might be an upcoming feature.
     indel_struct$has_rsid <- FALSE
+    cli::cli_h2("Validating indel rows")
     indel_struct <- validate_sumstat(indel_struct, remove_cols = c("EffectAllele","OtherAllele"), verbose = verbose)
 
     # merge back into main struct
@@ -117,30 +127,19 @@ tidyGWAS <- function(
 
 
   # Finished! wrap up ----------------------------------------------
-
-  cli::cli_h1("Finished tidyGWAS")
-  cli::cli_alert_info("A total of {rows_start - nrow(struct$sumstat)} rows were removed")
   end_time <- Sys.time()
   fmt <- prettyunits::pretty_dt(end_time - start_time)
+  cli::cli_h1("Finished tidyGWAS")
+  cli::cli_alert_info("A total of {rows_start - nrow(struct$sumstat)} rows were removed")
   cli::cli_li("Total running time: {fmt}")
+
   main <- struct$sumstat
   identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
+  write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
 
 
 
 
-  # return cleaned or write out? ----------------------------------------------
-  if(!missing(outdir)) {
-    cleaned <- dplyr::select(main, dplyr::any_of(c("rowid", "CHR", "POS", "RSID","EffectAllele", "OtherAllele")), dplyr::everything())
-    data.table::fwrite(cleaned, struct$filepaths$cleaned)
-    file.copy("tidyGWAS_log.txt", paste0(struct$filepaths$base,"/tidyGWAS_log.txt"))
-    file.copy(struct$filepaths$base, outdir, recursive = TRUE)
-
-
-
-  } else {
-    main
-  }
 
 
 
@@ -184,7 +183,6 @@ validate_with_dbsnp <- function(struct) {
   }
 
 
-
   cli::cli_h2("Finished validation against dbSNP v.155")
   if(!missing(.filter_callback)) main_df <- .filter_callback(main_df)
   main_df
@@ -198,16 +196,11 @@ validate_with_dbsnp <- function(struct) {
 
 
 
-initiate_struct <- function(tbl, filepaths, verbose=FALSE, rs_merge_arch, study_n, ...) {
-
-
-  # -------------------------------------------------------------------------
-
+initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
 
 
   cli::cli_h2("Performing initial checks on input data: ")
-  if(!missing(study_n)) cli::cli_alert_info("Using N={study_n} to impute N if N column is not present")
-  if(missing(rs_merge_arch)) rs_merge_arch <- get_ref_data()
+  if(!missing(study_n)) cli::cli_alert_info("Using N = {study_n} to impute N if N column is not present")
 
 
   # check input columns
@@ -221,8 +214,9 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, rs_merge_arch, study_
 
   # write raw file
   tbl <- dplyr::tibble(tbl)
-  cli::cli_inform("Keeping track of rows by writing out a rowindex file of raw input file")
   if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
+
+  cli::cli_inform("Keeping track of rows by writing out a rowindex file of raw input file")
   data.table::fwrite(dplyr::select(tbl, rowid), paste0(filepaths$base , "/raw_sumstats.gz"))
 
   # setup filepaths that will be used, and remove unwanted columns
@@ -231,11 +225,10 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, rs_merge_arch, study_
   tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
 
 
-
   # add N if CaseN and ControlN exists
   if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
 
-  # impute_n if argument supplied and infor if N is missing
+  # impute_n if argument supplied and infer if N is missing
   if(!missing(study_n)) tbl <- dplyr::mutate(tbl, N = {{ study_n }})
   if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
 
@@ -265,7 +258,7 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, rs_merge_arch, study_
 
   if(struct$has_rsid) {
 
-    rsid_info <- flag_rsid_history(tmp, rs_merge_arch = rs_merge_arch)
+    rsid_info <- flag_rsid_history(tmp, impl = "arrow")
     tmp <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
       dplyr::select(-old_RSID)
 
@@ -406,37 +399,6 @@ warning_messages_stats <- function(tbl) {
 }
 
 
-# -------------------------------------------------------------------------
-
-
-setup_pipeline_paths <- function(name) {
-
-  # define workdir
-  stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
-  workdir <- paste(tempdir(), name, name, sep = "/")
-  pipeline_info <- paste(workdir,"pipeline_info", sep = "/")
-  if(!dir.exists(workdir)) dir.create(workdir, recursive = TRUE)
-  if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
-
-
-  list(
-    "base" = workdir,
-    "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
-    "cleaned" = paste(workdir, "cleaned_GRCh38.gz", sep = "/"),
-
-    #
-    "start_ids" = paste(pipeline_info, "start_ids.tsv.gz", sep = "/"),
-    "duplicates" = paste(pipeline_info, "removed_duplicates.log.gz", sep = "/"),
-    "rows_with_na" = paste(pipeline_info, "removed_rows_with_na.log.gz", sep = "/"),
-    "updated_rsid"= paste(pipeline_info, "updated_rsid.log.gz", sep = "/"),
-
-    "validate_sumstat" = paste(pipeline_info, "removed_validate_sumstat.log.gz", sep = "/"),
-    "validate_with_dbsnp" = paste(pipeline_info, "removed_validate_with_dbsnp.log.gz", sep = "/"),
-    "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.log.gz", sep = "/")
-  )
-
-
-}
 
 # -------------------------------------------------------------------------
 
@@ -541,20 +503,55 @@ create_messages <- function(func,tbl, struct) {
 # -------------------------------------------------------------------------
 
 
+setup_pipeline_paths <- function(name) {
+
+  # define workdir
+  stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
+  workdir <- paste(tempdir(), name, name, sep = "/")
+  pipeline_info <- paste(workdir,"pipeline_info", sep = "/")
+  if(!dir.exists(workdir)) dir.create(workdir, recursive = TRUE)
+  if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
+
+
+  list(
+    "base" = workdir,
+    "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
+    "cleaned" = paste(workdir, "tidyGWAS_hivestyle", sep = "/"),
+
+    #
+    "start_ids" = paste(pipeline_info, "start_ids.tsv.gz", sep = "/"),
+    "duplicates" = paste(pipeline_info, "removed_duplicates.log.gz", sep = "/"),
+    "rows_with_na" = paste(pipeline_info, "removed_rows_with_na.log.gz", sep = "/"),
+    "updated_rsid"= paste(pipeline_info, "updated_rsid.log.gz", sep = "/"),
+
+    "validate_sumstat" = paste(pipeline_info, "removed_validate_sumstat.log.gz", sep = "/"),
+    "validate_with_dbsnp" = paste(pipeline_info, "removed_validate_with_dbsnp.log.gz", sep = "/"),
+    "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.log.gz", sep = "/")
+  )
+
+
+}
+
+
+write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
+
+  df <- dplyr::select(df, dplyr::any_of(c("CHR", "POS", "RSID","EffectAllele", "OtherAllele", "B", "SE", "EAF", "P", "N")), dplyr::everything())
+
+  if(output_format == "hivestyle") {
+    arrow::write_dataset(dplyr::group_by(df, CHR), filepaths$cleaned)
+  } else if(output_format == "parquet") {
+    arrow::write_parquet(df, paste(filepaths$base, "cleaned_GRCh38.parquet", sep = "/"))
+  } else if(output_format == "parquet") {
+    data.table::fwrite(df, paste(filepaths$base, "cleaned_GRCh38.gz", sep = "/"), sep = "\t")
+  }
+
+
+  if(outdir != tempdir()) {
+    file.copy(struct$filepaths$base, outdir, recursive = TRUE)
+
+  }
+}
 
 # Suppress R CMD check note
 #' @importFrom R.utils as.character.binmode
 NULL
-
-# exit <- function(main, outdir) {
-#   if(!missing(outdir)) {
-#     cleaned <- dplyr::select(main, dplyr::any_of(c("rowid", "CHR", "POS", "RSID","EffectAllele", "OtherAllele")), dplyr::everything())
-#     data.table::fwrite(cleaned, struct$filepaths$cleaned)
-#     file.copy("tidyGWAS_log.txt", paste0(struct$filepaths$base,"/tidyGWAS_log.txt"))
-#     file.copy(struct$filepaths$base, outdir, recursive = TRUE)
-#     return(NULL)
-#   } else {
-#
-#     main
-#   }
-# }

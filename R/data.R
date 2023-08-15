@@ -22,17 +22,3 @@
 #' @source <https://figshare.com/ndownloader/files/34517828>
 "test_file"
 
-
-#' RsMergeArch
-#'
-#' A small subset of RsMergeArch dbsNP 151, with updated format. Consists of the 175 rows
-#' where test_file has an RSID that has been merged
-#'
-#' @format ## `rs_merge_arch`
-#' A data frame with 172 rows and 2 columns:
-#' \describe{
-#'   \item{RSID}{old, retracted RSID}
-#'   \item{new_RSID}{new RSID, the one which remains after merge with RSID}
-#' }
-#' @source <https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/database/organism_data/RsMergeArch.bcp.gz>
-"rs_merge_arch"

@@ -116,46 +116,36 @@ googledrive::drive_download(file)
 
 ```
 
-```{r}
-# use the small example file stored with tidyGWAS package
-rs_merge_arch <- tidyGWAS::rs_merge_arch
 
-```
 
 We can turn of the use of dbSNP, removing the majority of the running time
-```{r, collapse=TRUE}
+```{r, collapse=TRUE, eval=FALSE}
 start <- Sys.time()
-tmp <- tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, use_dbsnp = FALSE)
+tmp <- tidyGWAS(test_file, use_dbsnp = FALSE)
 end <- Sys.time()
 ```
 
-About 3 seconds for 100k rows
 
-```{r, collapse=TRUE}
-end - start
-
-
-```
 
 If you want the information to be stored in a logfile on disk, you can use the logfile flag. Note that by default, tidyGWAS uses a folder in `tempdir` to store all intermediate files. These files are not saved indefinitely, so to store the output data, you can also provide an output directory where you want the copy over the finished tidyGWAS oflder
 
-```{r, echo = FALSE}
+```{r, echo = FALSE,eval=FALSE}
 my_outdir <- withr::local_tempdir("all_my_gwas_files")
-tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, logfile = TRUE, outdir = my_outdir, use_dbsnp = FALSE)
+tidyGWAS(test_file,logfile = TRUE, outdir = my_outdir, use_dbsnp = FALSE)
 
 ```
 
 If you dont provide a name for the sumstat cleaning, tidyGWAS uses `Sys.time()` to create a random name.
 
-```{r}
+```{r,eval=FALSE}
 list.files(my_outdir, recursive = TRUE)
 
 ```
 
 This can be controlled with the `name` argument:
 
-```{r, echo = FALSE}
-tidyGWAS(test_file, rs_merge_arch = rs_merge_arch, outdir = my_outdir, name = "first_gwas", use_dbsnp = FALSE)
+```{r, echo = FALSE, eval=FALSE}
+tidyGWAS(test_file, outdir = my_outdir, name = "first_gwas", use_dbsnp = FALSE)
 list.files(my_outdir, recursive = TRUE)
 
 ```

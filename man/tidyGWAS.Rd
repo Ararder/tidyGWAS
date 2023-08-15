@@ -9,8 +9,8 @@ tidyGWAS(
   use_dbsnp = TRUE,
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
   repair_cols = TRUE,
+  implementation = "arrow",
   outdir,
-  bsgenome_objects,
   logfile = FALSE,
   log_on_err = "tidyGWAS_logfile.txt",
   keep_indels = TRUE,
@@ -27,9 +27,9 @@ tidyGWAS(
 
 \item{repair_cols}{Should any missing columns be repaired? Default is TRUE}
 
-\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
+\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow}
 
-\item{bsgenome_objects}{pass list from get_bsgenome()}
+\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
 
 \item{logfile}{Direct messages to a logfile? Default is FALSE}
 
@@ -42,7 +42,7 @@ the log file exists even if the function errors.}
 \item{verbose}{Explain filters in detail? Default is FALSE.}
 
 \item{...}{arguments that will be passed to other functions: Currently supports
-study_n, build, bsgenome_objects, rs_merge_arch}
+study_n, build, rs_merge_arch}
 }
 \value{
 a tibble or NULL, depending on outdir

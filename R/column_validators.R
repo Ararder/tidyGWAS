@@ -247,6 +247,7 @@ start_message <- function(col) {
 
 end_message <- function(tbl, col) {
 
+  stopifnot("Cannot print end msg for column that doesnt exist" = glue::glue("invalid_{col}") %in% colnames(tbl))
   n_invalid <- sum(tbl[[glue::glue("invalid_{col}")]])
   if(n_invalid > 0) {
     cli::cli_alert_warning("{n_invalid} rows failed {col} validation")
