@@ -4,7 +4,7 @@
 
 test_that("validate RSIDs does not error", {
   # create rowid
-  tmp <- dplyr::mutate(test_file, rowid = 1:nrow(test_file))
+  tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
 
   only_correct_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(!invalid_rsid)
   only_incorrect_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(invalid_rsid)
@@ -13,7 +13,7 @@ test_that("validate RSIDs does not error", {
   expect_no_error(validate_rsid(only_correct_rsid))
 
   # test without chr and pos
-  validate_rsid(dplyr::select(test_file, -CHR, -POS))
+  validate_rsid(dplyr::select(tmp, -CHR, -POS))
 
 
 })
@@ -22,12 +22,12 @@ test_that("validate RSIDs does not error", {
 
 test_that("Validate_columns works", {
 
-  check <- colnames(test_file)[colnames(test_file) %in% stats_cols]
+  check <- colnames(test_sumstat)[colnames(test_sumstat) %in% stats_cols]
   check <- check[!check %in% c("CaseN", "ControlN", "INFO")]
-  test_file <- dplyr::mutate(test_file, P = dplyr::if_else(CHR == 6, "-3", P))
+  test_sumstat <- dplyr::mutate(test_sumstat, P = dplyr::if_else(CHR == 6, -3, P))
 
   expect_no_error(
-    for(c in check) tmp <- validate_columns(test_file,col = c, verbose = FALSE)
+    for(c in check) tmp <- validate_columns(test_sumstat,col = c, verbose = FALSE)
   )
 
 
@@ -40,7 +40,7 @@ test_that("Validate_columns works", {
 
 test_that("validate_columns catches issues", {
   expect_message(
-    validate_columns(dplyr::mutate(test_file, B = exp(B)), "B"),
+    validate_columns(dplyr::mutate(test_sumstat, B = exp(B)), "B"),
     regexp = "*indicating that B has been mislabelled*"
   )
 
@@ -70,14 +70,11 @@ test_that("validate_effect_cols detects and prints alleles outside ACGT", {
 
 # validate CHR ------------------------------------------------------------
 
-test_that("Validat CHR runs, and fixes UCSC format", {
+test_that("Validate CHR runs, and fixes UCSC format", {
 
-
-  before <- test_file$CHR
-
-  tmp <- dplyr::mutate(test_file, CHR = dplyr::if_else(EffectAllele == "T", as.character(CHR), paste0("chr", CHR)))
+  before <- test_sumstat$CHR
+  tmp <- dplyr::mutate(test_sumstat, CHR = dplyr::if_else(EffectAllele == "T", as.character(CHR), paste0("chr", CHR)))
   after <- validate_columns(tmp, "CHR")
-  before <- dplyr::if_else(before == "23", "X", before)
   expect_equal(as.character(before), after$CHR)
 
 })
@@ -87,7 +84,7 @@ test_that("Validat CHR runs, and fixes UCSC format", {
 # validate Z ------------------------------------------------------------
 
 test_that("Z", {
-  tmp <- dplyr::mutate(test_file, Z = B/SE)
+  tmp <- dplyr::mutate(test_sumstat, Z = B/SE)
   # unreasonable large Z
   tmp[100, ]$Z <- 500
 

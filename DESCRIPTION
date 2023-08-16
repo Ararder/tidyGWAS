@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics
-Version: 0.1.0
+Version: 0.2.0
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
@@ -10,6 +10,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports: 
+    arrow,
     cli,
     data.table,
     dplyr,
@@ -26,7 +27,6 @@ Suggests:
     tictoc,
     GenomicRanges,
     BSgenome,
-    arrow,
     rlang,
     BSgenome.Hsapiens.1000genomes.hs37d5,
     BSgenome.Hsapiens.NCBI.GRCh38,
@@ -35,7 +35,8 @@ Suggests:
     SNPlocs.Hsapiens.dbSNP155.GRCh37,
     SNPlocs.Hsapiens.dbSNP155.GRCh38,
     testthat (>= 3.0.0),
-    utils
+    utils,
+    BiocManager
 RoxygenNote: 7.2.3
 Config/testthat/edition: 3
 VignetteBuilder: knitr

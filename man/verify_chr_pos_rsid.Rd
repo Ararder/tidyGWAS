@@ -4,7 +4,7 @@
 \alias{verify_chr_pos_rsid}
 \title{Compare CHR, POS and RSID with dbSNP reference data}
 \usage{
-verify_chr_pos_rsid(sumstat, build)
+verify_chr_pos_rsid(sumstat, build = c("NA", "37", "38"))
 }
 \arguments{
 \item{sumstat}{sumstat in tibble format, tidyGWAS column names}

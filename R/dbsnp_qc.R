@@ -1,7 +1,7 @@
 utils::globalVariables(c(
   "RSID", "POS", "CHR", "EffectAllele", "OtherAllele",
   "seqnames", "pos", "RefSNP_id", "ref_allele", "alt_alleles",
-  "a1_is_ref", "a2_is_ref","incompat_alleles", "rowid"
+  "a1_is_ref", "a2_is_ref","incompat_alleles", "rowid", "RSID.x"
   ))
 
 # https://www.ncbi.nlm.nih.gov/snp/docs/rs_multi_mapping/
@@ -114,7 +114,7 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 #'
 repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
   build = rlang::arg_match(build)
-  sumstat <- dplyr::select(sumstat, -any_of("RSID"))
+  sumstat <- dplyr::select(sumstat, -dplyr::any_of("RSID"))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   if(build == "NA") build <- infer_build(sumstat)
   start_repair_message("repair_rsid")
@@ -155,7 +155,7 @@ repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
 #' }
 #'
 repair_chr_pos <- function(sumstat) {
-  sumstat <- dplyr::select(sumstat, -any_of(c("CHR", "POS")))
+  sumstat <- dplyr::select(sumstat, -dplyr::any_of(c("CHR", "POS")))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   start_repair_message("repair_chr_pos")
 
@@ -217,13 +217,16 @@ make_callback <- function(outpath) {
   callback <- function(tbl) {
     # split into filter flags
     flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
+    # if ncol == 1, only rowid exists - no flags to filter on.
     if(ncol(flags) == 1) {
       cli::cli_inform("Found no flags to filter on")
       return(tbl)
     }
 
     remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
-    count_by_flag <- purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T))
+    count_by_flag <-
+      purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T)) |>
+      purrr::keep(\(x) x > 0)
 
 
 
@@ -232,7 +235,7 @@ make_callback <- function(outpath) {
       cli::cli_dl(purrr::list_simplify(count_by_flag))
       cli::cli_inform("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
     } else {
-      cli::cli_h2("{.emph No rows were removed}")
+      cli::cli_h2("{.emph All rows passed validation}")
     }
 
 

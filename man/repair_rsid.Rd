@@ -2,21 +2,21 @@
 % Please edit documentation in R/dbsnp_qc.R
 \name{repair_rsid}
 \alias{repair_rsid}
-\title{Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS}
+\title{Use CHR and POS to get RSID from dbSNP 155}
 \usage{
-repair_rsid(sumstat, build)
+repair_rsid(sumstat, build = c("NA", "37", "38"))
 }
 \arguments{
 \item{sumstat}{a tibble with CHR,POS, EffectAllele and OtherAllele}
 
-\item{build}{Optional. Genome build, either 37 or 38. If not passed,
+\item{build}{Optional. Genome build, either NA, 37 or 38. If NA,
 [infer_build()] will be called to get the genome build.}
 }
 \value{
 a tibble
 }
 \description{
-Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS
+Use CHR and POS to get RSID from dbSNP 155
 }
 \examples{
 \dontrun{

@@ -12,22 +12,45 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 
 
 
-#' Clean GWAS summary statistics
+#' Execute validation and quality control of GWAS summmary statistics
 #'
-#' @param tbl a tibble or filepath
-#' @param use_dbsnp use dbSNP to apply filters? Default is TRUE
+#' @description
+#' `tidyGWAS()` performs a set of validations on input colummns, repairs missing
+#' columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
+#' standardised to GRCh38, with coordinates on GRCh37 added in as well.
+#'
+#' Briefly, `tidyGWAS()` updates RSID if possible using RsMergeArch file
+#' from dbSNP. Each inputed column is then validated and coerced to
+#' the correct type. Missing CHR/POS or RSID is detected and imputed using
+#' [repair_rsid()] or [repair_chr_pos()]. If both RSID and CHR:POS is present,
+#' [verify_chr_pos_rsid()] is executed to check that dbSNP CHR:POS:RSID agrees
+#' with CHR:POS:RSID in `tbl`.
+#'
+#' If statistis such as `P`, `B` are missing, `tidyGWAS()` will attempt to impute
+#' them if possible using [repair_stats()]
+#'
+#' Standard column names are assumed, BEFORE inputting into the function. This is
+#' a deliberate decision, as automatic parsing of some important column names
+#' can be ambigious For example, in some sumstats, A1 referes to effect allele,
+#' while other formats use A1 as non-effect allele. [tidyGWAS_columns()] can be
+#' used to standardise column names, and see the standard format.
+#'
+#' @param tbl a `data.frame` or filepath
+#' @param ... pass arguments to subfunctions such as [validate_columns()],
+#' possible arguments are `study_n` to set N, and `build` to set genome build.
+#' @param output_format How should the finished cleaned file be saved? Can be either
+#' an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
+#' [arrow::write_parquet()] parquet file, for a tab-separated gzipped file.
 #' @param outdir Where should results be saved after a succesful run? Default is tempdir()
-#' @param logfile Direct messages to a logfile? Default is FALSE
 #' @param name name of the output directory. Default is a concotonated call to Sys.time()
+#' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
+#' @param use_dbsnp use dbSNP to apply filters? Default is TRUE
 #' @param keep_indels Should indels be kept? Default is TRUE
 #' @param repair_cols Should any missing columns be repaired? Default is TRUE
 #' @param implementation Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow
-#' @param verbose Explain filters in detail? Default is FALSE.
+#' @param logfile Direct messages to a logfile? Default is FALSE
 #' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
-#' This can be very useful if running not interactively, and want to make sure
-#' the log file exists even if the function errors.
-#' @param ... arguments that will be passed to other functions: Currently supports
-#' study_n, build, rs_merge_arch
+#' @param verbose Explain filters in detail? Default is FALSE.
 #'
 #' @return a tibble or NULL, depending on outdir
 #' @export
@@ -41,6 +64,7 @@ tidyGWAS <- function(
     output_format = c("hivestyle", "parquet", "tsv"),
     outdir = tempdir(),
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
+    dbsnp_path,
     use_dbsnp = TRUE,
     keep_indels = TRUE,
     repair_cols = TRUE,
@@ -63,6 +87,7 @@ tidyGWAS <- function(
   output_format <- rlang::arg_match(output_format)
   implementation <- rlang::arg_match(implementation)
   filepaths <- setup_pipeline_paths(name = name)
+  if(!missing(dbsnp_path)) set_envvars(dbsnp_path)
 
   if("character" %in% class(tbl)) {
     tbl <- data.table::fread(tbl)
@@ -89,7 +114,7 @@ tidyGWAS <- function(
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {start_time}")
   cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
-  cli::cli_alert_info("After execution, files will be stored in {.file {paste(outdir,name, sep = '/')}}")
+  cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
 
 
 
@@ -127,6 +152,8 @@ tidyGWAS <- function(
 
 
   # Finished! wrap up ----------------------------------------------
+  main <- struct$sumstat
+  identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
   end_time <- Sys.time()
   fmt <- prettyunits::pretty_dt(end_time - start_time)
   cli::cli_h1("Finished tidyGWAS")
@@ -134,7 +161,6 @@ tidyGWAS <- function(
   cli::cli_li("Total running time: {fmt}")
 
   main <- struct$sumstat
-  identify_removed_rows(dplyr::select(main,rowid), struct$filepaths)
   write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
 
 
@@ -147,6 +173,90 @@ tidyGWAS <- function(
 
 
 # -------------------------------------------------------------------------
+
+snp_cols <- c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "rowid")
+info_cols <- c("INFO", "N", "CaseN", "ControlN", "EAF")
+stats_cols <- c("B", "Z", "OR", "P", "SE", info_cols)
+
+#' Create a dataframe with tidyGWAS column names
+#'
+#' tidyGWAS functions assumes fixed column names. This function facilitates
+#' renaming column into tidyGWAS format
+#'
+#' @param tbl a data.frame
+#' @param CHR chromosome
+#' @param POS position
+#' @param RSID rsID from dbSNP
+#' @param EffectAllele allele corresponding to effect, B
+#' @param OtherAllele  non-effect allele
+#' @param B Beta, effect,
+#' @param SE standard error
+#' @param P p value
+#' @param EAF effect-allele frequency
+#' @param N total sample size (case + control)
+#' @param CaseN number of cases (for case-control phenotypes)
+#' @param ControlN number of controls (for case-control phenotypes)
+#' @param INFO INFO score, imputation accuracy
+#' @param Z Z score
+#' @param OR odds-ratio
+#'
+#' @return a tibble with changes column names
+#' @export
+#'
+#' @examples
+#' wrong_format <- dplyr::tibble(CHROM = 1, bp = 1000, A1 = "C", A2 = "A", Effect = 0.05)
+#' formatted <- tidyGWAS_columns(
+#' wrong_format, CHR = "CHROM", POS = "bp",
+#' EffectAllele = "A1", OtherAllele = "A2", B = "Effect"
+#' )
+tidyGWAS_columns <- function(
+  tbl,
+  CHR = "CHR",
+  POS = "POS",
+  RSID = "RSID",
+  EffectAllele = "EffectAllele",
+  OtherAllele = "OtherAllele",
+  B = "B",
+  SE = "SE",
+  P = "P",
+  EAF = "EAF",
+  N = "N",
+  CaseN = "CaseN",
+  ControlN = "ControlN",
+  INFO = "INFO",
+  Z = "Z",
+  OR = "OR"
+  ) {
+
+
+
+  tbl |>
+    dplyr::select(dplyr::any_of(c(
+      "CHR" = CHR,
+      "POS" = POS,
+      "RSID" = RSID,
+      "EffectAllele" = EffectAllele,
+      "OtherAllele" = OtherAllele,
+      "B" = B,
+      "SE" = SE,
+      "P" = P,
+      "EAF" = EAF,
+      "N" = N,
+      "CaseN" = CaseN,
+      "ControlN" = ControlN,
+      "INFO" = INFO,
+      "Z" = Z,
+      "OR" = OR
+    )))
+
+}
+
+
+
+
+# -------------------------------------------------------------------------
+
+
 
 
 validate_with_dbsnp <- function(struct) {
@@ -200,11 +310,15 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
 
 
   cli::cli_h2("Performing initial checks on input data: ")
+  cli::cli_ul()
+  cli::cli_li("Correct column names, remove missing values, update RSID, remove duplicates")
   if(!missing(study_n)) cli::cli_alert_info("Using N = {study_n} to impute N if N column is not present")
 
 
   # check input columns
-  cli::cli_alert_info("Columns: {colnames(tbl)[colnames(tbl) %in% valid_column_names]}")
+  cli::cli_h3("1) Checking that columns follow tidyGWAS format")
+  cli::cli_alert_info("The following columns are used for further steps:
+                      {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
   if(length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)) {
     cli::cli_alert_danger("{.strong Removed columns:  {colnames(tbl)[!colnames(tbl) %in% valid_column_names]}}")
   }
@@ -212,12 +326,10 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
   stopifnot("Requires either RSID or CHR:POS" = c("RSID") %in% colnames(tbl) | c("CHR", "POS") %in% colnames(tbl))
   stopifnot("Requires EffectAllele and OtherAllele" = all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
 
-  # write raw file
   tbl <- dplyr::tibble(tbl)
   if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
-
-  cli::cli_inform("Keeping track of rows by writing out a rowindex file of raw input file")
-  data.table::fwrite(dplyr::select(tbl, rowid), paste0(filepaths$base , "/raw_sumstats.gz"))
+  # write rowindex file
+  arrow::write_parquet(dplyr::select(tbl, rowid), paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
 
   # setup filepaths that will be used, and remove unwanted columns
   struct <- vector("list")
@@ -238,9 +350,7 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
 
 
   # 1) First filter - remove rows with NA ---------------------------------------
-
-  cli::cli_ul()
-  cli::cli_li("Scanning for NAs with tidyr::drop_na()")
+  cli::cli_h3("2) Scanning for NAs with tidyr::drop_na()")
 
   tmp <- tidyr::drop_na(tbl, -dplyr::any_of(c("CHR", "POS", "RSID")))
   struct$na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid")
@@ -262,7 +372,7 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
     tmp <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
       dplyr::select(-old_RSID)
 
-    cli::cli_h3("Updating RSIDs that have been merged using RsMergeArch")
+    cli::cli_h3("3) Updating RSIDs that have been merged using RsMergeArch")
     cli::cli_li("{sum(!is.na(rsid_info$old_RSID))} rows with updated RSID: {.file {struct$filepaths$updated_rsid}}")
     data.table::fwrite(dplyr::filter(rsid_info, !is.na(old_RSID)), struct$filepaths$updated_rsid, sep = "\t")
 
@@ -285,8 +395,8 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
     cols_to_use <- c("RSID", "EffectAllele", "OtherAllele")
   }
 
-  cli::cli_li("Scanning for duplicates")
-  cli::cli_li("Using {id} as id")
+  cli::cli_h3("4) Scanning for duplicates")
+  cli::cli_alert_info("Using {id} as id")
 
   # use distinct to remove duplications
   no_dups <- dplyr::distinct(tmp, dplyr::pick(dplyr::all_of(cols_to_use)), .keep_all = TRUE)
@@ -302,7 +412,8 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
 
   # 4) remove indels from main pipeline ------------------------------------------
 
-  if(verbose) create_messages("indels")
+  #if(verbose) create_messages("indels")
+  cli::cli_h3("5) Scanning for indels")
   tmp <- flag_indels(tmp)
   struct$indels <-  dplyr::select(dplyr::filter(tmp,  .data[["indel"]]), -indel)
   tmp <-            dplyr::select(dplyr::filter(tmp, !.data[["indel"]]), -indel)
@@ -367,7 +478,6 @@ validate_sumstat <- function(struct, remove_cols="", verbose=FALSE, filter_rows=
 
   cli::cli_h3("Running validation for other rows")
   tbl <- struct$sumstat
-  warning_messages_stats(tbl)
 
   cols_in_sumstat <- colnames(tbl)[colnames(tbl) %in% impl_validators]
   for(c in cols_in_sumstat) tbl <- validate_columns(tbl, col = c, verbose = verbose)
@@ -389,21 +499,13 @@ validate_sumstat <- function(struct, remove_cols="", verbose=FALSE, filter_rows=
 }
 
 
-# -------------------------------------------------------------------------
-
-
-warning_messages_stats <- function(tbl) {
-  n_p_0 <- dplyr::filter(tbl, P == 0) |> nrow()
-  z_miss <- all(c("B", "P") %in% colnames(tbl)) & !"Z" %in% colnames(tbl)
-  if(n_p_0 & z_miss) cli::cli_alert_danger("WARNING: Found {n_p_0} rows with P = 0 and missing Z score. These will not be correctly imputed")
-}
 
 
 
 # -------------------------------------------------------------------------
 
 identify_removed_rows <- function(finished, filepaths) {
-  start <- data.table::fread(paste0(filepaths$base , "/raw_sumstats.gz"), select = "rowid")
+  start <- arrow::read_parquet(paste0(filepaths$base , "/raw_sumstats.parquet"), select = "rowid")
 
   removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
 
@@ -547,9 +649,20 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
 
   if(outdir != tempdir()) {
-    file.copy(struct$filepaths$base, outdir, recursive = TRUE)
+    file.copy(filepaths$base, outdir, recursive = TRUE)
 
   }
+}
+
+set_envvars <- function(dbsnp155_path)  {
+  withr::local_envvar(c(
+    "rs_merge_arch" = paste(dbsnp155_path, "utils", "RsMergeArch.parquet", sep ="/"),
+    "grch37" = paste(dbsnp155_path, "GRCh37", sep ="/"),
+    "grch38" = paste(dbsnp155_path, "GRCh38", sep ="/")
+  ),
+  .local_envir = parent.frame()
+  )
+
 }
 
 # Suppress R CMD check note

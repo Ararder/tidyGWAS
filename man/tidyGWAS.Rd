@@ -2,53 +2,77 @@
 % Please edit documentation in R/tidyGWAS.R
 \name{tidyGWAS}
 \alias{tidyGWAS}
-\title{Clean GWAS summary statistics}
+\title{Execute validation and quality control of GWAS summmary statistics}
 \usage{
 tidyGWAS(
   tbl,
-  use_dbsnp = TRUE,
+  ...,
+  output_format = c("hivestyle", "parquet", "tsv"),
+  outdir = tempdir(),
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
+  dbsnp_path,
+  use_dbsnp = TRUE,
+  keep_indels = TRUE,
   repair_cols = TRUE,
-  implementation = "arrow",
-  outdir,
+  implementation = c("arrow", "bsgenome"),
   logfile = FALSE,
   log_on_err = "tidyGWAS_logfile.txt",
-  keep_indels = TRUE,
-  verbose = FALSE,
-  ...
+  verbose = FALSE
 )
 }
 \arguments{
-\item{tbl}{a tibble or filepath}
+\item{tbl}{a `data.frame` or filepath}
+
+\item{...}{pass arguments to subfunctions such as [validate_columns()],
+possible arguments are `study_n` to set N, and `build` to set genome build.}
+
+\item{output_format}{How should the finished cleaned file be saved? Can be either
+an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
+[arrow::write_parquet()] parquet file, for a tab-separated gzipped file.}
+
+\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
+
+\item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
+
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
 \item{use_dbsnp}{use dbSNP to apply filters? Default is TRUE}
 
-\item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
+\item{keep_indels}{Should indels be kept? Default is TRUE}
 
 \item{repair_cols}{Should any missing columns be repaired? Default is TRUE}
 
 \item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow}
 
-\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
-
 \item{logfile}{Direct messages to a logfile? Default is FALSE}
 
-\item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.
-This can be very useful if running not interactively, and want to make sure
-the log file exists even if the function errors.}
-
-\item{keep_indels}{Should indels be kept? Default is TRUE}
+\item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
 \item{verbose}{Explain filters in detail? Default is FALSE.}
-
-\item{...}{arguments that will be passed to other functions: Currently supports
-study_n, build, rs_merge_arch}
 }
 \value{
 a tibble or NULL, depending on outdir
 }
 \description{
-Clean GWAS summary statistics
+`tidyGWAS()` performs a set of validations on input colummns, repairs missing
+columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
+standardised to GRCh38, with coordinates on GRCh37 added in as well.
+
+Briefly, `tidyGWAS()` updates RSID if possible using RsMergeArch file
+from dbSNP. Each inputed column is then validated and coerced to
+the correct type. Missing CHR/POS or RSID is detected and imputed using
+[repair_rsid()] or [repair_chr_pos()]. If both RSID and CHR:POS is present,
+[verify_chr_pos_rsid()] is executed to check that dbSNP CHR:POS:RSID agrees
+with CHR:POS:RSID in `tbl`.
+
+If statistis such as `P`, `B` are missing, `tidyGWAS()` will attempt to impute
+them if possible using [repair_stats()]
+
+Standard column names are assumed, BEFORE inputting into the function. This is
+a deliberate decision, as automatic parsing of some important column names
+can be ambigious For example, in some sumstats, A1 referes to effect allele,
+while other formats use A1 as non-effect allele. [tidyGWAS_columns()] can be
+used to standardise column names, and see the standard format.
 }
 \examples{
 \dontrun{

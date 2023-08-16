@@ -16,141 +16,88 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(tidyGWAS)
+library(dplyr)
 ```
 
-# Installation
+# Downloaded reference files
 
-tidyGWAS contains some wrapper functions around BSgenome and the [SNPlocs](https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html) bioconductor packages. These are quite large dependencies, almost \~14GB, and are therefore listed as "suggests".
+tidyGWAS uses a version of dbSNP transformed into [parquet](https://arrow.apache.org/docs/r/) files, which is needed to
 
+perform validation and reparation of CHR, POS and RSID. These files can be downloaded here:\
+<https://drive.google.com/drive/folders/1ZcwnQtwWC476a5OiAYfSR2qCX6PiqhV3>
+
+```{r, eval=FALSE}
+googledrive::drive_deauth()
+file_id <- googledrive::as_id("1hg6jxQUj6UmEdLIH46md7eJcgfVlzmNn")
+googledrive::drive_download(file_id)
+
+```
+
+```{bash, eval=FALSE}
+DIRPATH = "dbsnp155"
+tar -xvf dbSNP155.tar $DIRPATH
+
+```
 
 # Quick start
 
 ```{r, eval=FALSE}
-
 devtools::install_github("ararder/tidyGWAS")
 # or
 remotes::install_github("ararder/tidyGWAS")
-
-
-# if you want to be able to repair CHR:POS or RSID, you need to download the following
-# bioconductor packages:
-if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install(version = "3.16")
-BiocManager::install("BSgenome")
-BiocManager::install("Biostrings")
-BiocManager::install("GenomicRanges")
-BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
-BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
-BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
-BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
-
-
 ```
 
-```{r, eval = FALSE}
-# download RsMergeArch
-file <- googledrive::as_dribble("https://drive.google.com/file/d/1HaES_q8m6rSDDLXvYr0TjQ-ZlyhdZbFX/view?usp=share_link")
-googledrive::drive_download(file)
-```
+The GWAS summary statistics file can be provided in-memory as a data.table / anything that can be coerced to a tibble or a filepath that can be read with data.table::fread. We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https://pgc.unc.edu/for-researchers/download-results/) as an example file.
 
-Put the file wherever you want in your enviroment, but specify the absolute filepath
-in .Renviron file, using "
-```{r, eval = FALSE}
-# usethis::edit_r_environ()
-# rs_merge_arch="YOUR_FILE_PATH"
-# restart R and check that this works:
-data.table::fread(Sys.getenv("rs_merge_arch"), nrows = 100)
-```
-
-tidyGWAS will run all analysis in a temporary directory, and the output will not be
-automatically saved. To save the output, use `outdir`.
-```{r, eval = FALSE}
-bs <- get_bsgenome()
-rs_merge_arch <- data.table::fread(Sys.getenv("rs_merge_arch"))
-sumstats_path <- "my_sumstats_filepath"
-df <- data.table::fread(sumstast_path)
-outdir <- getwd()
-tidyGWAS(tbl = df, name = "first_tidyGWAS", outdir = outdir)
-
-```
-
-It's often useful to save output to a logfile
-```{r, eval =FALSE}
-tidyGWAS(tbl = df, logfile=TRUE, bsgenome_objects = bs, name = "first_tidyGWAS", outdir = outdir)
-```
-
-# Getting started
-
-Automatic parsing of column names has not been implemented (and probable never will), so you will have to rename the input dataframe to the tidyGWAS format. The following column names are accepted.
+Here, the column names have already been renamed to the correct format.
 
 ```{r}
-
-snp_cols <- c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "rowid")
-info_cols <- c("INFO", "N", "CaseN", "ControlN", "EAF")
-stats_cols <- c("B", "Z", "OR", "P", "SE")
+example_file <- tidyGWAS::test_file
+example_file
 ```
 
-How the example file looks. The mandatory columns are either RSID, or CHR and POS
+## Creating the correct column names
+
+If our input file had column names that were not in the correct format, you can use `tidyGWAS_columns()`\` to first rename columns to the correct format. This can also be useful because `tidyGWAS_columns()` will drop any columns not matching the correct format, so you can quickly identify any mislabelled columns
 
 ```{r}
-test_file <- tidyGWAS::test_file
-test_file |>
-  dplyr::tibble()
+# what if we have a file where POS was named bp, and B was named BETA?
+# tidyGWAS will not recognize these as valid column names and would drop them.
+wrong_colnames <- rename(example_file, bp = POS, BETA = B)
+
+# we can use tidyGWAS_columns to specify current names:
+correct_names <- tidyGWAS_columns(
+  # first argument is the data.frame
+  tbl = wrong_colnames, 
+  # then any column which is not correctly named:
+  POS = "bp",
+  B = "BETA"
+  )
+
+correct_names
 ```
 
-The [BSgenome](https://bioconductor.org/packages/release/bioc/html/BSgenome.html) and [SNPlocs](https://bioconductor.org/packages/release/data/annotation/html/SNPlocs.Hsapiens.dbSNP155.GRCh38.html) packages are used to store and query dbSNP and fasta files to get CHR, POS, RSID, REF and ALT for all SNPs in dbSNP v155. The first query to this dataframe will always be slower than subsequent queries, so whenever you want to munge several summary statistics, it's get to first load the points to the bsgenome and snplocs data, which can be done with `get_bsgenome().`
+# Running tidyGWAS
 
-```{r,eval = FALSE}
-bsgenome <- get_bsgenome()
+tidyGWAS requires one mandatory argument: `tbl` , which is either a data.frame, or filepath
 
-```
-
-You can skip the step to align with dbSNP, which will significantly speed up running time and reduce memory usage, by not providing `bsgnome_objects`. To update the RSID colum, you also need to provide an RsMergeArch file. tidyGWAS will attempt to read in this file using a filepath provided in the R enviroment "rs_merge_arch".
-
-```{r, eval=FALSE}
-# You can download the rs_merge_arch file here:
-file <- googledrive::as_dribble("https://drive.google.com/file/d/1HaES_q8m6rSDDLXvYr0TjQ-ZlyhdZbFX/view?usp=share_link")
-googledrive::drive_download(file)
-# use usethis to set the env variable rs_merge_arch to the filepath to the downloaded file 
-# usethis::edit_r_environ()
-
-```
-
-
-
-We can turn of the use of dbSNP, removing the majority of the running time
-```{r, collapse=TRUE, eval=FALSE}
-start <- Sys.time()
-tmp <- tidyGWAS(test_file, use_dbsnp = FALSE)
-end <- Sys.time()
-```
-
-
-
-If you want the information to be stored in a logfile on disk, you can use the logfile flag. Note that by default, tidyGWAS uses a folder in `tempdir` to store all intermediate files. These files are not saved indefinitely, so to store the output data, you can also provide an output directory where you want the copy over the finished tidyGWAS oflder
-
-```{r, echo = FALSE,eval=FALSE}
-my_outdir <- withr::local_tempdir("all_my_gwas_files")
-tidyGWAS(test_file,logfile = TRUE, outdir = my_outdir, use_dbsnp = FALSE)
+```{r, eval = FALSE}
+# input the filepath where you untarred the downloaded reference files
+path_to_dbsnp = ""
+tidyGWAS(correct_names, dbsnp_path = path_to_dbsnp)
 
 ```
 
-If you dont provide a name for the sumstat cleaning, tidyGWAS uses `Sys.time()` to create a random name.
+You can run tidyGWAS without dbSNP filtering. This will substantially quicker. By default, all outputted files are stored in a `tempdir()`. You can add `outdir = "filepath/to_dir/"` to automatically copy over files after finished execution.
 
-```{r,eval=FALSE}
-list.files(my_outdir, recursive = TRUE)
+tidyGWAS cannot find all rows that were removed. This is because it removed some rows where RSID was coded as CHR:POS:REF:ALT. Normally, RSID would be repaired using dbSNP, but since we passed `use_dbnp = FALSE`, these rows are instead dropped.
 
+```{r, eval = FALSE}
+my_outdir <- paste0(tempdir(), "all_my_gwas_sumstats", sep = "/")
+
+# We can also add logfile = TRUE to save output to a logfile
+tidyGWAS(correct_names, use_dbsnp = FALSE, outdir = my_outdir, logfile = TRUE, dbsnp_path = path_to_dbsnp)
 ```
-
-This can be controlled with the `name` argument:
-
-```{r, echo = FALSE, eval=FALSE}
-tidyGWAS(test_file, outdir = my_outdir, name = "first_gwas", use_dbsnp = FALSE)
-list.files(my_outdir, recursive = TRUE)
-
-```
-
-Oops! We now have two different folders in our outdir. This is a feature. `outdir` is meant to be used when you have many different sumstats that you all want to be in the same directory, with the same folder structure.
 
 ## The functions within
 
@@ -202,8 +149,9 @@ flag_duplicates(test_file, column = "chr_pos")
 ```
 
 ### working with dbSNP
-Sometimes the same CHR and POS maps to multiple RSIDs.
-Currently, we resolve this by slecting the smallest RSID
+
+Sometimes the same CHR and POS maps to multiple RSIDs. Currently, we resolve this by slecting the smallest RSID
+
 ```{r}
 #  CHR        POS RSID         ref_allele alt_alleles
 #   <chr>    <int> <chr>        <chr>      <list>     
@@ -214,3 +162,20 @@ Currently, we resolve this by slecting the smallest RSID
 
 ```
 
+# Using bsgenome backend (depreciated)
+
+```{r}
+
+# if you want to be able to repair CHR:POS or RSID, you need to download the following
+# bioconductor packages:
+if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(version = "3.16")
+BiocManager::install("BSgenome")
+BiocManager::install("Biostrings")
+BiocManager::install("GenomicRanges")
+BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
+BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
+BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
+
+```

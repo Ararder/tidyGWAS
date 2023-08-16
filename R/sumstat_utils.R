@@ -112,6 +112,7 @@ repair_stats <- function(tbl) {
   cli::cli_li("Impute Z based on P and B if Z and SE is missing")
   cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
   cli::cli_h3("Starting reparations:")
+
   start_cols <- colnames(tbl)
 
 
