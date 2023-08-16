@@ -25,12 +25,6 @@
     <loc>http://arvidharder.com/tidyGWAS/reference/flag_duplicates.html</loc>
   </url>
   <url>
-    <loc>http://arvidharder.com/tidyGWAS/reference/get_bsgenome.html</loc>
-  </url>
-  <url>
-    <loc>http://arvidharder.com/tidyGWAS/reference/get_ref_data.html</loc>
-  </url>
-  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/index.html</loc>
   </url>
   <url>
@@ -43,13 +37,13 @@
     <loc>http://arvidharder.com/tidyGWAS/reference/repair_stats.html</loc>
   </url>
   <url>
-    <loc>http://arvidharder.com/tidyGWAS/reference/rs_merge_arch.html</loc>
-  </url>
-  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/test_file.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/tidyGWAS.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/tidyGWAS_columns.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/verify_chr_pos_rsid.html</loc>

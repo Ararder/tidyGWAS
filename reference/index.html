@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,34 +55,19 @@
         <dd>Fast detection of duplicates in RSID or CHR and POS columns</dd>
       </dl><dl><dt>
           
-          <code><a href="get_bsgenome.html">get_bsgenome()</a></code> 
-        </dt>
-        <dd>load SNPlocs and REF genome for GRCh 37 and 38</dd>
-      </dl><dl><dt>
-          
-          <code><a href="get_ref_data.html">get_ref_data()</a></code> 
-        </dt>
-        <dd>Read in RsMergeArch file</dd>
-      </dl><dl><dt>
-          
           <code><a href="repair_chr_pos.html">repair_chr_pos()</a></code> 
         </dt>
-        <dd>Get CHR and POS from a reference genome with rsID</dd>
+        <dd>Get CHR and POS using RSID</dd>
       </dl><dl><dt>
           
           <code><a href="repair_rsid.html">repair_rsid()</a></code> 
         </dt>
-        <dd>Get RSID from either GRCh37 or GRCh38 reference genome, using CHR and POS</dd>
+        <dd>Use CHR and POS to get RSID from dbSNP 155</dd>
       </dl><dl><dt>
           
           <code><a href="repair_stats.html">repair_stats()</a></code> 
         </dt>
         <dd>Repair statistics column in a GWAS summary statistics tibble</dd>
-      </dl><dl><dt>
-          
-          <code><a href="rs_merge_arch.html">rs_merge_arch</a></code> 
-        </dt>
-        <dd>RsMergeArch</dd>
       </dl><dl><dt>
           
           <code><a href="test_file.html">test_file</a></code> 
@@ -92,12 +77,17 @@
           
           <code><a href="tidyGWAS.html">tidyGWAS()</a></code> 
         </dt>
-        <dd>Clean GWAS summary statistics</dd>
+        <dd>Execute validation and quality control of GWAS summmary statistics</dd>
+      </dl><dl><dt>
+          
+          <code><a href="tidyGWAS_columns.html">tidyGWAS_columns()</a></code> 
+        </dt>
+        <dd>Create a dataframe with tidyGWAS column names</dd>
       </dl><dl><dt>
           
           <code><a href="verify_chr_pos_rsid.html">verify_chr_pos_rsid()</a></code> 
         </dt>
-        <dd>Check that CHR POS and RSID all make sense in a GWAS summary statistic</dd>
+        <dd>Compare CHR, POS and RSID with dbSNP reference data</dd>
       </dl></div>
   </main></div>
 
