@@ -2,10 +2,8 @@ test_that("arrow implementation works", {
   mock_arrow()
 
   chr_pos <- map_to_dbsnp_arrow(tbl = dplyr::slice(test_sumstat, 1:1000), build = 37, by = "chr:pos")
-
-  tictoc::tic("arrow with rsid")
   rsid <- map_to_dbsnp_arrow(tbl = dplyr::slice(test_sumstat, 1:1000), build = 37, by = "rsid")
-  tictoc::toc()
+
 })
 
 

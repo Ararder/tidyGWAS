@@ -5,12 +5,13 @@
 # validate_sumstat----------------------------------------------------------
 
 test_that("initiate_struct works", {
-  expect_no_error(struct <- initiate_struct(tbl = test_sumstat, filepaths = setup_pipeline_paths("automated-testing")))
+  filepaths <- setup_pipeline_paths("automated-testing", dbsnp_files)
+  expect_no_error(struct <- initiate_struct(tbl = test_sumstat, filepaths = filepaths))
 
 })
 
 test_that("validate sumstat", {
-  filepaths = setup_pipeline_paths("test")
+  filepaths <- setup_pipeline_paths("automated-testing", dbsnp_files)
 
   struct <- initiate_struct(tbl = test_sumstat, filepaths)
 
@@ -28,7 +29,7 @@ test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
   tmp <- flag_incorrect_rsid_format(test_sumstat) |>
     dplyr::mutate(RSID = dplyr::if_else(invalid_rsid, ".", RSID))
 
-  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test", dbsnp_files))
 
   expect_no_error(tmp <- validate_sumstat(struct))
 
@@ -44,7 +45,7 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
     EAF = 0.986, B =  -0.0262, SE = 0.0426, P = 0.539,
     CaseN = 106346, ControlN = 100000, INFO = 0.9)
 
-  struct <- initiate_struct(tbl = tbl, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tbl, filepaths = setup_pipeline_paths("test", dbsnp_files))
 
   expect_no_error(tmp <- validate_sumstat(struct, verbose=TRUE))
 
@@ -65,7 +66,7 @@ test_that("validate_snps works, and detects failed parses of invalid RSID", {
 test_that("test that validate_sumstat catches errors in columns", {
 
   # setup
-  struct <- initiate_struct(tbl = test_sumstat,filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = test_sumstat,filepaths = setup_pipeline_paths("test", dbsnp_files))
 
 
 
@@ -90,7 +91,7 @@ test_that("test that validate_sumstat catches errors in columns", {
 test_that("validate_with_dbsnp, all cols", {
 
   mock_arrow()
-  struct <- initiate_struct(tbl = test_sumstat, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = test_sumstat, filepaths = setup_pipeline_paths("test", dbsnp_files))
   expect_no_error(validate_with_dbsnp(struct))
 
 
@@ -101,7 +102,7 @@ test_that("validate_with_dbsnp, RSID", {
 
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
 
-  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test", dbsnp_files))
   expect_no_error(validate_with_dbsnp(struct))
 
 })
@@ -112,7 +113,7 @@ test_that("validate_with_dbsnp, CHR and POS", {
   tmp <- dplyr::select(test_sumstat, -RSID) |>
     dplyr::mutate(CHR = as.character(CHR))
 
-  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
+  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test", dbsnp_files))
   expect_no_error(validate_with_dbsnp(struct))
 
 })
@@ -127,18 +128,6 @@ test_that("validate_with_dbsnp, CHR and POS", {
 
 
 
-test_that("testing tidyGWAS with RSID, CHR and POS", {
-  mock_arrow()
-
-  expect_no_error(
-      test_out <- tidyGWAS(
-      tbl = test_sumstat,
-      name = "full",
-      verbose = FALSE
-  ))
-
-})
-
 
 
 
@@ -151,36 +140,33 @@ test_that("Testing with CHR and POS", {
     tidyGWAS(
       tbl = dplyr::select(test_sumstat, -RSID),
       logfile = TRUE,
-      name = "no_rsid"
+      dbsnp_path = dbsnp_files
     )
   )
-
-})
-
-test_that("Testing with RSID", {
-  mock_arrow()
-
 
 
   expect_no_error(
     tidyGWAS(
       tbl = dplyr::select(test_sumstat, -CHR, -POS),
-      bsgenome_objects = bsgenome_objects,
-      rs_merge_arch = rs_merge_arch,
       logfile = FALSE,
-      name = "chr_pos"
+      dbsnp_path = dbsnp_files
     )
-
   )
 
+  expect_no_error(
+    tidyGWAS(
+      tbl = test_sumstat,
+      logfile = FALSE,
+      dbsnp_path = dbsnp_files
+    )
+  )
+
+  expect_no_error(tidyGWAS(test_sumstat, dbsnp_path = dbsnp_files))
+
 })
 
 
-test_that("Testing with minimum input of parameters", {
-  mock_arrow()
-  expect_no_error(tidyGWAS(test_sumstat))
 
-})
 
 
 
@@ -190,15 +176,15 @@ test_that("Handles edge cases", {
     mock_arrow()
 
 
-    tfile <-   flag_incorrect_rsid_format(test_sumstat)
+    tfile <- flag_incorrect_rsid_format(test_sumstat)
     tfile <- dplyr::mutate(tfile, CHR = dplyr::if_else(invalid_rsid, "50", CHR))
     tfile <- dplyr::mutate(tfile,  SE = dplyr::if_else(!invalid_rsid & CHR == "6", -50, SE))
 
     # edge case 1 - errors in both without_rsid and main
-    expect_no_error(tidyGWAS(tfile))
+    expect_no_error(tidyGWAS(tfile, dbsnp_path = dbsnp_files))
 
     # test with indels
-    expect_no_error(tidyGWAS(pval_as_char_df))
+    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files))
 
 
 })
@@ -207,6 +193,6 @@ test_that("Handles edge cases", {
 
 test_that("setup_pipeline_paths works", {
   basename(withr::local_tempfile())
-  expect_no_error(setup_pipeline_paths("file1286096b0b9dd2"))
+  expect_no_error(setup_pipeline_paths("testing", dbsnp_files))
 
 })

@@ -171,10 +171,10 @@ repair_stats <- function(tbl) {
 
 }
 
-flag_rsid_history <- function(tbl, impl = "arrow") {
+flag_rsid_history <- function(tbl, rs_merge_arch_filepath) {
 
 
-  dset <- arrow::open_dataset(Sys.getenv("rs_merge_arch"))
+  dset <- arrow::open_dataset(rs_merge_arch_filepath)
 
   df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
 

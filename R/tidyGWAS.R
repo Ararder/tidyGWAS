@@ -61,10 +61,10 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 tidyGWAS <- function(
     tbl,
     ...,
+    dbsnp_path = "",
     output_format = c("tsv","hivestyle", "parquet"),
     outdir = tempdir(),
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
-    dbsnp_path,
     use_dbsnp = TRUE,
     keep_indels = TRUE,
     repair_cols = TRUE,
@@ -83,11 +83,11 @@ tidyGWAS <- function(
 
   # parse arguments ---------------------------------------------------------
 
-
   output_format <- rlang::arg_match(output_format)
   implementation <- rlang::arg_match(implementation)
-  filepaths <- setup_pipeline_paths(name = name)
-  if(!missing(dbsnp_path)) set_envvars(dbsnp_path)
+  filepaths <- setup_pipeline_paths(name = name, dbsnp = dbsnp_path)
+  withr::local_envvar("grch37" = filepaths$grch37,"grch38" = filepaths$grch38)
+
 
   if("character" %in% class(tbl)) {
     tbl <- data.table::fread(tbl)
@@ -368,7 +368,7 @@ initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
 
   if(struct$has_rsid) {
 
-    rsid_info <- flag_rsid_history(tmp, impl = "arrow")
+    rsid_info <- flag_rsid_history(tmp,filepaths$rs_merge_arch)
     tmp <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
       dplyr::select(-old_RSID)
 
@@ -605,7 +605,7 @@ create_messages <- function(func,tbl, struct) {
 # -------------------------------------------------------------------------
 
 
-setup_pipeline_paths <- function(name) {
+setup_pipeline_paths <- function(name, dbsnp) {
 
   # define workdir
   stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
@@ -615,7 +615,7 @@ setup_pipeline_paths <- function(name) {
   if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
 
 
-  list(
+  out <- list(
     "base" = workdir,
     "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
     "cleaned" = paste(workdir, "tidyGWAS_hivestyle", sep = "/"),
@@ -630,6 +630,17 @@ setup_pipeline_paths <- function(name) {
     "validate_with_dbsnp" = paste(pipeline_info, "removed_validate_with_dbsnp.log.gz", sep = "/"),
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.log.gz", sep = "/")
   )
+
+  if(dbsnp != "") {
+    out2 <- list(
+      "grch37" = paste(dbsnp, "GRCh37", sep = "/"),
+      "grch38" = paste(dbsnp, "GRCh37", sep = "/"),
+      "rs_merge_arch" = paste(dbsnp, "utils", sep = "/")
+    )
+    out <- c(out, out2)
+  }
+
+
 
 
 }
@@ -654,16 +665,7 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
   }
 }
 
-set_envvars <- function(dbsnp155_path)  {
-  withr::local_envvar(c(
-    "rs_merge_arch" = paste(dbsnp155_path, "utils", "RsMergeArch.parquet", sep ="/"),
-    "grch37" = paste(dbsnp155_path, "GRCh37", sep ="/"),
-    "grch38" = paste(dbsnp155_path, "GRCh38", sep ="/")
-  ),
-  .local_envir = parent.frame()
-  )
 
-}
 
 # Suppress R CMD check note
 #' @importFrom R.utils as.character.binmode

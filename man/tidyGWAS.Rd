@@ -7,10 +7,10 @@
 tidyGWAS(
   tbl,
   ...,
-  output_format = c("hivestyle", "parquet", "tsv"),
+  dbsnp_path = "",
+  output_format = c("tsv", "hivestyle", "parquet"),
   outdir = tempdir(),
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
-  dbsnp_path,
   use_dbsnp = TRUE,
   keep_indels = TRUE,
   repair_cols = TRUE,
@@ -26,6 +26,8 @@ tidyGWAS(
 \item{...}{pass arguments to subfunctions such as [validate_columns()],
 possible arguments are `study_n` to set N, and `build` to set genome build.}
 
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
 \item{output_format}{How should the finished cleaned file be saved? Can be either
 an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 [arrow::write_parquet()] parquet file, for a tab-separated gzipped file.}
@@ -33,8 +35,6 @@ an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 \item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
 
 \item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
-
-\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
 \item{use_dbsnp}{use dbSNP to apply filters? Default is TRUE}
 

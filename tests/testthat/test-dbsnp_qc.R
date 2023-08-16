@@ -52,7 +52,6 @@ test_that("verify_chr_pos_rsid works", {
 
 
 
-
 test_that("infer_build runs", {
   mock_arrow()
   expect_no_error(infer_build(test_sumstat))
@@ -63,7 +62,7 @@ test_that("flatten_dbsnp runs", {
 })
 
 
-test_that("qc_with_dbsnp runs", {
+test_that("check_incompat_alleles runs", {
  tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
 
  expect_no_error(check_incompat_alleles(tmp, flatten_dbsnp(b38)))

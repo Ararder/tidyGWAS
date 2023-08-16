@@ -6,7 +6,7 @@ load(test_path("fixtures/b37.rds"))
 
 test_sumstat <- dplyr::tibble(test_sumstat)
 test_sumstat$CHR <- as.character(test_sumstat$CHR)
-
+dbsnp_files <- test_path("fixtures/dbSNP")
 
 
 

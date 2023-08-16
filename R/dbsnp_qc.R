@@ -311,9 +311,9 @@ check_incompat_alleles <- function(tbl, dbsnp_df) {
 
 
   # correct cols
-  tbl <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID", "EffectAllele", "OtherAllele")))
+  tbl <- dplyr::select(tbl, dplyr::all_of(c("rowid", "CHR", "POS", "RSID", "EffectAllele", "OtherAllele")))
   dbsnp_df <-
-    dplyr::select(dbsnp_df, dplyr::all_of(c("RSID", "ref_allele", "alt_alleles"))) |>
+    dplyr::select(dbsnp_df, dplyr::all_of(c("CHR", "POS","RSID", "ref_allele", "alt_alleles"))) |>
     # multi-allelic SNPs into separate rows
     tidyr::separate_longer_delim(alt_alleles, delim =",")
 
@@ -338,7 +338,8 @@ check_incompat_alleles <- function(tbl, dbsnp_df) {
 
 
 flag_incompat_alleles <- function(tbl, dbsnp_df) {
-  dplyr::inner_join(tbl, dbsnp_df, by = "RSID") |>
+  # if input contains
+  dplyr::inner_join(tbl, dbsnp_df, by = c("CHR", "POS", "RSID"), relationship = "many-to-many") |>
     dplyr::mutate(
       a1_is_ref = dplyr::if_else(EffectAllele == ref_allele & OtherAllele == alt_alleles, TRUE, FALSE),
       a2_is_ref = dplyr::if_else(OtherAllele == ref_allele & EffectAllele == alt_alleles, TRUE, FALSE),
