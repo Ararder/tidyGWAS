@@ -138,7 +138,7 @@ flag_incorrect_rsid_format(test_file) |>
 
 ```
 
-## A fast function for finding duplications in RSID or CHR
+## A fast function for finding all entries in a duplication
 
 ```{r}
 flag_duplicates(test_file, column = "rsid")
@@ -162,20 +162,4 @@ Sometimes the same CHR and POS maps to multiple RSIDs. Currently, we resolve thi
 
 ```
 
-# Using bsgenome backend (depreciated)
 
-```{r}
-
-# if you want to be able to repair CHR:POS or RSID, you need to download the following
-# bioconductor packages:
-if (!require("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install(version = "3.16")
-BiocManager::install("BSgenome")
-BiocManager::install("Biostrings")
-BiocManager::install("GenomicRanges")
-BiocManager::install("BSgenome.Hsapiens.1000genomes.hs37d5")
-BiocManager::install("BSgenome.Hsapiens.NCBI.GRCh38")
-BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh37")
-BiocManager::install("SNPlocs.Hsapiens.dbSNP155.GRCh38")
-
-```

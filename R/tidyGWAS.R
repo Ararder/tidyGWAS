@@ -61,7 +61,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 tidyGWAS <- function(
     tbl,
     ...,
-    output_format = c("hivestyle", "parquet", "tsv"),
+    output_format = c("tsv","hivestyle", "parquet"),
     outdir = tempdir(),
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
     dbsnp_path,
