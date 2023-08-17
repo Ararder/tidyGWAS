@@ -53,7 +53,7 @@ We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https:
 Here, the column names have already been renamed to the correct format.
 
 ```{r}
-example_file <- tidyGWAS::test_file
+example_file <- dplyr::tibble(tidyGWAS::test_file)
 example_file
 ```
 
