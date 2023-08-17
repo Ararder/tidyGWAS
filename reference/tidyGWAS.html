@@ -94,8 +94,10 @@ used to standardise column names, and see the standard format.</p>
 <span>  <span class="va">tbl</span>,</span>
 <span>  <span class="va">...</span>,</span>
 <span>  dbsnp_path <span class="op">=</span> <span class="st">""</span>,</span>
-<span>  output_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"tsv"</span>, <span class="st">"hivestyle"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
+<span>  output_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"hivestyle"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
+<span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
 <span>  outdir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  convert_p <span class="op">=</span> <span class="fl">2.225074e-308</span>,</span>
 <span>  name <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html" class="external-link">str_replace_all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/date.html" class="external-link">date</a></span><span class="op">(</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>` ` <span class="op">=</span> <span class="st">"_"</span>, `:` <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  use_dbsnp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  keep_indels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -110,11 +112,12 @@ used to standardise column names, and see the standard format.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>tbl</dt>
-<dd><p>a `data.frame` or filepath</p></dd>
+<dd><p>a `data.frame` or `character()` vector</p></dd>
 
 
 <dt>...</dt>
-<dd><p>pass arguments to subfunctions such as [validate_columns()],
+<dd><p>pass arguments to to [arrow::read_delim_arrow()] which is the function
+that will be called if tbl is a filepath
 possible arguments are `study_n` to set N, and `build` to set genome build.</p></dd>
 
 
@@ -125,35 +128,43 @@ possible arguments are `study_n` to set N, and `build` to set genome build.</p><
 <dt>output_format</dt>
 <dd><p>How should the finished cleaned file be saved? Can be either
 an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
-[arrow::write_parquet()] parquet file, for a tab-separated gzipped file.</p></dd>
+[arrow::write_parquet()] parquet file, for a csv-separated gzipped file.</p></dd>
+
+
+<dt>build</dt>
+<dd><p>Can be used to skip [infer_build()]</p></dd>
 
 
 <dt>outdir</dt>
-<dd><p>Where should results be saved after a succesful run? Default is tempdir()</p></dd>
+<dd><p>Where should results be saved after a succesful execution?</p></dd>
+
+
+<dt>convert_p</dt>
+<dd><p>What value should be used for P = 0?</p></dd>
 
 
 <dt>name</dt>
-<dd><p>name of the output directory. Default is a concotonated call to Sys.time()</p></dd>
+<dd><p>name of the output directory</p></dd>
 
 
 <dt>use_dbsnp</dt>
-<dd><p>use dbSNP to apply filters? Default is TRUE</p></dd>
+<dd><p>use dbSNP to apply filters?</p></dd>
 
 
 <dt>keep_indels</dt>
-<dd><p>Should indels be kept? Default is TRUE</p></dd>
+<dd><p>Should indels be kept?</p></dd>
 
 
 <dt>repair_cols</dt>
-<dd><p>Should any missing columns be repaired? Default is TRUE</p></dd>
+<dd><p>Should any missing columns be repaired?</p></dd>
 
 
 <dt>implementation</dt>
-<dd><p>Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow</p></dd>
+<dd><p>Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment</p></dd>
 
 
 <dt>logfile</dt>
-<dd><p>Direct messages to a logfile? Default is FALSE</p></dd>
+<dd><p>Should messages be redirected to a logfile?</p></dd>
 
 
 <dt>log_on_err</dt>
@@ -161,7 +172,7 @@ an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 
 
 <dt>verbose</dt>
-<dd><p>Explain filters in detail? Default is FALSE.</p></dd>
+<dd><p>Explain filters in detail?</p></dd>
 
 </dl></div>
     <div class="section level2">
