@@ -3,7 +3,7 @@ pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   tidyGWAS: tidyGWAS.html
-last_built: 2023-08-17T08:54Z
+last_built: 2023-08-17T09:18Z
 urls:
   reference: http://arvidharder.com/tidyGWAS/reference
   article: http://arvidharder.com/tidyGWAS/articles
