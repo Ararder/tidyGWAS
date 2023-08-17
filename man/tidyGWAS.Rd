@@ -8,8 +8,10 @@ tidyGWAS(
   tbl,
   ...,
   dbsnp_path = "",
-  output_format = c("tsv", "hivestyle", "parquet"),
+  output_format = c("csv", "hivestyle", "parquet"),
+  build = c("NA", "37", "38"),
   outdir = tempdir(),
+  convert_p = 2.225074e-308,
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
   use_dbsnp = TRUE,
   keep_indels = TRUE,
@@ -21,34 +23,39 @@ tidyGWAS(
 )
 }
 \arguments{
-\item{tbl}{a `data.frame` or filepath}
+\item{tbl}{a `data.frame` or `character()` vector}
 
-\item{...}{pass arguments to subfunctions such as [validate_columns()],
+\item{...}{pass arguments to to [arrow::read_delim_arrow()] which is the function
+that will be called if tbl is a filepath
 possible arguments are `study_n` to set N, and `build` to set genome build.}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
 \item{output_format}{How should the finished cleaned file be saved? Can be either
 an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
-[arrow::write_parquet()] parquet file, for a tab-separated gzipped file.}
+[arrow::write_parquet()] parquet file, for a csv-separated gzipped file.}
 
-\item{outdir}{Where should results be saved after a succesful run? Default is tempdir()}
+\item{build}{Can be used to skip [infer_build()]}
 
-\item{name}{name of the output directory. Default is a concotonated call to Sys.time()}
+\item{outdir}{Where should results be saved after a succesful execution?}
 
-\item{use_dbsnp}{use dbSNP to apply filters? Default is TRUE}
+\item{convert_p}{What value should be used for P = 0?}
 
-\item{keep_indels}{Should indels be kept? Default is TRUE}
+\item{name}{name of the output directory}
 
-\item{repair_cols}{Should any missing columns be repaired? Default is TRUE}
+\item{use_dbsnp}{use dbSNP to apply filters?}
 
-\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP?, default is arrow}
+\item{keep_indels}{Should indels be kept?}
 
-\item{logfile}{Direct messages to a logfile? Default is FALSE}
+\item{repair_cols}{Should any missing columns be repaired?}
+
+\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment}
+
+\item{logfile}{Should messages be redirected to a logfile?}
 
 \item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
-\item{verbose}{Explain filters in detail? Default is FALSE.}
+\item{verbose}{Explain filters in detail?}
 }
 \value{
 a tibble or NULL, depending on outdir

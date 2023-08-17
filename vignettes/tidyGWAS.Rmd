@@ -47,7 +47,8 @@ devtools::install_github("ararder/tidyGWAS")
 remotes::install_github("ararder/tidyGWAS")
 ```
 
-The GWAS summary statistics file can be provided in-memory as a data.table / anything that can be coerced to a tibble or a filepath that can be read with data.table::fread. We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https://pgc.unc.edu/for-researchers/download-results/) as an example file.
+The GWAS summary statistics file can be provided in-memory as a data.frame/tibble or a filepath that can be read with data.table::fread. 
+We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https://pgc.unc.edu/for-researchers/download-results/) as an example file.
 
 Here, the column names have already been renamed to the correct format.
 
@@ -99,7 +100,13 @@ my_outdir <- paste0(tempdir(), "all_my_gwas_sumstats", sep = "/")
 tidyGWAS(correct_names, use_dbsnp = FALSE, outdir = my_outdir, logfile = TRUE, dbsnp_path = path_to_dbsnp)
 ```
 
-## The functions within
+# Computational cost
+
+Memory use and time scales with the size of the summary statistics.
+From running tidyGWAS extensively, here's an estimation of time and memory:
+
+1.  1 - 10 mil rows: <16gb memory, ~20 min
+2. 
 
 tidyGWAS exposes several smaller functions that can help when interactively working with sumstats.
 

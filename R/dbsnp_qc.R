@@ -5,7 +5,9 @@ utils::globalVariables(c(
   ))
 
 # https://www.ncbi.nlm.nih.gov/snp/docs/rs_multi_mapping/
+
 # -------------------------------------------------------------------------
+
 
 #' Compare CHR, POS and RSID with dbSNP reference data
 #'
@@ -26,10 +28,14 @@ utils::globalVariables(c(
 verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 
   # start -------------------------------------------------------------------
-  build = rlang::arg_match(build)
-  start_repair_message("verify_chr_pos_rsid")
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
+  build = rlang::arg_match(build)
   if(build == "NA") build <- infer_build(sumstat)
+
+
+  # -------------------------------------------------------------------------
+  # merge first with CHR:POS, then attempt to merge with RSID
+  # if any rows fail CHR:POS merge.
 
 
 
@@ -117,7 +123,6 @@ repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
   sumstat <- dplyr::select(sumstat, -dplyr::any_of("RSID"))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   if(build == "NA") build <- infer_build(sumstat)
-  start_repair_message("repair_rsid")
 
 
   # Get RSID using CHR:POS
@@ -157,7 +162,6 @@ repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
 repair_chr_pos <- function(sumstat) {
   sumstat <- dplyr::select(sumstat, -dplyr::any_of(c("CHR", "POS")))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
-  start_repair_message("repair_chr_pos")
 
 
   # start -------------------------------------------------------------------------
@@ -209,10 +213,10 @@ add_missing_build <- function(sumstat, missing_build = c("37", "38")) {
 
 # -------------------------------------------------------------------------
 
-make_callback <- function(outpath) {
-  # update the filepath if it exists
-  i <- 0
-  while(file.exists(outpath)) outpath <- glue::glue(stringr::str_remove(outpath, "(_\\d{1})?\\.log.gz"), "_", (i <- i +1), ".log.gz")
+make_callback <- function(outpath, id) {
+
+
+  outpath <- paste0(outpath, id, ".parquet")
 
   callback <- function(tbl) {
     # split into filter flags
@@ -240,7 +244,7 @@ make_callback <- function(outpath) {
 
 
 
-    data.table::fwrite(remove, outpath, sep = "\t")
+    arrow::write_parquet(remove, outpath, compression = "gzip")
 
     dplyr::select(tbl, -dplyr::where(is.logical)) |>
       dplyr::filter(!rowid %in% remove$rowid)
@@ -248,33 +252,6 @@ make_callback <- function(outpath) {
 
   callback
 }
-
-# -------------------------------------------------------------------------
-
-
-start_repair_message <-  function(func) {
-  cli::cli_h1("tidyGWAS::{func}")
-  cli::cli_ul()
-  if(func == "repair_chr_pos")      cli::cli_li("Acquiring CHR and POS from dbSNP 155")
-  if(func == "repair_rsid")         cli::cli_li("Acquiring RSID from dbSNP 155")
-  if(func == "verify_chr_pos_rsid") cli::cli_li("Updating CHR:POS:RSID using reference data from dbSNP 155")
-
-  cli::cli_li("{.code incompat_alleles} flags where EffectAllele/OtherAllele does not match REF/ALT")
-  cli::cli_li("{.code no_dbsnp_entry} flags rows without dbSNP entry")
-
-  cli::cli_li("This will likely take a few minutes...")
-
-}
-
-
-
-
-
-
-
-
-
-# -------------------------------------------------------------------------
 
 
 infer_build <- function(sumstat, n_snps = 10000) {

@@ -24,7 +24,6 @@ mock_dbsnp <- function(){
 
   local_mocked_bindings(
     snpsByOverlaps = function(x, ranges, ...) {
-      ranges <- data.table::as.data.table(ranges)
       if(x == 38) {
         dplyr::semi_join(b38, ranges, by = c("CHR" = "seqnames", "POS" = "pos")) |>
           dplyr::rename(seqnames = CHR, pos = POS, RefSNP_id = RSID)

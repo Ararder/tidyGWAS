@@ -116,8 +116,7 @@ map_to_dbsnp_bsgenome <- function(tbl, build, by) {
       # make sure only valid RSIDs are passed to snpsById
       ids = dplyr::filter(tbl, stringr::str_detect(RSID, "rs\\d{1,9}"))[["RSID"]],
       ifnotfound="drop"
-    ) |>
-      data.table::as.data.table()
+    )
 
   } else {
 
@@ -128,11 +127,10 @@ map_to_dbsnp_bsgenome <- function(tbl, build, by) {
       # convert to GPos object
       purrr::map(\(chr_df) GenomicRanges::GPos(chr_df[["CHR"]], chr_df[["POS"]])) |>
       purrr::map(\(chr_df_as_gpos) BSgenome::snpsByOverlaps(ranges = chr_df_as_gpos, x = snps, genome = genome)) |>
-      purrr::map(data.table::as.data.table) |>
       # remove empty entries
       purrr::keep(\(x) nrow(x) > 0) |>
       purrr::list_rbind()
-    if(rlang::is_empty(res)) res <- data.table::data.table("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
+    if(rlang::is_empty(res)) res <- dplyr::tibble("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
 
   }
 

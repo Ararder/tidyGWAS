@@ -69,5 +69,5 @@ test_that("check_incompat_alleles runs", {
 })
 
 test_that("make callback runs", {
-  expect_no_error(make_callback(withr::local_tempfile()))
+  expect_no_error(make_callback(withr::local_tempfile(), "auto-testing"))
 })
