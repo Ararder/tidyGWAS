@@ -7,19 +7,15 @@
 repair_stats(tbl)
 }
 \arguments{
-\item{tbl}{input a tibble (data frame)}
+\item{tbl}{a [dplyr::tibble()] with [tidyGWAS_columns()] columns}
 }
 \value{
 a tibble
 }
 \description{
-`tidyGWAS::repar_stats()` is a collection of functions that can be used to
+`repair_stats()` is a collection of functions that can be used to
 infer missing columns in GWAS summary statistics. The functions are based on
 functionality found online.
-}
-\details{
-`repair_stats()` uses the tidyGWAS column specification. The functionality
-has been tested assuming the input data.frame is a tibble.
 }
 \examples{
 \dontrun{

@@ -16,7 +16,7 @@ repair_rsid(sumstat, build = c("NA", "37", "38"))
 a tibble
 }
 \description{
-Use CHR and POS to get RSID from dbSNP 155
+This function assumes tidyGWAS column names, see [tidyGWAS_columns()]
 }
 \examples{
 \dontrun{

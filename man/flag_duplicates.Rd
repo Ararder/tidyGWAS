@@ -2,19 +2,26 @@
 % Please edit documentation in R/sumstat_utils.R
 \name{flag_duplicates}
 \alias{flag_duplicates}
-\title{Fast detection of duplicates in RSID or CHR and POS columns}
+\title{Find all rows which are part of a set of duplicated rows}
 \usage{
-flag_duplicates(tbl, column = "rsid")
+flag_duplicates(
+  tbl,
+  column = c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt")
+)
 }
 \arguments{
-\item{tbl}{a tibble with tidyGWAS column names}
+\item{tbl}{a tibble with [tidyGWAS_columns()]}
 
-\item{column}{construct id with either 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt'}
+\item{column}{Which columns should be used to form a unique ID?}
 }
 \value{
-a tibble
+a tibble with new columns dup_{column}
 }
 \description{
+Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]
+identify rows which are duplications. It is often useful to see ALL rows
+which are part of the duplication set, and not just the second row.
+
 creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
 Specifically, flags both rows in a duplication pair, and not just first or
 last duplicate row, making it easy to work with all rows that are part of a
@@ -22,8 +29,13 @@ duplication
 }
 \examples{
 \dontrun{
+
+# will tag multi-allelics as duplications
+flag_duplicates(tbl, column = "rsid")
 flag_duplicates(tbl, column = "chr_pos")
-flag_duplicates(tbl, column = "crsid")
+# if you are interested in rows that are variant duplications
+flag_duplicates(tbl, column = "rsid_ref_alt")
+flag_duplicates(tbl, column = "chr_pos_ref_alt")
 
 }
 }

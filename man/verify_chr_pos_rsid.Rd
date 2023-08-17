@@ -7,10 +7,10 @@
 verify_chr_pos_rsid(sumstat, build = c("NA", "37", "38"))
 }
 \arguments{
-\item{sumstat}{sumstat in tibble format, tidyGWAS column names}
+\item{sumstat}{sumstat in tibble format, [tidyGWAS_columns()] names}
 
-\item{build}{Optional. Genome build, either 37 or 38. If not passed,
-[infer_build()] will be called to get the genome build.}
+\item{build}{genome build. if unknown ("NA"), build will be
+inferred using [infer_build()]}
 }
 \value{
 a tibble
@@ -21,7 +21,6 @@ Compare CHR, POS and RSID with dbSNP reference data
 \examples{
 \dontrun{
 gwas <- tidyGWAS::test_file
-bs <- get_bsgenome()
 # make_callback can be passed a filepath to write out removed rows to.
 callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 verify_chr_pos_rsid(gwas, bs, build = 37)

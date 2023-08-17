@@ -2,6 +2,19 @@ utils::globalVariables(c(
   "new_RSID", "old_RSID", "retracted","reactivated", ":=", "RSID.y"
 ))
 
+#' Detect "indels" in GWAS summary statistics
+#'
+#' @param tbl a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele`
+#'
+#' @return a [dplyr::tibble()] with a TRUE/FALSE column `indel` added, where
+#' indel == TRUE corresponds to a row marked as an indel.
+#' @export
+#'
+#' @examples \dontrun{
+#' all_indels <-
+#'   flag_indels(tbl) |>
+#'   dplyr::filter(indels)
+#' }
 flag_indels <- function(tbl) {
   stopifnot(all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
   indel_allele_codes <- c("D", "I", "R")
@@ -17,7 +30,20 @@ flag_indels <- function(tbl) {
   tbl
 
 }
-flag_incorrect_rsid_format <- function(tbl, regex = "^[rR][sS]?\\d{1,10}$") {
+
+#' Detect entries that are not valid rsID's in GWAS summary statistics
+#'
+#' @param tbl a [dplyr::tibble()] with column `RSID`.
+#' @param regex regex used to detect non-RSIDs
+#'
+#' @return a [dplyr::tibble()] with column `invalid_rsid`
+#' @export
+#'
+#' @examples \dontrun{
+#' flag_invalid_rsid(tbl) |>
+#' dplyr::filter(invalid_rsid)
+#' }
+flag_invalid_rsid <- function(tbl, regex = "^[rR][sS]?\\d{1,10}$") {
   stopifnot("RSID" %in% colnames(tbl))
   dplyr::mutate(tbl, invalid_rsid = stringr::str_detect(.data[["RSID"]], regex, negate=TRUE))
 
@@ -71,29 +97,15 @@ split_rsid_by_regex <- function(tbl) {
   out
 
 }
-# some reference on what these files are:
-# SNPhistory columns: https://www.biostars.org/p/157447/
-# What is going on with these files? https://www.ncbi.nlm.nih.gov/books/NBK573473/
 
-# downloaded from NCBI 2023-07-04, dbsnp151 (why not dbsnp155? i dont understand why they are not available there...)
-# without_rs_grch38:
-# https://ftp.ncbi.nih.gov/snp/organisms/human_9606/known_issues/rs_without_GRCh38_mapping_b151.bcp.README
-# SNPhistory
-# https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/database/organism_data/SNPHistory.bcp.gz
-# RsMerge Arch
-# https://ftp.ncbi.nih.gov/snp/organisms/human_9606_b151_GRCh38p7/database/organism_data/RsMergeArch.bcp.gz
-
-# TEMP DURING DEVELOPMENT: THESE FILES ARE HERE ON LONGLEAF
 
 #' Repair statistics column in a GWAS summary statistics tibble
 #'
-#' `tidyGWAS::repar_stats()` is a collection of functions that can be used to
+#' `repair_stats()` is a collection of functions that can be used to
 #' infer missing columns in GWAS summary statistics. The functions are based on
 #' functionality found online.
 #'
-#' `repair_stats()` uses the tidyGWAS column specification. The functionality
-#' has been tested assuming the input data.frame is a tibble.
-#' @param tbl input a tibble (data frame)
+#' @param tbl a [dplyr::tibble()] with [tidyGWAS_columns()] columns
 #'
 #' @return a tibble
 #' @export
@@ -247,41 +259,57 @@ z_from_p_b <- function(pvalue, beta) {
   sign(beta) * sqrt(stats::qchisq(pvalue,1,lower=FALSE))
 }
 
-#' Fast detection of duplicates in RSID or CHR and POS columns
+#' Find all rows which are part of a set of duplicated rows
 #' @description
+#' Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]
+#' identify rows which are duplications. It is often useful to see ALL rows
+#' which are part of the duplication set, and not just the second row.
+#'
 #' creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
 #' Specifically, flags both rows in a duplication pair, and not just first or
 #' last duplicate row, making it easy to work with all rows that are part of a
 #' duplication
 #'
-#' @param tbl a tibble with tidyGWAS column names
-#' @param column construct id with either 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt'
+#' @param tbl a tibble with [tidyGWAS_columns()]
+#' @param column Which columns should be used to form a unique ID?
 #'
-#' @return a tibble
+#' @return a tibble with new columns dup_{column}
 #' @export
 #'
 #' @examples \dontrun{
+#'
+#' # will tag multi-allelics as duplications
+#' flag_duplicates(tbl, column = "rsid")
 #' flag_duplicates(tbl, column = "chr_pos")
-#' flag_duplicates(tbl, column = "crsid")
+#' # if you are interested in rows that are variant duplications
+#' flag_duplicates(tbl, column = "rsid_ref_alt")
+#' flag_duplicates(tbl, column = "chr_pos_ref_alt")
 #'
 #' }
-flag_duplicates <- function(tbl, column = "rsid") {
+flag_duplicates <- function(tbl, column = c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt")) {
+  column = rlang::arg_match(column)
   new_name <- glue::glue("dup_{column}")
-  stopifnot("`column`  only takes 'rsid' or 'chr_pos' or 'chr_pos_ref_alt' or 'rsid_ref_alt' as arguments" = column %in% c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt"))
+
   if(column == "rsid") {
+
     columns <- c("RSID")
     dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
 
   } else if(column == "chr_pos") {
+
     columns <- c("CHR", "POS")
     dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
 
   } else if(column == "chr_pos_ref_alt") {
+
     columns <- c("CHR", "POS", "EffectAllele", "OtherAllele")
     dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
   } else if(column == 'rsid_ref_alt') {
+
     columns <- c("RSID", "EffectAllele", "OtherAllele")
     dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
 
   }
 }

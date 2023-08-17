@@ -11,16 +11,15 @@ utils::globalVariables(c(
 
 #' Compare CHR, POS and RSID with dbSNP reference data
 #'
-#' @param sumstat sumstat in tibble format, tidyGWAS column names
-#' @param build Optional. Genome build, either 37 or 38. If not passed,
-#' [infer_build()] will be called to get the genome build.
+#' @param sumstat sumstat in tibble format, [tidyGWAS_columns()] names
+#' @param build genome build. if unknown ("NA"), build will be
+#' inferred using [infer_build()]
 #'
 #' @return a tibble
 #' @export
 #'
 #' @examples \dontrun{
 #' gwas <- tidyGWAS::test_file
-#' bs <- get_bsgenome()
 #' # make_callback can be passed a filepath to write out removed rows to.
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
@@ -104,6 +103,8 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 
 
 #' Use CHR and POS to get RSID from dbSNP 155
+#'
+#' This function assumes tidyGWAS column names, see [tidyGWAS_columns()]
 #'
 #'
 #' @param sumstat a tibble with CHR,POS, EffectAllele and OtherAllele
@@ -254,6 +255,17 @@ make_callback <- function(outpath, id) {
 }
 
 
+#' Infer what genome build a GWAS summary statistics file is on.
+#'
+#' @param sumstat a data.frame with the columns "CHR" and "POS"
+#' @param n_snps number of snps to check CHR and POS for
+#'
+#' @return either `"37"` or `"38"`
+#' @export
+#'
+#' @examples \dontrun{
+#' genome_build <- infer_build(gwas_sumstats)
+#' }
 infer_build <- function(sumstat, n_snps = 10000) {
   cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(sumstat)))

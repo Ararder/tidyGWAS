@@ -19,7 +19,6 @@ Imports:
     stringr,
     tibble,
     rlang,
-    R.utils,
     tidyr,
     withr,
     prettyunits

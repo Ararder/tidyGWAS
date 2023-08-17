@@ -6,7 +6,7 @@ validate_rsid <- function(tbl, verbose=FALSE) {
 
   if(verbose) start_message("RSID")
   tbl$RSID <- as.character(tbl$RSID)
-  tbl <- flag_incorrect_rsid_format(tbl)
+  tbl <- flag_invalid_rsid(tbl)
   invalid_rsid_format <- dplyr::filter(tbl, invalid_rsid)
 
 
@@ -58,8 +58,47 @@ validate_rsid <- function(tbl, verbose=FALSE) {
 
 
 
-validate_columns <- function(tbl, col, verbose=TRUE, convert_p=2.225074e-308) {
-  stopifnot(col %in% c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele"))
+#' Check that values in GWAS summary statistics columns are correct
+#'
+#' `validate_columns()` does not remove any rows, but adds a TRUE/FALSE
+#' flag for the specified column.
+#'
+#'
+#'
+#'
+#' @param tbl a tibble in [tidyGWAS_columns()] format.
+#' @param col Which column to check values in?
+#' @param verbose Should details about what is in each filter be reported?
+#' @param convert_p if a pvalue is equal to 0, what value should be it be replaced with?
+#' By default, the value is the smallest possible double that R can represent. When
+#' P values are smaller than this, R often reads it in as a character. This can cause
+#' issues in downstream analysis, and it is therefore recommended to deal with extremely
+#' small pvalues early on.
+#'
+#'
+#'
+#' @return a [dplyr::tibble()], with a column added named as invalid_{col}.
+#' If you validate the "B" column, validate_columns will add a TRUE/FALSE column
+#' named invalid_B to the input tibble.
+#' @export
+#' @examples \dontrun{
+#' gwas_file <- validate_columns(
+#'  tbl = gwas_file,
+#'  col = "B",
+#'  verbose = FALSE,
+#'  # if you want to keep 0 pvalues as 0.
+#'  convert_p = 0
+#' )
+#' dplyr::filter(gwas_file, invalid_P)
+#' }
+#'
+validate_columns <- function(
+    tbl,
+    col = c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele"),
+    verbose = TRUE,
+    convert_p=2.225074e-308
+    ) {
+  col = rlang::arg_match(col)
   if(verbose) start_message(col)
 
   if(col == "B") {

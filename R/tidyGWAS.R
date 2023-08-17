@@ -561,20 +561,14 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
 
 
-# -------------------------------------------------------------------------
-
-
-# Suppress R CMD check note
-#' @importFrom R.utils as.character.binmode
-NULL
 
 # -------------------------------------------------------------------------
 
 
-#' Create a dataframe with tidyGWAS column names
+#' Create a [dplyr::tibble()] with tidyGWAS column names
 #'
 #' tidyGWAS functions assumes fixed column names. This function facilitates
-#' renaming column into tidyGWAS format
+#' renaming column into tidyGWAS format.
 #'
 #' @param tbl a data.frame
 #' @param CHR chromosome

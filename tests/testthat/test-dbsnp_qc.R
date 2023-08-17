@@ -3,7 +3,7 @@ test_that("Repair_chr_pos works", {
   mock_arrow()
   test_sumstat$rowid <- 1:nrow(test_sumstat)
   tmp <- dplyr::select(test_sumstat, -CHR, -POS) |>
-    flag_incorrect_rsid_format() |>
+    flag_invalid_rsid() |>
     dplyr::filter(!invalid_rsid)
 
 

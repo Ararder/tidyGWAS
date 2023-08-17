@@ -2,7 +2,7 @@
 % Please edit documentation in R/tidyGWAS.R
 \name{tidyGWAS_columns}
 \alias{tidyGWAS_columns}
-\title{Create a dataframe with tidyGWAS column names}
+\title{Create a [dplyr::tibble()] with tidyGWAS column names}
 \usage{
 tidyGWAS_columns(
   tbl,
@@ -61,7 +61,7 @@ a tibble with changes column names
 }
 \description{
 tidyGWAS functions assumes fixed column names. This function facilitates
-renaming column into tidyGWAS format
+renaming column into tidyGWAS format.
 }
 \examples{
 wrong_format <- dplyr::tibble(CHROM = 1, bp = 1000, A1 = "C", A2 = "A", Effect = 0.05)

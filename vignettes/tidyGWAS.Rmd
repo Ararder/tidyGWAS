@@ -47,8 +47,7 @@ devtools::install_github("ararder/tidyGWAS")
 remotes::install_github("ararder/tidyGWAS")
 ```
 
-The GWAS summary statistics file can be provided in-memory as a data.frame/tibble or a filepath that can be read with data.table::fread. 
-We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https://pgc.unc.edu/for-researchers/download-results/) as an example file.
+The GWAS summary statistics file can be provided in-memory as a data.frame/tibble or a filepath that can be read with data.table::fread. We will use the 100k random rows from the PGC wave 3 schizophrenia [GWAS](https://pgc.unc.edu/for-researchers/download-results/) as an example file.
 
 Here, the column names have already been renamed to the correct format.
 
@@ -102,11 +101,10 @@ tidyGWAS(correct_names, use_dbsnp = FALSE, outdir = my_outdir, logfile = TRUE, d
 
 # Computational cost
 
-Memory use and time scales with the size of the summary statistics.
-From running tidyGWAS extensively, here's an estimation of time and memory:
+Memory use and time scales with the size of the summary statistics. From running tidyGWAS extensively, here's an estimation of time and memory:
 
-1.  1 - 10 mil rows: <16gb memory, ~20 min
-2. 
+1.  1 - 10 mil rows: \<16gb memory, \~20 min
+2.  
 
 tidyGWAS exposes several smaller functions that can help when interactively working with sumstats.
 
@@ -115,14 +113,15 @@ tidyGWAS exposes several smaller functions that can help when interactively work
 `repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. Note that there some
 
 ```{r}
+example_file <- dplyr::tibble(test_file)
 # Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)
-tmp <- dplyr::mutate(test_file, Z = B/SE, N = CaseN + ControlN) |> 
+tmp <- dplyr::mutate(example_file, Z = B/SE, N = CaseN + ControlN) |> 
   dplyr::select(-B, -SE)
 repaired <- repair_stats(tmp)
 
 # the Betas will be on a standardized scale, and can therefore be different
 # than what was initially there
-dplyr::inner_join(test_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y) |> 
+dplyr::inner_join(example_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y) |> 
   dplyr::summarise(cor(B.x, B.y))
 
 
@@ -131,7 +130,7 @@ dplyr::inner_join(test_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y) |>
 ```
 
 ```{r}
-tmp <-  dplyr::select(test_file,  -SE) |> 
+tmp <-  dplyr::select(example_file,  -SE) |> 
   repair_stats()
 ```
 
@@ -140,7 +139,7 @@ tmp <-  dplyr::select(test_file,  -SE) |>
 uses a regex to identify any non RrSs rows.
 
 ```{r, eval = FALSE}
-flag_incorrect_rsid_format(test_file) |> 
+flag_invalid_rsid(example_file) |> 
   dplyr::filter(invalid_rsid)
 
 ```
@@ -148,24 +147,10 @@ flag_incorrect_rsid_format(test_file) |>
 ## A fast function for finding all entries in a duplication
 
 ```{r}
-flag_duplicates(test_file, column = "rsid")
+flag_duplicates(example_file, column = "rsid")
 # or 
-flag_duplicates(test_file, column = "chr_pos")
+flag_duplicates(example_file, column = "chr_pos")
 
-
-```
-
-### working with dbSNP
-
-Sometimes the same CHR and POS maps to multiple RSIDs. Currently, we resolve this by slecting the smallest RSID
-
-```{r}
-#  CHR        POS RSID         ref_allele alt_alleles
-#   <chr>    <int> <chr>        <chr>      <list>     
-# 1 1     39491595 rs10157617   T          <chr [2]>  
-# 2 1     39491595 rs1638449573 T          <chr [1]>  
-# 3 1     39491595 rs1638449625 T          <chr [1]>  
-# 4 1     39491595 rs1638449683 T          <chr [1]>  
 
 ```
 

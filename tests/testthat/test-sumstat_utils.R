@@ -20,7 +20,7 @@ test_that("flag_incorrect_rsid_format detects incorrect formats", {
     )
 
   detected <- dplyr::mutate(pval_as_char_df, RSID = examples) |>
-    flag_incorrect_rsid_format() |>
+    flag_invalid_rsid() |>
     dplyr::filter(!invalid_rsid) |>
     dplyr::count(RSID) |>
     dplyr::pull(RSID)

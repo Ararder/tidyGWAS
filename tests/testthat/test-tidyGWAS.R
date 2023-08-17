@@ -43,7 +43,7 @@ test_that("validate sumstat", {
 
 test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
 
-  tmp <- flag_incorrect_rsid_format(test_sumstat) |>
+  tmp <- flag_invalid_rsid(test_sumstat) |>
     dplyr::mutate(RSID = dplyr::if_else(invalid_rsid, ".", RSID))
 
   struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test", dbsnp_files))
@@ -109,7 +109,7 @@ test_that("validate_with_dbsnp, all cols", {
 
   mock_arrow()
 
-  struct <- initiate_struct(tbl = dplyr::filter(flag_incorrect_rsid_format(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
+  struct <- initiate_struct(tbl = dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
 
   expect_no_error(validate_with_dbsnp(struct, build = "NA"))
 
@@ -121,7 +121,7 @@ test_that("validate_with_dbsnp, RSID", {
 
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
 
-  struct <- initiate_struct(tbl = dplyr::filter(flag_incorrect_rsid_format(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
+  struct <- initiate_struct(tbl = dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
   expect_no_error(validate_with_dbsnp(struct, build = "NA"))
 
 })
@@ -132,7 +132,7 @@ test_that("validate_with_dbsnp, CHR and POS", {
   tmp <- dplyr::select(test_sumstat, -RSID) |>
     dplyr::mutate(CHR = as.character(CHR))
 
-  struct <- initiate_struct(tbl = dplyr::filter(flag_incorrect_rsid_format(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
+  struct <- initiate_struct(tbl = dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid), filepaths = setup_pipeline_paths("test", dbsnp_files))
   expect_no_error(validate_with_dbsnp(struct, build = "NA"))
 
 })
@@ -197,7 +197,7 @@ test_that("Handles edge cases", {
     mock_arrow()
 
 
-    tfile <- flag_incorrect_rsid_format(test_sumstat)
+    tfile <- flag_invalid_rsid(test_sumstat)
     tfile <- dplyr::mutate(tfile, CHR = dplyr::if_else(invalid_rsid, "50", CHR))
     tfile <- dplyr::mutate(tfile,  SE = dplyr::if_else(!invalid_rsid & CHR == "6", -50, SE))
 

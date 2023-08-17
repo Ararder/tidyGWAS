@@ -6,8 +6,8 @@ test_that("validate RSIDs does not error", {
   # create rowid
   tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
 
-  only_correct_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(!invalid_rsid)
-  only_incorrect_rsid <- flag_incorrect_rsid_format(tmp) |> dplyr::filter(invalid_rsid)
+  only_correct_rsid <- flag_invalid_rsid(tmp) |> dplyr::filter(!invalid_rsid)
+  only_incorrect_rsid <- flag_invalid_rsid(tmp) |> dplyr::filter(invalid_rsid)
   expect_no_error(validate_rsid(tmp))
 
   expect_no_error(validate_rsid(only_correct_rsid))
