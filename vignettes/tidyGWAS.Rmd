@@ -96,7 +96,7 @@ tidyGWAS cannot find all rows that were removed. This is because it removed some
 my_outdir <- paste0(tempdir(), "all_my_gwas_sumstats", sep = "/")
 
 # We can also add logfile = TRUE to save output to a logfile
-tidyGWAS(correct_names, use_dbsnp = FALSE, outdir = my_outdir, logfile = TRUE, dbsnp_path = path_to_dbsnp)
+tidyGWAS(correct_names, outdir = my_outdir, logfile = TRUE, dbsnp_path = path_to_dbsnp)
 ```
 
 # Computational cost

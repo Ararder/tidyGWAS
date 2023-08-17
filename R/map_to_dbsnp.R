@@ -1,26 +1,33 @@
-# map_to_dbsnp contains the code to query dbSNP, either using RSID, or chromosome ("CHR")
-# and position ("POS"). tidyGWAS supports two ways of interacting with dbSNP:
-# 1) through the "arrow" implementation, which has hive-style partitioned
-# dbSNP v155 in parquet gzipped files
-# 2) through the BSgenome package from bioconductor, which represents dbSNP v155
-# in their own internal format
 
-map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), implementation = c("arrow", "bsgenome"), duplications = c("smallest_rsid", "keep")) {
+
+map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), implementation = c("arrow", "bsgenome"), duplications = c("smallest_rsid", "keep"), dbsnp_path) {
+  if(!dplyr::is.tbl(tbl)) tbl <- dplyr::tibble(tbl)
+  stopifnot(nrow(tbl) > 0)
+
   by = rlang::arg_match(by)
   implementation = rlang::arg_match(implementation)
   build <- rlang::arg_match(build)
   duplications <- rlang::arg_match(duplications)
 
 
-  map_to_dbsnp_checks(tbl = tbl, build = build, by = by, implementation = implementation)
+  if(by == "rsid") {
+    stopifnot("RSID" %in% colnames(tbl))
+    stopifnot(is.character(tbl$RSID))
+  } else {
+    stopifnot("'CHR' and 'POS' need to be present in tbl" =  all(c("CHR", "POS") %in% colnames(tbl)))
+
+  }
+
 
 
   # arrow or bsgenome ----------------------------------------------------
 
   if(implementation == "arrow") {
-    dbsnp <- map_to_dbsnp_arrow(tbl = tbl, build = build, by= by)
+    stopifnot(!missing(dbsnp_path))
+    dbsnp <- map_to_dbsnp_arrow(tbl = tbl, build = build, by= by, dbsnp_path)
   } else {
-    dbsnp <- map_to_dbsnp_bsgenome(tbl = tbl, build = build, by= by)
+    # dbsnp <- map_to_dbsnp_bsgenome(tbl = tbl, build = build, by= by)
+    stop("bsgenome implementation is not supported yet")
   }
 
 
@@ -37,28 +44,19 @@ map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), 
 
 }
 
-map_to_dbsnp_checks <- function(tbl, build, by, implementation = "arrow") {
 
 
-  stopifnot("tbl should be a tibble" = "tbl" %in% class(tbl))
-  stopifnot("tbl is empty" = nrow(tbl) > 0)
-  if(by == "rsid") {
-    stopifnot("RSID" %in% colnames(tbl))
-    stopifnot(is.character(tbl$RSID))
-  } else {
-    stopifnot("'CHR' and 'POS' need to be present in tbl" =  all(c("CHR", "POS") %in% colnames(tbl)))
-  }
-
+map_to_dbsnp_arrow <- function(tbl, build, by, dbsnp_path) {
+  rlang::check_required(tbl)
+  rlang::check_required(build)
+  rlang::check_required(by)
+  rlang::check_required(dbsnp_path)
+  path_37 <- paste(dbsnp_path, "GRCh37", sep = "/")
+  path_38 <- paste(dbsnp_path, "GRCh38", sep ="/")
 
 
 
-
-}
-
-
-map_to_dbsnp_arrow <- function(tbl, build, by) {
-
-  if(build == "37") path <- Sys.getenv("grch37") else path <- Sys.getenv("grch38")
+  if(build == "37") path <- path_37 else path <- path_38
   dset <- arrow::open_dataset(path)
 
 
@@ -74,17 +72,15 @@ map_to_dbsnp_arrow <- function(tbl, build, by) {
 
 
   } else if(by == "rsid") {
-
+    # RSID is stored as integer with "rs" suffix removed for better performance
     tbl$RSID <- as.integer(stringr::str_sub(tbl$RSID, start = 3))
-    chrom <- c(1:22, "X", "Y", "MT")
     # batching by CHR gives SIGNIFICANTLY better performance
-    # even though we run all rows per chrom in each %in%
+    # even though we check ALL rows against each chromosome
+    chrom <- c(1:22, "X", "Y", "MT")
 
     res <-
-      c(1:22, "X", "Y", "MT") |>
-      purrr::map(\(chrom) dplyr::filter(dset, CHR == {{ chrom }} & RSID %in% tbl$RSID) |> dplyr::collect()) |>
+      purrr::map(chrom, \(chrom) dplyr::filter(dset, CHR == {{ chrom }} & RSID %in% tbl$RSID) |> dplyr::collect()) |>
       purrr::list_rbind()
-
 
   }
 

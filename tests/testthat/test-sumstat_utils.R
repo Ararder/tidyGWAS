@@ -148,13 +148,6 @@ test_that("split_rsid_by_regex correctly splits rows", {
 })
 
 
-test_that("flag_rsid_history works", {
-  mock_arrow()
-  pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
-  paths <- setup_pipeline_paths("testing", dbsnp_files)
-  expect_no_error(updated <- flag_rsid_history(pval_as_char_df, paths$rs_merge_arch))
-
-})
 
 
 test_that("flag duplicates work", {

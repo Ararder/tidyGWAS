@@ -21,7 +21,7 @@ validate_rsid <- function(tbl, verbose=FALSE) {
   # invalid RSIDs, but other columns exist ----------------------------------
 
   if(all(c("CHR", "POS", "EffectAllele", "OtherAllele") %in% colnames(tbl))) {
-    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. RSID will be repaired using CHR:POS if {.code use_dbsnp = TRUE}")
+    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. RSID will be repaired using CHR:POS if {.code dbsnp_files is passed}")
     return(
       list(
         "data" = tbl,

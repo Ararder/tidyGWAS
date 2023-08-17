@@ -2,39 +2,27 @@
 
 
 
+
+
+
 # validate_sumstat----------------------------------------------------------
 
-test_that("initiate_struct works", {
-  filepaths <- setup_pipeline_paths("automated-testing", dbsnp_files)
+test_that("create_struct works", {
+  filepaths <- setup_pipeline_paths("automated-testing")
 
-  expect_no_error(struct <- initiate_struct(tbl = test_sumstat, filepaths = filepaths))
+  expect_no_error(struct <- create_struct(tbl = test_sumstat, filepaths = filepaths))
 
-  # check that NAs are removed
-  tmp <- dplyr::mutate(test_sumstat, B = dplyr::if_else(CHR == "21", NA_real_, B))
-  n_na_rows <- nrow(dplyr::filter(test_sumstat,CHR == "21"))
-  struct <- initiate_struct(tbl = tmp, filepaths = filepaths)
-  expect_true(
-    nrow(arrow::read_parquet(paste0(filepaths$removed_rows, "missing_values.parquet"))) == n_na_rows
-  )
-  # check that duplicates are removed
-  tmp <- dplyr::bind_rows(test_file, dplyr::slice(test_file, c(1:10, 40:100, 10000:20000)))
-  n_dups <- nrow(tmp) - nrow(test_sumstat)
-
-  struct <- initiate_struct(tmp, filepaths = filepaths)
-  expect_true(
-    nrow(arrow::read_parquet(filepaths$duplicates)) == n_dups
-  )
 
 })
 
 test_that("validate sumstat", {
-  filepaths <- setup_pipeline_paths("automated-testing", dbsnp_files)
+  filepaths <- setup_pipeline_paths("automated-testing")
 
-  struct <- initiate_struct(tbl = test_sumstat, filepaths)
+  pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
+  struct <- create_struct(tbl = pval_as_char_df, filepaths)
 
-  # if indels get passed initiate struct, should print weird alleles
-  struct$sumstat <- pval_as_char_df
-  struct$sumstat$rowid <- 1:nrow(pval_as_char_df)
+
+
   expect_message(tmp <- validate_sumstat(struct, verbose = FALSE, convert_p = 0))
 
 })
@@ -46,7 +34,7 @@ test_that("validate SNPs even when 0 of invalid_rsids can be parsed", {
   tmp <- flag_invalid_rsid(test_sumstat) |>
     dplyr::mutate(RSID = dplyr::if_else(invalid_rsid, ".", RSID))
 
-  struct <- initiate_struct(tbl = tmp, filepaths = setup_pipeline_paths("test", dbsnp_files))
+  struct <- create_struct(tbl = tmp, filepaths = setup_pipeline_paths("test"))
 
   expect_no_error(tmp <- validate_sumstat(struct, convert_p = 0))
 
@@ -148,7 +136,7 @@ test_that("can read in file from disk", {
   file <- withr::local_tempfile()
   arrow::write_csv_arrow(test_file, file)
 
-  tmp <- tidyGWAS(tbl = file, use_dbsnp = FALSE, dbsnp_path = dbsnp_files)
+  tmp <- tidyGWAS(tbl = file,  dbsnp_path = dbsnp_files)
 
 })
 

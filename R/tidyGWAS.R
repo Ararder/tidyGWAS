@@ -47,7 +47,6 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param convert_p What value should be used for P = 0?
 #' @param name name of the output directory
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
-#' @param use_dbsnp use dbSNP to apply filters?
 #' @param keep_indels Should indels be kept?
 #' @param repair_cols Should any missing columns be repaired?
 #' @param implementation Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment
@@ -64,16 +63,15 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 tidyGWAS <- function(
     tbl,
     ...,
-    dbsnp_path = "",
+    dbsnp_path,
     output_format = c("csv","hivestyle", "parquet"),
     build = c("NA","37", "38"),
     outdir = tempdir(),
+    study_n,
     convert_p=2.225074e-308,
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
-    use_dbsnp = TRUE,
     keep_indels = TRUE,
     repair_cols = TRUE,
-    implementation = c("arrow","bsgenome"),
     logfile = FALSE,
     log_on_err="tidyGWAS_logfile.txt",
     verbose = FALSE
@@ -81,27 +79,14 @@ tidyGWAS <- function(
 
 
   # parse arguments ---------------------------------------------------------
-
-  rlang::check_required(tbl)
-  if("character" %in% class(tbl) & length(tbl) == 1) {
-    tbl <- arrow::read_delim_arrow(tbl, ...)
-  } else if("data.frame" %in% class(tbl)) {
-    tbl <- dplyr::tibble(tbl)
-  } else {
-    stop("tbl is not a character vector of length 1 or a data.frame")
-  }
+  tbl <- parse_tbl(tbl, ...)
 
   output_format <- rlang::arg_match(output_format)
-  implementation <- rlang::arg_match(implementation)
   build = rlang::arg_match(build)
+  filepaths <- setup_pipeline_paths(name = name)
 
 
-
-  # setup logfile and filepaths ----------------------------------------------
-
-
-  filepaths <- setup_pipeline_paths(name = name, dbsnp = dbsnp_path)
-  withr::local_envvar("grch37" = filepaths$grch37,"grch38" = filepaths$grch38)
+  # setup logging -----------------------------------------------------------
 
   if(isTRUE(logfile)) {
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
@@ -114,25 +99,43 @@ tidyGWAS <- function(
 
   # welcome message ----------------------------------------------------------
 
+  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   rows_start <- nrow(tbl)
   start_time <- Sys.time()
-
-  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {start_time}, with {rows_start} in input data.frame")
   cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
   cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
+  cli::cli_li("number of rows: {rows_start}")
 
 
   # start the pipeline ------------------------------------------------------
 
-  # run initial checks
-  struct <- initiate_struct(tbl = tbl, filepaths = filepaths, verbose = verbose)
 
-  # validate sumstats
+  # select tidyGWAS columns
+  tbl <- select_correct_columns(tbl, study_n)
+
+  # write out file before any rows are removed
+  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
+
+  # remove rows with NA
+  tbl <- remove_rows_with_na(tbl, filepaths)
+
+  # remove duplications
+  tbl <- remove_duplicates(tbl, filepaths = filepaths)
+
+  # update RSIDs
+  if("RSID" %in% colnames(tbl) & !missing(dbsnp_path)) tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
+
+  # create a list with stuff to keep track of
+  struct <- create_struct(tbl = tbl, filepaths = filepaths)
+
+  struct <- detect_indels(struct)
+
+  # validate each of the columns
   struct <- validate_sumstat(struct, verbose = verbose, convert_p = convert_p)
 
   # Validate with dbSNP
-  if(use_dbsnp) struct$sumstat <- validate_with_dbsnp(struct, build = build)
+  if(!missing(dbsnp_path)) struct$sumstat <- validate_with_dbsnp(struct, build = build, dbsnp_path)
 
   # handle indels
   if(keep_indels) struct <- merge_indels_back(struct, convert_p = convert_p, verbose)
@@ -158,48 +161,68 @@ tidyGWAS <- function(
 
 }
 
+parse_tbl <- function(tbl, ...) {
+
+  rlang::check_required(tbl)
+  if("character" %in% class(tbl) & length(tbl) != 1) {
+    stop("Cannot parse character vectors of length < 1 or > 1")
+  }
+
+    if("character" %in% class(tbl)) {
+
+    tbl <- arrow::read_delim_arrow(tbl, ...)
+
+  } else if("data.frame" %in% class(tbl)) {
+
+    tbl <- dplyr::tibble(tbl)
+
+  } else {
+
+    stop("tbl is not a character vector of length 1 or a data.frame")
+  }
+
+  tbl
+}
 
 
-# NOTES to me:
-# five possible places where rows can be removed
-# 1) NA
-# 2) Duplicate
-# 3) Indel
-# 4) validate_cols main
-# 5) validate_cols no_chr_pos
-# 6) validate_cols indels
-#
-#
-#
+create_struct <- function(tbl, filepaths) {
+
+
+  struct <- vector("list")
+  struct[["has_chr_pos"]] <- ifelse("CHR"  %in% colnames(tbl) & "POS" %in% colnames(tbl), TRUE, FALSE)
+  struct[["has_rsid"]] <- ifelse("RSID" %in% colnames(tbl), TRUE, FALSE)
+  struct$filepaths <- filepaths
+  struct$sumstat <- tbl
+  struct
+
+}
 
 
 # -------------------------------------------------------------------------
 
 
 
-
-validate_with_dbsnp <- function(struct, build) {
+validate_with_dbsnp <- function(struct, build, dbsnp_path) {
   cli::cli_h2("Validating sumstats using dbSNP")
   cli::cli_ol()
   cli::cli_li("Repair missing CHR, POS or RSID")
   cli::cli_li("Remove rows where REF/ALT in dbSNP is not compatible with EffectAllele / OtherAllele")
   cli::cli_li("Remove rows where RSID/CHR:POS does not match a entry in dbSNP v.155")
 
-  filtering_function = make_callback(struct$filepaths$removed_rows, id = "incompat_alleles_or_not_in_dbsnp")
 
   # existence of chr:pos or rsid decides which columns to repair
   if(!struct$has_chr_pos & struct$has_rsid) {
     cli::cli_h3("Repair chromosome and position")
-    main_df <- repair_chr_pos(sumstat = struct$sumstat)
+    main_df <- repair_chr_pos(sumstat = struct$sumstat, dbsnp_path = dbsnp_path)
 
   } else if(struct$has_chr_pos & !struct$has_rsid) {
     cli::cli_h3("Repair RSID")
-    main_df <- repair_rsid(sumstat = struct$sumstat, build = build)
+    main_df <- repair_rsid(sumstat = struct$sumstat, build = build, dbsnp_path =  dbsnp_path)
 
 
   } else if(struct$has_chr_pos & struct$has_rsid) {
     cli::cli_h3("Checking that CHR:POS and RSID match. RSID will be updated accordingly to dbSNP")
-    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, build = build)
+    main_df <- verify_chr_pos_rsid(sumstat = struct$sumstat, build = build, dbsnp_path)
 
 
 
@@ -217,139 +240,12 @@ validate_with_dbsnp <- function(struct, build) {
 
 
   cli::cli_h2("Finished validation against dbSNP v.155")
+  filtering_function = make_callback(struct$filepaths$removed_rows, id = "incompat_alleles_or_not_in_dbsnp")
   filtering_function(main_df)
 
 
 
 }
-
-
-# -------------------------------------------------------------------------
-
-
-
-
-initiate_struct <- function(tbl, filepaths, verbose=FALSE, study_n) {
-
-  stopifnot("Requires either RSID or CHR:POS" = c("RSID") %in% colnames(tbl) | c("CHR", "POS") %in% colnames(tbl))
-  stopifnot("Requires EffectAllele and OtherAllele" = all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
-
-  cli::cli_h2("Performing initial checks on input data: ")
-  cli::cli_ul()
-  cli::cli_li("Correct column names, remove missing values, update RSID, remove duplicates")
-  if(!missing(study_n)) cli::cli_alert_info("Using N = {study_n} to impute N if N column is not present")
-
-
-  # check input columns
-  cli::cli_h3("1) Checking that columns follow tidyGWAS format")
-  cli::cli_alert_info("The following columns are used for further steps:
-                      {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
-  if(length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)) {
-    cli::cli_alert_danger("{.strong Removed columns:  {colnames(tbl)[!colnames(tbl) %in% valid_column_names]}}")
-  }
-  if(!"rowid" %in% colnames(tbl)) tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
-  tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
-
-
-  # write rowindex file
-  all_rows <- dplyr::select(tbl, rowid)
-  arrow::write_parquet(all_rows, paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
-
-  # setup filepaths that will be used, and remove unwanted columns
-  struct <- vector("list")
-  struct[["has_chr_pos"]] <- ifelse("CHR"  %in% colnames(tbl) & "POS" %in% colnames(tbl), TRUE, FALSE)
-  struct[["has_rsid"]] <- ifelse("RSID" %in% colnames(tbl), TRUE, FALSE)
-  struct$filepaths <- filepaths
-
-
-  # Handle different ways of passing N - sample size.
-  if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
-  if(!missing(study_n)) tbl <- dplyr::mutate(tbl, N = {{ study_n }})
-  if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
-
-
-
-
-  # 1) First filter - remove rows with NA ---------------------------------------
-  cli::cli_h3("2) Scanning for NAs with tidyr::drop_na()")
-
-  tbl <- tidyr::drop_na(tbl, -dplyr::any_of(c("CHR", "POS", "RSID")))
-  na_rows <- dplyr::anti_join(all_rows, tbl, by = "rowid") |> dplyr::select(rowid)
-
-  if(nrow(na_rows) > 0) {
-    cli::cli_li("Found {nrow(na_rows)} rows with missing values. These are removed")
-    arrow::write_parquet(na_rows, paste0(struct$filepaths$removed, "missing_values.parquet"))
-  }
-
-
-  # 2) if possible, update RSID ------------------------------------------------
-
-  if(struct$has_rsid) {
-
-    rsid_info <- flag_rsid_history(tbl,filepaths$rs_merge_arch)
-    tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
-      dplyr::select(-old_RSID)
-
-    cli::cli_h3("3) Updating RSIDs that have been merged using RsMergeArch")
-    cli::cli_li("{sum(!is.na(rsid_info$old_RSID))} rows with updated RSID: {.file {struct$filepaths$updated_rsid}}")
-    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), struct$filepaths$updated_rsid)
-
-  } else {
-    rsid_info <- dplyr::tibble(old_RSID = "X", .rows = 0)
-  }
-
-
-
-  # 3) handle duplicates -------------------------------------------------------
-
-
-  if("P" %in% colnames(tbl)) tbl <- dplyr::arrange(tbl, .data[["P"]])
-
-  if(struct$has_chr_pos) {
-    id <- "CHR_POS_REF_ALT"
-    cols_to_use <- c("CHR", "POS", "EffectAllele", "OtherAllele")
-  } else {
-    id <- "RSID_REF_ALT"
-    cols_to_use <- c("RSID", "EffectAllele", "OtherAllele")
-  }
-
-  cli::cli_h3("4) Scanning for duplicates")
-  cli::cli_alert_info("Using {id} as id")
-
-  # use distinct to remove duplications
-  no_dups <- dplyr::distinct(tbl, dplyr::pick(dplyr::all_of(cols_to_use)), .keep_all = TRUE)
-  removed <- dplyr::anti_join(tbl, no_dups, by = "rowid")
-  tbl <- no_dups
-
-  if(nrow(removed) > 0) {
-    cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications, based on {cols_to_use}")
-    cli::cli_li("{nrow(removed)} rows removed because duplicates: {.file {struct$filepaths$duplicates}}")
-    arrow::write_parquet(removed, struct$filepaths$duplicates, compression = "gzip")
-  }
-
-
-  # 4) remove indels from main pipeline ------------------------------------------
-
-
-  cli::cli_h3("5) Scanning for indels")
-  cli::cli_ol(c(
-    "EffectAllele or OtherAllele, character length > 1: A vs AA",
-    "EffectAllele or OtherAllele coded as 'D', 'I', or 'R'"
-  ))
-
-  tbl <- flag_indels(tbl)
-  struct$indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
-  tbl <-            dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
-
-
-
-  # return results ----------------------------------------------------------
-  cli::cli_h2("Finished initial checks")
-  struct$sumstat <- tbl
-  struct
-
-}
-
 
 
 # -------------------------------------------------------------------------
@@ -497,7 +393,7 @@ identify_removed_rows <- function(finished, filepaths) {
 
 
 
-setup_pipeline_paths <- function(name, dbsnp) {
+setup_pipeline_paths <- function(name) {
 
   # define workdir
   stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
@@ -507,7 +403,7 @@ setup_pipeline_paths <- function(name, dbsnp) {
   if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
 
 
-  out <- list(
+  list(
     "base" = workdir,
     "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
     "cleaned" = paste(workdir, "tidyGWAS_hivestyle", sep = "/"),
@@ -515,20 +411,9 @@ setup_pipeline_paths <- function(name, dbsnp) {
     "duplicates" = paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
-    "removed_rows"= paste(pipeline_info, "removed_rows_", sep = "/"),
-
-    "validate_sumstat" = paste(pipeline_info, "removed_validate_sumstat_", sep = "/"),
-    "validate_with_dbsnp" = paste(pipeline_info, "removed_validate_with_with_dbsnp_", sep = "/")
+    "removed_rows"= paste(pipeline_info, "removed_rows_", sep = "/")
   )
 
-  if(dbsnp != "") {
-    out2 <- list(
-      "grch37" = paste(dbsnp, "GRCh37", sep = "/"),
-      "grch38" = paste(dbsnp, "GRCh38", sep = "/"),
-      "rs_merge_arch" = paste(dbsnp, "utils", sep = "/")
-    )
-    out <- c(out, out2)
-  }
 
 
 

@@ -24,12 +24,12 @@ utils::globalVariables(c(
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
 #' }
-verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
+verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38"), dbsnp_path) {
 
   # start -------------------------------------------------------------------
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
   build = rlang::arg_match(build)
-  if(build == "NA") build <- infer_build(sumstat)
+  if(build == "NA") build <- infer_build(sumstat, dbsnp_path = dbsnp_path)
 
 
   # -------------------------------------------------------------------------
@@ -39,7 +39,7 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 
 
   # get dbsnp data using CHR and POS
-  dbsnp_ref <- map_to_dbsnp(sumstat, build = build, by = "chr:pos")
+  dbsnp_ref <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", dbsnp_path = dbsnp_path)
   # check for rows that doesn't match
   chr_pos_not_in_dbsnp <- dplyr::anti_join(sumstat, dbsnp_ref, by = c("CHR", "POS"))
   # update with RSID from dbsnp
@@ -51,7 +51,7 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
   # if any rows could not be found with CHR:POS mapping, try mapping with RSID
   if(nrow(chr_pos_not_in_dbsnp > 0)) {
 
-    dbsnp_ref_2 <- map_to_dbsnp(chr_pos_not_in_dbsnp, build = build, by = "rsid")
+    dbsnp_ref_2 <- map_to_dbsnp(chr_pos_not_in_dbsnp, build = build, by = "rsid", dbsnp_path = dbsnp_path)
 
     updated_2 <- dplyr::inner_join(
       dplyr::select(chr_pos_not_in_dbsnp, -CHR, -POS),
@@ -96,7 +96,7 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 
 
   #3) add CHR and POS from remaining build ------------------------------------
-  add_missing_build(sumstat, ifelse(build == "37", "38", "37"))
+  add_missing_build(sumstat, ifelse(build == "37", "38", "37"),dbsnp_path = dbsnp_path)
 
 
 }
@@ -119,15 +119,15 @@ verify_chr_pos_rsid <- function(sumstat, build = c("NA", "37", "38")) {
 #' sumstat_df <- repair_rsid(sumstat, bsgenome_list)
 #' }
 #'
-repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
+repair_rsid <- function(sumstat, build = c("NA", "37", "38"), dbsnp_path){
   build = rlang::arg_match(build)
   sumstat <- dplyr::select(sumstat, -dplyr::any_of("RSID"))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
-  if(build == "NA") build <- infer_build(sumstat)
+  if(build == "NA") build <- infer_build(sumstat, dbsnp_path = dbsnp_path)
 
 
   # Get RSID using CHR:POS
-  dbsnp_ref <- map_to_dbsnp(sumstat, build = build, by = "chr:pos")
+  dbsnp_ref <- map_to_dbsnp(sumstat, build = build, by = "chr:pos", dbsnp_path = dbsnp_path)
 
   # Add RSID, and flag any rows without a matching dbSNP entry
   sumstat <-
@@ -141,7 +141,7 @@ repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
   sumstat <- dplyr::left_join(sumstat, flags, by = "rowid")
 
   # add missing biuld
-  add_missing_build(sumstat, ifelse(build == "38", "37", "38"))
+  add_missing_build(sumstat, ifelse(build == "38", "37", "38"), dbsnp_path = dbsnp_path)
 
 
 }
@@ -160,7 +160,7 @@ repair_rsid <- function(sumstat, build = c("NA", "37", "38")){
 #' sumstat_df <- repair_chr_pos(sumstat)
 #' }
 #'
-repair_chr_pos <- function(sumstat) {
+repair_chr_pos <- function(sumstat, dbsnp_path) {
   sumstat <- dplyr::select(sumstat, -dplyr::any_of(c("CHR", "POS")))
   if(!"rowid" %in% colnames(sumstat)) sumstat$rowid <- 1:nrow(sumstat)
 
@@ -168,7 +168,7 @@ repair_chr_pos <- function(sumstat) {
   # start -------------------------------------------------------------------------
 
   # use RSID to get CHR and POS on GRCh38
-  dbsnp_38 <- map_to_dbsnp(tbl = sumstat, build = "38", by = "rsid")
+  dbsnp_38 <- map_to_dbsnp(tbl = sumstat, build = "38", by = "rsid", dbsnp_path = dbsnp_path)
 
   # add CHR and POS, and flag that indicates if a match was found in dbsnp
   sumstat <- dplyr::left_join(sumstat, dplyr::select(dbsnp_38, CHR, POS, RSID), by = "RSID") |>
@@ -180,7 +180,7 @@ repair_chr_pos <- function(sumstat) {
 
 
   # add GRCh37 CHR POS columns
-  sumstat <- add_missing_build(sumstat, missing_build = "37")
+  sumstat <- add_missing_build(sumstat, missing_build = "37", dbsnp_path = dbsnp_path)
 
   # return ----------------------------------------------------------------
 
@@ -193,10 +193,10 @@ repair_chr_pos <- function(sumstat) {
 # -------------------------------------------------------------------------
 
 
-add_missing_build <- function(sumstat, missing_build = c("37", "38")) {
+add_missing_build <- function(sumstat, missing_build = c("37", "38"), dbsnp_path) {
   missing_build = rlang::arg_match(missing_build)
 
-  dbsnp <- map_to_dbsnp(sumstat, build = missing_build, by = "rsid") |>
+  dbsnp <- map_to_dbsnp(sumstat, build = missing_build, by = "rsid", dbsnp_path = dbsnp_path) |>
     dplyr::select(-dplyr::all_of(c("ref_allele", "alt_alleles"))) |>
     # remove multi-allelic SNPs
     dplyr::distinct(CHR, POS, RSID)
@@ -214,51 +214,13 @@ add_missing_build <- function(sumstat, missing_build = c("37", "38")) {
 
 # -------------------------------------------------------------------------
 
-make_callback <- function(outpath, id) {
-
-
-  outpath <- paste0(outpath, id, ".parquet")
-
-  callback <- function(tbl) {
-    # split into filter flags
-    flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
-    # if ncol == 1, only rowid exists - no flags to filter on.
-    if(ncol(flags) == 1) {
-      cli::cli_inform("Found no flags to filter on")
-      return(tbl)
-    }
-
-    remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
-    count_by_flag <-
-      purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T)) |>
-      purrr::keep(\(x) x > 0)
-
-
-
-    if(nrow(remove) > 0) {
-      cli::cli_h2("Listing how many rows are removed per flag: ")
-      cli::cli_dl(purrr::list_simplify(count_by_flag))
-      cli::cli_inform("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
-    } else {
-      cli::cli_h2("{.emph All rows passed validation}")
-    }
-
-
-
-    arrow::write_parquet(remove, outpath, compression = "gzip")
-
-    dplyr::select(tbl, -dplyr::where(is.logical)) |>
-      dplyr::filter(!rowid %in% remove$rowid)
-  }
-
-  callback
-}
 
 
 #' Infer what genome build a GWAS summary statistics file is on.
 #'
 #' @param sumstat a data.frame with the columns "CHR" and "POS"
 #' @param n_snps number of snps to check CHR and POS for
+#' @param dbsnp_path filepath to dbSNP parquet files
 #'
 #' @return either `"37"` or `"38"`
 #' @export
@@ -266,13 +228,13 @@ make_callback <- function(outpath, id) {
 #' @examples \dontrun{
 #' genome_build <- infer_build(gwas_sumstats)
 #' }
-infer_build <- function(sumstat, n_snps = 10000) {
+infer_build <- function(sumstat, n_snps = 10000, dbsnp_path) {
   cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(sumstat)))
 
   subset <- dplyr::slice_sample(sumstat, n = {{ n_snps }})
-  b38 <- map_to_dbsnp(tbl = subset, build = "38", by = "chr:pos")
-  b37 <- map_to_dbsnp(tbl = subset, build = "37", by = "chr:pos")
+  b38 <- map_to_dbsnp(tbl = subset, build = "38", by = "chr:pos", dbsnp_path = dbsnp_path)
+  b37 <- map_to_dbsnp(tbl = subset, build = "37", by = "chr:pos", dbsnp_path = dbsnp_path)
 
   if(nrow(b37) > nrow(b38)) build <- "37" else build <- "38"
   cli::cli_inform("{nrow(b38)} snps matched GRCh38, {nrow(b37)} for GRCh37, inferring build to be {build}")

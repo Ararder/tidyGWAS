@@ -183,7 +183,7 @@ repair_stats <- function(tbl) {
 
 }
 
-flag_rsid_history <- function(tbl, rs_merge_arch_filepath) {
+update_merged_rsid <- function(tbl, rs_merge_arch_filepath) {
 
 
   dset <- arrow::open_dataset(rs_merge_arch_filepath)
@@ -206,17 +206,7 @@ flag_rsid_history <- function(tbl, rs_merge_arch_filepath) {
 
 }
 
-update_rsid <- function(tbl, merge_history) {
-  stopifnot("RSID" %in% colnames(tbl))
-  tmp <- dplyr::left_join(tbl, merge_history, by = "RSID") |>
-    # update RSID where an updated RSID exists
-    dplyr::mutate(new_RSID = dplyr::if_else(is.na(new_RSID), RSID, new_RSID)) |>
-    # save old_RSID
-    dplyr::rename(old_RSID = RSID, RSID = new_RSID) |>
-    dplyr::mutate(old_RSID = dplyr::if_else(RSID != old_RSID, old_RSID, NA_character_))
 
-
-}
 
 
 
