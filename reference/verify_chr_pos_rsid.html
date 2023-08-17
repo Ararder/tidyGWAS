@@ -24,6 +24,12 @@
 <li class="active nav-item">
   <a class="nav-link" href="../reference/index.html">Reference</a>
 </li>
+<li class="nav-item dropdown">
+  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
+  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
+    <a class="dropdown-item" href="../articles/get-to-know-dbsnp.html">get-to-know-dbsnp</a>
+  </div>
+</li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
         <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off"></form>
 
@@ -51,12 +57,12 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>sumstat</dt>
-<dd><p>sumstat in tibble format, tidyGWAS column names</p></dd>
+<dd><p>sumstat in tibble format, [tidyGWAS_columns()] names</p></dd>
 
 
 <dt>build</dt>
-<dd><p>Optional. Genome build, either 37 or 38. If not passed,
-[infer_build()] will be called to get the genome build.</p></dd>
+<dd><p>genome build. if unknown ("NA"), build will be
+inferred using [infer_build()]</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -70,7 +76,6 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
 <span class="r-in"><span><span class="va">gwas</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="test_file.html">test_file</a></span></span></span>
-<span class="r-in"><span><span class="va">bs</span> <span class="op">&lt;-</span> <span class="fu">get_bsgenome</span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># make_callback can be passed a filepath to write out removed rows to.</span></span></span>
 <span class="r-in"><span><span class="va">callback</span> <span class="op">&lt;-</span> <span class="fu">make_callback</span><span class="op">(</span><span class="st">"~/output_folder/verify_chr_pos_rsid_removed_rows.tsv"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">verify_chr_pos_rsid</span><span class="op">(</span><span class="va">gwas</span>, <span class="va">bs</span>, build <span class="op">=</span> <span class="fl">37</span><span class="op">)</span></span></span>

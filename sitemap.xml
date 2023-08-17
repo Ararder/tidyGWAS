@@ -10,6 +10,9 @@
     <loc>http://arvidharder.com/tidyGWAS/LICENSE.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/articles/get-to-know-dbsnp.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/articles/index.html</loc>
   </url>
   <url>
@@ -25,7 +28,16 @@
     <loc>http://arvidharder.com/tidyGWAS/reference/flag_duplicates.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/flag_indels.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/flag_invalid_rsid.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/index.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/infer_build.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/repair_chr_pos.html</loc>
@@ -44,6 +56,9 @@
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/tidyGWAS_columns.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/validate_columns.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/verify_chr_pos_rsid.html</loc>
