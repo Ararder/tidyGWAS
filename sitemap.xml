@@ -16,6 +16,9 @@
     <loc>http://arvidharder.com/tidyGWAS/articles/index.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/articles/tidyGWAS-workflow.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/articles/tidyGWAS.html</loc>
   </url>
   <url>
@@ -59,6 +62,9 @@
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/validate_columns.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/validate_with_dbsnp.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/verify_chr_pos_rsid.html</loc>

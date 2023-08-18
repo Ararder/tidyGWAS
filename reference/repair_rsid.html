@@ -28,6 +28,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/get-to-know-dbsnp.html">get-to-know-dbsnp</a>
+    <a class="dropdown-item" href="../articles/tidyGWAS-workflow.html">tidyGWAS-workflow</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -51,25 +52,29 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">repair_rsid</span><span class="op">(</span><span class="va">sumstat</span>, build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">repair_rsid</span><span class="op">(</span><span class="va">tbl</span>, build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>, <span class="va">dbsnp_path</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>sumstat</dt>
-<dd><p>a tibble with CHR,POS, EffectAllele and OtherAllele</p></dd>
+    <dl><dt>tbl</dt>
+<dd><p>a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.</p></dd>
 
 
 <dt>build</dt>
-<dd><p>Optional. Genome build, either NA, 37 or 38. If NA,
-[infer_build()] will be called to get the genome build.</p></dd>
+<dd><p>Genome build of sumstats. if `'NA'` [infer_build()] will be used
+to automatically detect build.</p></dd>
+
+
+<dt>dbsnp_path</dt>
+<dd><p>filepath to dbSNP files in .parquet format.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>a tibble</p>
+<p>a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added</p>
     </div>
 
     <div class="section level2">

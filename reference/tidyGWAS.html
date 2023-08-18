@@ -58,6 +58,7 @@ used to standardise column names, and see the standard format."><!-- mathjax -->
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/get-to-know-dbsnp.html">get-to-know-dbsnp</a>
+    <a class="dropdown-item" href="../articles/tidyGWAS-workflow.html">tidyGWAS-workflow</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -99,16 +100,15 @@ used to standardise column names, and see the standard format.</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tidyGWAS</span><span class="op">(</span></span>
 <span>  <span class="va">tbl</span>,</span>
 <span>  <span class="va">...</span>,</span>
-<span>  dbsnp_path <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  <span class="va">dbsnp_path</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"hivestyle"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
 <span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
 <span>  outdir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  <span class="va">study_n</span>,</span>
 <span>  convert_p <span class="op">=</span> <span class="fl">2.225074e-308</span>,</span>
 <span>  name <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html" class="external-link">str_replace_all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/date.html" class="external-link">date</a></span><span class="op">(</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>` ` <span class="op">=</span> <span class="st">"_"</span>, `:` <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  use_dbsnp <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  keep_indels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  repair_cols <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  implementation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"arrow"</span>, <span class="st">"bsgenome"</span><span class="op">)</span>,</span>
 <span>  logfile <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  log_on_err <span class="op">=</span> <span class="st">"tidyGWAS_logfile.txt"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -132,9 +132,10 @@ possible arguments are `study_n` to set N, and `build` to set genome build.</p><
 
 
 <dt>output_format</dt>
-<dd><p>How should the finished cleaned file be saved? Can be either
-an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
-[arrow::write_parquet()] parquet file, for a csv-separated gzipped file.</p></dd>
+<dd><p>How should the finished cleaned file be saved?
+* "csv" corresponds to [arrow::write_csv_arrow()]
+* 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
+* 'parquet' corresponds to [arrow::write_parquet()]</p></dd>
 
 
 <dt>build</dt>
@@ -153,20 +154,12 @@ an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 <dd><p>name of the output directory</p></dd>
 
 
-<dt>use_dbsnp</dt>
-<dd><p>use dbSNP to apply filters?</p></dd>
-
-
 <dt>keep_indels</dt>
 <dd><p>Should indels be kept?</p></dd>
 
 
 <dt>repair_cols</dt>
 <dd><p>Should any missing columns be repaired?</p></dd>
-
-
-<dt>implementation</dt>
-<dd><p>Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment</p></dd>
 
 
 <dt>logfile</dt>
@@ -179,6 +172,10 @@ an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 
 <dt>verbose</dt>
 <dd><p>Explain filters in detail?</p></dd>
+
+
+<dt>implementation</dt>
+<dd><p>Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment</p></dd>
 
 </dl></div>
     <div class="section level2">

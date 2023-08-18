@@ -45,6 +45,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/get-to-know-dbsnp.html">get-to-know-dbsnp</a>
+    <a class="dropdown-item" href="../articles/tidyGWAS-workflow.html">tidyGWAS-workflow</a>
   </div>
 </li>
       </ul>
@@ -191,7 +192,7 @@ RSID would be repaired using dbSNP, but since we passed
 <code class="sourceCode R"><span><span class="va">my_outdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"all_my_gwas_sumstats"</span>, sep <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># We can also add logfile = TRUE to save output to a logfile</span></span>
-<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">correct_names</span>, use_dbsnp <span class="op">=</span> <span class="cn">FALSE</span>, outdir <span class="op">=</span> <span class="va">my_outdir</span>, logfile <span class="op">=</span> <span class="cn">TRUE</span>, dbsnp_path <span class="op">=</span> <span class="va">path_to_dbsnp</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">correct_names</span>, outdir <span class="op">=</span> <span class="va">my_outdir</span>, logfile <span class="op">=</span> <span class="cn">TRUE</span>, dbsnp_path <span class="op">=</span> <span class="va">path_to_dbsnp</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
@@ -217,15 +218,6 @@ that there some</p>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">example_file</span>, Z <span class="op">=</span> <span class="va">B</span><span class="op">/</span><span class="va">SE</span>, N <span class="op">=</span> <span class="va">CaseN</span> <span class="op">+</span> <span class="va">ControlN</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="op">-</span><span class="va">B</span>, <span class="op">-</span><span class="va">SE</span><span class="op">)</span></span>
 <span><span class="va">repaired</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="va">tmp</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Repairing missing statistics columns:</span></span>
-<span><span class="co">#&gt; 1. Transform OR to B if OR exists</span></span>
-<span><span class="co">#&gt; 2. Remove OR if both OR and B exists</span></span>
-<span><span class="co">#&gt; 3. Impute Z based on B and SE if both B and SE exist and Z is missing</span></span>
-<span><span class="co">#&gt; 4. Impute Z based on P and B if Z and SE is missing</span></span>
-<span><span class="co">#&gt; 5. Impute B and SE if both are missing, and Z, EAF and N is present</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Starting reparations:</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> <span style="font-weight: bold;">Imputing B and SE, using Z, EAF and N </span>. The B and SE will correspond to a standardized scale, which might not always be the same scale that the original betas was on.</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── Finished repair_stats:</span></span>
@@ -245,15 +237,6 @@ that there some</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">example_file</span>,  <span class="op">-</span><span class="va">SE</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Repairing missing statistics columns:</span></span>
-<span><span class="co">#&gt; 1. Transform OR to B if OR exists</span></span>
-<span><span class="co">#&gt; 2. Remove OR if both OR and B exists</span></span>
-<span><span class="co">#&gt; 3. Impute Z based on B and SE if both B and SE exist and Z is missing</span></span>
-<span><span class="co">#&gt; 4. Impute Z based on P and B if Z and SE is missing</span></span>
-<span><span class="co">#&gt; 5. Impute B and SE if both are missing, and Z, EAF and N is present</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Starting reparations:</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found B and P but not Z. Imputing Z using:</span></span>
 <span><span class="co">#&gt; sign(beta) * sqrt(stats::qchisq(pvalue,1,lower=FALSE))</span></span>
 <span><span class="co">#&gt; </span></span>
