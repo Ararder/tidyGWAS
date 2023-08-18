@@ -3,6 +3,36 @@
 ## validate RSID -----------------------------------------------------------
 
 test_that("validate RSIDs does not error", {
+  # what happens if validate_rid cannot parse format?
+  filepaths <- setup_pipeline_paths("test-validate-rsid")
+  # setup cases
+  # 1) no invalid rsids
+  expect_no_error(validate_rsid(pval_as_char_df,filepaths$failed_rsid_parse, verbose = FALSE))
+
+  # 2) some invalid rsids, but chr and POS exists
+  expect_no_error(validate_rsid(test_sumstat, filepaths$failed_rsid_parse, verbose = FALSE))
+
+
+  # some invalid rsids, no CHR or POS
+
+  expect_no_error(validate_rsid(dplyr::select(test_sumstat, -CHR, -POS), filepaths$failed_rsid_parse, verbose = FALSE))
+
+  # some invalid rsids, no CHR or POS, some failed
+  tmp <- dplyr::select(test_sumstat, -CHR, -POS)
+  tmp <- dplyr::mutate(tmp, RSID = dplyr::if_else(B > 0, ".", RSID))
+  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse, verbose = FALSE))
+
+  # all invalid
+  tmp <- dplyr::select(test_sumstat, -CHR, -POS)
+  tmp <- dplyr::mutate(tmp, RSID = ".")
+  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse, verbose = FALSE))
+
+
+
+
+})
+
+test_that("validate RSIDs does not error", {
   # create rowid
   tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
 
@@ -32,6 +62,16 @@ test_that("Validate_columns works", {
 
 
 })
+
+test_that("validate sumstat", {
+  filepaths <- setup_pipeline_paths("automated-testing")
+
+  pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
+
+  expect_message(tmp <- validate_sumstat(pval_as_char_df, verbose = FALSE, convert_p = 0))
+
+})
+
 
 
 

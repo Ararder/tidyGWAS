@@ -4,16 +4,18 @@
 \alias{repair_rsid}
 \title{Use CHR and POS to get RSID from dbSNP 155}
 \usage{
-repair_rsid(sumstat, build = c("NA", "37", "38"))
+repair_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{sumstat}{a tibble with CHR,POS, EffectAllele and OtherAllele}
+\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
 
-\item{build}{Optional. Genome build, either NA, 37 or 38. If NA,
-[infer_build()] will be called to get the genome build.}
+\item{build}{Genome build of sumstats. if `'NA'` [infer_build()] will be used
+to automatically detect build.}
+
+\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
-a tibble
+a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 }
 \description{
 This function assumes tidyGWAS column names, see [tidyGWAS_columns()]

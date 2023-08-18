@@ -4,16 +4,17 @@
 \alias{verify_chr_pos_rsid}
 \title{Compare CHR, POS and RSID with dbSNP reference data}
 \usage{
-verify_chr_pos_rsid(sumstat, build = c("NA", "37", "38"))
+verify_chr_pos_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{sumstat}{sumstat in tibble format, [tidyGWAS_columns()] names}
+\item{tbl}{a `data.frame` or `character()` vector}
 
-\item{build}{genome build. if unknown ("NA"), build will be
-inferred using [infer_build()]}
+\item{build}{Can be used to skip [infer_build()]}
+
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 }
 \value{
-a tibble
+a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 }
 \description{
 Compare CHR, POS and RSID with dbSNP reference data

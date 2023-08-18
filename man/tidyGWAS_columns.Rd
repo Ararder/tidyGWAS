@@ -24,7 +24,7 @@ tidyGWAS_columns(
 )
 }
 \arguments{
-\item{tbl}{a data.frame}
+\item{tbl}{a [dplyr::tibble()] or something coercible to one}
 
 \item{CHR}{chromosome}
 

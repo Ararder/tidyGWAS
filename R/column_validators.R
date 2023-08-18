@@ -1,8 +1,35 @@
 utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR"))
-validate_rsid <- function(tbl, verbose=FALSE) {
+impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P", "B", "Z", "N")
+
+# -------------------------------------------------------------------------
+
+validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FALSE, convert_p, id) {
+  if(is.null(tbl)) return(NULL)
+  if(!missing(id)) cli::cli_h2("Validating columns, for {id}")
+  stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
 
 
-  # setup -------------------------------------------------------------------
+  # check that column validators and implemented, and which ones exist in tbl
+  impl_validators <- impl_validators[!impl_validators %in% remove_cols]
+  cols_in_sumstat <- colnames(tbl)[colnames(tbl) %in% impl_validators]
+
+  for(colname in cols_in_sumstat) {
+    tbl <- validate_columns(tbl = tbl, col = colname, verbose = verbose, convert_p = convert_p)
+  }
+
+  # use filter func if passed
+  if(!missing(filter_func))  tbl <- filter_func(tbl)
+
+
+  # finished ----------------------------------------------------------------
+
+  tbl
+
+
+}
+
+
+validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 
   if(verbose) start_message("RSID")
   tbl$RSID <- as.character(tbl$RSID)
@@ -14,7 +41,7 @@ validate_rsid <- function(tbl, verbose=FALSE) {
 
   if(nrow(invalid_rsid_format) == 0) {
     cli::cli_alert_success("All rows pass RSID validation")
-    return(list("data" = tbl,"chr_pos" =  NULL,"failed" = NULL))
+    return(list("main" = tbl, "without_rsid" = NULL))
   }
 
 
@@ -24,34 +51,63 @@ validate_rsid <- function(tbl, verbose=FALSE) {
     cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. RSID will be repaired using CHR:POS if {.code dbsnp_files is passed}")
     return(
       list(
-        "data" = tbl,
-        "chr_pos" = dplyr::filter(tbl, invalid_rsid) |> dplyr::select(-RSID, -invalid_rsid),
-        "failed" = NULL)
-      )
+        "main" = dplyr::filter(tbl, !invalid_rsid),
+        "without_rsid" = dplyr::filter(tbl, invalid_rsid) |> dplyr::select(-RSID, -invalid_rsid)
+      ))
   }
 
 
-  # no CHR or POS, so need to parse RSID ------------------------------------
+  # need to parse RSID ------------------------------------------------------
+  # no CHR or POS exists in tbl
 
   cli::cli_alert_info("Found {nrow(invalid_rsid_format)} rows with invalid RSID format: ")
   cli::cli_alert_info("Attempting to parse format...")
 
 
   # use EffectAllele and OtherAllele from sumstats, not from parsed format
-  attempt <- split_rsid_by_regex(invalid_rsid_format) |>
+  without_rsid <- split_rsid_by_regex(invalid_rsid_format) |>
     dplyr::select(-EffectAllele, -OtherAllele) |>
     dplyr::inner_join(dplyr::select(tbl, rowid, EffectAllele, OtherAllele), by = "rowid")
 
 
   # print results to user, if any rows have been parsed correctly
-  if(nrow(attempt) > 0) cli::cli(c(cli::cli_alert_info("Parsed format"), cli::cat_print(head(dplyr::select(attempt, RSID, CHR, POS, EffectAllele, OtherAllele), 5), file = stderr())))
+  if(nrow(without_rsid) > 0) {
+    cli::cli_alert_info("Parsed format")
+    first_five_rows <- head(dplyr::select(without_rsid, RSID, CHR, POS, EffectAllele, OtherAllele), 5)
+    cli::cat_print(first_five_rows, file = stderr())
+  }
 
-  # check if failed to parse any rows
-  failed <- dplyr::anti_join(dplyr::filter(tbl, invalid_rsid), attempt, by = "rowid")
 
-  list("data" = tbl, "chr_pos" =  dplyr::select(attempt, -RSID) ,"failed" = failed)
+  # -------------------------------------------------------------------------
+
+
+  failed <- dplyr::anti_join(invalid_rsid_format, without_rsid, by = "rowid")
+
+
+  if(nrow(failed) > 0 ) {
+
+    cli::cli_alert_danger("{nrow(failed)} rows had invalid RSID that could not be parsed and are removed.")
+    cli::cli_inform("{.file {outpath}}")
+    arrow::write_parquet(failed, outpath, compression = "gzip")
+
+  }
+
+
+  # clean up flags
+  main <- dplyr::filter(tbl, !invalid_rsid) |> dplyr::select(-invalid_rsid)
+  without_rsid <- dplyr::select(without_rsid, -RSID)
+
+
+
+  # failed parsed are removed
+
+  list(
+    "main" = main,
+    "without_rsid" = without_rsid
+  )
 
 }
+
 
 
 

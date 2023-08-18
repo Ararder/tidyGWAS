@@ -4,7 +4,7 @@
 \alias{repair_stats}
 \title{Repair statistics column in a GWAS summary statistics tibble}
 \usage{
-repair_stats(tbl)
+repair_stats(tbl, verbose = FALSE)
 }
 \arguments{
 \item{tbl}{a [dplyr::tibble()] with [tidyGWAS_columns()] columns}

@@ -7,16 +7,15 @@
 tidyGWAS(
   tbl,
   ...,
-  dbsnp_path = "",
+  dbsnp_path,
   output_format = c("csv", "hivestyle", "parquet"),
   build = c("NA", "37", "38"),
   outdir = tempdir(),
+  study_n,
   convert_p = 2.225074e-308,
   name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
-  use_dbsnp = TRUE,
   keep_indels = TRUE,
   repair_cols = TRUE,
-  implementation = c("arrow", "bsgenome"),
   logfile = FALSE,
   log_on_err = "tidyGWAS_logfile.txt",
   verbose = FALSE
@@ -31,9 +30,10 @@ possible arguments are `study_n` to set N, and `build` to set genome build.}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
-\item{output_format}{How should the finished cleaned file be saved? Can be either
-an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
-[arrow::write_parquet()] parquet file, for a csv-separated gzipped file.}
+\item{output_format}{How should the finished cleaned file be saved?
+* "csv" corresponds to [arrow::write_csv_arrow()]
+* 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
+* 'parquet' corresponds to [arrow::write_parquet()]}
 
 \item{build}{Can be used to skip [infer_build()]}
 
@@ -43,19 +43,17 @@ an [arrow::write_dataset()]  hivestyle partitioning by chromosome, an
 
 \item{name}{name of the output directory}
 
-\item{use_dbsnp}{use dbSNP to apply filters?}
-
 \item{keep_indels}{Should indels be kept?}
 
 \item{repair_cols}{Should any missing columns be repaired?}
-
-\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment}
 
 \item{logfile}{Should messages be redirected to a logfile?}
 
 \item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
 \item{verbose}{Explain filters in detail?}
+
+\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment}
 }
 \value{
 a tibble or NULL, depending on outdir

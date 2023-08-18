@@ -113,17 +113,20 @@ split_rsid_by_regex <- function(tbl) {
 #' @examples \dontrun{
 #' updated <- repair_stats(my_gwas)
 #' }
-repair_stats <- function(tbl) {
+repair_stats <- function(tbl, verbose=FALSE) {
   # reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
   # Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
-  cli::cli_h3("Repairing missing statistics columns:")
-  cli::cli_ol()
-  cli::cli_li("Transform OR to B if OR exists")
-  cli::cli_li("Remove OR if both OR and B exists")
-  cli::cli_li("Impute Z based on B and SE if both B and SE exist and Z is missing")
-  cli::cli_li("Impute Z based on P and B if Z and SE is missing")
-  cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
-  cli::cli_h3("Starting reparations:")
+
+  if(isTRUE(verbose)) {
+    cli::cli_h3("Repairing missing statistics columns:")
+    cli::cli_ol()
+    cli::cli_li("Transform OR to B if OR exists")
+    cli::cli_li("Remove OR if both OR and B exists")
+    cli::cli_li("Impute Z based on B and SE if both B and SE exist and Z is missing")
+    cli::cli_li("Impute Z based on P and B if Z and SE is missing")
+    cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
+    cli::cli_h3("Starting reparations:")
+  }
 
   start_cols <- colnames(tbl)
 

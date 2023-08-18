@@ -56,36 +56,42 @@ test_that("select_correct_columns work", {
 test_that("dups are removed", {
   name <-   basename(withr::local_tempdir())
   filepaths <- setup_pipeline_paths(name)
+  out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
   expect_no_error(remove_duplicates(tbl = test_sumstat, filepaths = filepaths))
-  expect_true(!file.exists(filepaths$duplicates))
+  expect_true(!file.exists(out))
 
   # add some duplications
   tmp <- dplyr::bind_rows(test_sumstat[1:10,], test_sumstat)
   tmp$rowid <- 1:nrow(tmp)
   remove_duplicates(tbl = tmp, filepaths = filepaths)
-  expect_true(file.exists(filepaths$duplicates))
-  expect_equal(nrow(arrow::read_parquet(filepaths$duplicates)), 10)
+  expect_true(file.exists(out))
+  expect_equal(nrow(arrow::read_parquet(out)), 10)
 
 })
 
 
 
+
+
 test_that("NA rows are removed", {
   name <-   basename(withr::local_tempdir())
-  filepaths <- setup_pipeline_paths(name)
+  filepaths <- setup_pipeline_paths("testing")
 
-  # does not remove any fiels if no NA
-  expect_equal(test_sumstat, remove_rows_with_na(test_sumstat, filepaths))
-  tmp <- test_sumstat
-  tmp$CHR <- rep(c("4", NA_character_), 50000)
-  expect_equal(nrow(remove_rows_with_na(tmp, filepaths)), 50000)
+  test_sumstat$RSID <- dplyr::if_else(test_sumstat$CHR == "6", NA_character_, test_sumstat$RSID)
+  expect_no_error(remove_rows_with_na(test_sumstat, filepaths))
 
 
 })
 
-test_that("NA rows are removed", {
+
+
+test_that("indels are removed", {
   name <-   basename(withr::local_tempdir())
   filepaths <- setup_pipeline_paths(name)
+
+
+  expect_no_error(detect_indels(pval_as_char_df, FALSE, filepaths))
+  expect_no_error(detect_indels(pval_as_char_df, TRUE, filepaths))
 
   #
 

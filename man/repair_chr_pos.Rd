@@ -4,13 +4,15 @@
 \alias{repair_chr_pos}
 \title{Get CHR and POS using RSID}
 \usage{
-repair_chr_pos(sumstat)
+repair_chr_pos(tbl, dbsnp_path)
 }
 \arguments{
-\item{sumstat}{a dplyr::tibble with with atleast RSID, EffectAllele and OtherAllele}
+\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+
+\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
-a tibble
+a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 }
 \description{
 Get CHR and POS using RSID

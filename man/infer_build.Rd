@@ -4,15 +4,17 @@
 \alias{infer_build}
 \title{Infer what genome build a GWAS summary statistics file is on.}
 \usage{
-infer_build(sumstat, n_snps = 10000)
+infer_build(tbl, n_snps = 10000, dbsnp_path)
 }
 \arguments{
-\item{sumstat}{a data.frame with the columns "CHR" and "POS"}
+\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
 
 \item{n_snps}{number of snps to check CHR and POS for}
+
+\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
-either `"37"` or `"38"`
+either "37" or "38"
 }
 \description{
 Infer what genome build a GWAS summary statistics file is on.

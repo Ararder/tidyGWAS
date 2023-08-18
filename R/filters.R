@@ -8,7 +8,7 @@ select_correct_columns <- function(tbl, study_n) {
   tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
   tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
 
-  if(all(c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) {
+  if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) {
     stop("Either CHR and POS or RSID are required columns")
   }
   if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) {
@@ -41,7 +41,8 @@ remove_rows_with_na <- function(tbl, filepaths) {
 
   if(nrow(na_rows) > 0) {
     outfile <- paste0(filepaths$removed, "missing_values.parquet")
-    cli::cli_li("Found {nrow(na_rows)} rows with missing values. These are removed")
+    cli::cli_alert_danger("Found {nrow(na_rows)} rows with missing values. These are removed: ")
+    cli::cli_inform("{.file {outfile}}")
     arrow::write_parquet(na_rows, outfile)
   }
 
@@ -71,12 +72,13 @@ remove_duplicates <- function(tbl, filepaths) {
   removed <- dplyr::anti_join(tbl, no_dups, by = "rowid")
 
 
-  no_dups
-  cli::cli_alert_info("Using {id} as id")
+
+  cli::cli_alert_info("A unique ID is formed by concontenating {cols_to_use}")
   if(nrow(removed) > 0) {
-    cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications, based on {cols_to_use}")
-    cli::cli_li("{nrow(removed)} rows removed because duplicates: {.file {filepaths$duplicates}}")
-    arrow::write_parquet(removed, filepaths$duplicates, compression = "gzip")
+    out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
+    cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
+    cli::cli_li("{.file {out}}")
+    arrow::write_parquet(removed, out, compression = "gzip")
   }
 
   no_dups
@@ -96,26 +98,36 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
 
 
-detect_indels <- function(struct) {
+detect_indels <- function(tbl, keep_indels, filepaths) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
     "EffectAllele or OtherAllele coded as 'D', 'I', or 'R'"
   ))
 
-  struct$sumstat <- flag_indels(struct$sumstat)
-  struct$indels <-  dplyr::select(dplyr::filter(struct$sumstat,  .data[["indel"]]), -indel)
-  struct$sumstat <- dplyr::select(dplyr::filter(struct$sumstat, !.data[["indel"]]), -indel)
 
-  struct
+  tbl <- flag_indels(tbl)
+  indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
+  tbl <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
+  if(nrow(indels) == 0) indels <- NULL
+  if(!isTRUE(keep_indels) & !is.null(indels)) {
+
+    outpath <- paste0(filepaths$removed_rows, "indels_removed.parquet")
+    arrow::write_parquet(indels, outpath)
+    cli::cli_alert_warning("{.code keep_indels = FALSE}. Removed {nrow(indels)} rows as (indels)")
+    cli::cli_inform("{.file {outpath}}")
+    indels <- NULL
+  }
+
+  list("main" = tbl, "indels" = indels)
 
 }
 
 
-make_callback <- function(outpath, id) {
+make_callback <- function(id) {
 
 
-  outpath <- paste0(outpath, id, ".parquet")
+  outpath <- paste0(id, ".parquet")
 
   callback <- function(tbl) {
     # split into filter flags
