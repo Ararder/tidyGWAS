@@ -17,24 +17,17 @@ Imports:
     purrr,
     stats,
     stringr,
-    tibble,
     rlang,
     tidyr,
     withr,
     prettyunits
 Suggests: 
-    BiocManager,
-    BSgenome,
-    BSgenome.Hsapiens.1000genomes.hs37d5,
-    BSgenome.Hsapiens.NCBI.GRCh38,
-    GenomicRanges,
     knitr,
     rmarkdown,
-    SNPlocs.Hsapiens.dbSNP155.GRCh37,
-    SNPlocs.Hsapiens.dbSNP155.GRCh38,
     testthat (>= 3.0.0),
     utils,
 RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 

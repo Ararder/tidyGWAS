@@ -12,7 +12,7 @@ validate_columns(
 )
 }
 \arguments{
-\item{tbl}{a tibble in [tidyGWAS_columns()] format.}
+\item{tbl}{a tibble in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
 \item{col}{Which column to check values in?}
 
@@ -25,12 +25,12 @@ issues in downstream analysis, and it is therefore recommended to deal with extr
 small pvalues early on.}
 }
 \value{
-a [dplyr::tibble()], with a column added named as invalid_{col}.
+a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with a column added named as invalid_{col}.
 If you validate the "B" column, validate_columns will add a TRUE/FALSE column
 named invalid_B to the input tibble.
 }
 \description{
-`validate_columns()` does not remove any rows, but adds a TRUE/FALSE
+\code{validate_columns()} does not remove any rows, but adds a TRUE/FALSE
 flag for the specified column.
 }
 \examples{

@@ -10,7 +10,7 @@ flag_duplicates(
 )
 }
 \arguments{
-\item{tbl}{a tibble with [tidyGWAS_columns()]}
+\item{tbl}{a tibble with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
 \item{column}{Which columns should be used to form a unique ID?}
 }
@@ -18,11 +18,11 @@ flag_duplicates(
 a tibble with new columns dup_{column}
 }
 \description{
-Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]
+Many duplication tools such as \code{\link[base:duplicated]{base::duplicated()}} or \code{\link[dplyr:distinct]{dplyr::distinct()}}
 identify rows which are duplications. It is often useful to see ALL rows
 which are part of the duplication set, and not just the second row.
 
-creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
+creates new column: \code{dup_rsid} or \code{dup_chr_pos}, a T/F flag.
 Specifically, flags both rows in a duplication pair, and not just first or
 last duplicate row, making it easy to work with all rows that are part of a
 duplication

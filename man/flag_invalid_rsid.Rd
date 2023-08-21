@@ -7,12 +7,12 @@
 flag_invalid_rsid(tbl, regex = "^[rR][sS]?\\\\d{1,10}$")
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column `RSID`.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column \code{RSID}.}
 
 \item{regex}{regex used to detect non-RSIDs}
 }
 \value{
-a [dplyr::tibble()] with column `invalid_rsid`
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column \code{invalid_rsid}
 }
 \description{
 Detect entries that are not valid rsID's in GWAS summary statistics

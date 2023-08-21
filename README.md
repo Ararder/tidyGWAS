@@ -6,47 +6,103 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of tidyGWAS is to provide an easy-to use R package written in
-the typical tidyverse/dplyr syntax to make cleaning and collection of
-sumstats simple, and to stop analysts for falling to common error. In
-addition we provide helpers to standardise GWAS data: Reparation of
-stats columns where possible (missing B/SE/P), as well as by default
-providing coordinates on both GRCh37 and GRCh38.
+# Standardized and automatic cleaning and harmonization of GWAS summary statistics
 
-An early design goal of tidyGWAS was to keep as many rows as possible.
-Our default options are therefore to keep multi-allelic SNPs or
-ambigious SNPs, which we suggest to handle depending on what downstream
-analysis tool you wish to use.
+The typical process of starting a project that relies on GWAS summary
+statistics looks like this:
 
-## Installation
+1.  Read through data access statements to find the downloadable link
+2.  Dig through readme files to identify genome build and what exactly
+    column names mean
+3.  Manually loading the sumstats into R/Python/Bash, taking a look at
+    it to identify any obvious errors
+4.  For each sumstat, format it into whatever format is requested by the
+    downstream tool you are using
+5.  Rinse and repeat for the next project
 
-You can install the development version of tidyGWAS from
-[GitHub](https://github.com/) with:
+To solve this issue we developed a R package “tidyGWAS”, that does
+automatic standardisation and quality control of summary statistics.
+
+1.  Detection of duplicated rows (based on RSID_REF_ALT or
+    CHR_POS_REF_ALT)
+
+2.  Standardized column names
+
+3.  Automatic updating of “merged” RSIDs
+
+4.  Detection and optional removal of deletions/insertions (“indels”)
+
+5.  Automatic detection and conversion of CHR:POS or CHR:POS:A1:A2 to
+    CHR, POS, RSID, A1 and A2.
+
+6.  Standardization of CHR values (23 -\> “X”, chr1 -\> “1”)
+
+7.  Validation of standard GWAS columns, B, SE, P, N, FREQ, Z, CaseN,
+    ControlN,A1, A2
+
+    1.  Extremely small pvalues are by default converted to
+        2.225074e-308 (minimum pvalue in R)
+
+8.  Imputation of missing columns: RSID from CHR:POS or CHR:POS from
+    RSID. Any of B,SE, P, Z if missing and possible
+
+9.  Validation of CHR:POS:RSID by matching with dbSNP v.155
+
+10. Cleaned sumstats are provided with coordinates on both GRCh37 and
+    GRCh38, with TRUE/FALSE flags for indels and variants that are
+    multi-allelic in the dataset
+
+# Getting started
+
+tidyGWAS dependencies should be easily installed on most systems, with
+the arrow dependecy being the most likely to cause trouble. In the case
+that installation of arrow is causing trouble, see
+[here](https://arrow.apache.org/docs/r/articles/install.html).
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("Ararder/tidyGWAS")
+devtools::install_github("ararder/tidyGWAS")
+# or
+# install.packages("remotes")
+remotes::install_github("ararder/tidyGWAS")
 ```
+
+tidyGWAS uses a version dbSNP 155 converted to the apache arrow parquet
+files. You can download the dbSNP reference file from inside R, or by
+manually navigating to this
+[file](https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link)
+
+``` r
+# You can download the file from inside R like this:
+library(googledrive)
+id <- googledrive::as_id("1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6")
+
+##### EDIT THIS:
+filepath_to_store_dir <- ""
+##### ---------------------
+
+drive_download(id, path = filepath_to_store_dir)
+```
+
+The file needs to be untarred to use
 
 ``` bash
-# and then download the following file
-# from google drive: https://drive.google.com/file/d/1hg6jxQUj6UmEdLIH46md7eJcgfVlzmNn/view?usp=share_link
-# which contains dbSNP 155 for GRCh37 and GRCH38 in parquet format
+cd $filepath_to_store_dir
+tar -xf dbSNP155
 ```
 
-## Example
-
-see vignette
+## Example use
 
 ``` r
 library(tidyGWAS)
 dbsnp_file <-  "filepath/to/untarred/dnsnp155"
-raw_sumstats <- "filepath/to/raw_sumstats.csv" 
+# input a filepath, or a (data.frame / tibble / data.table), of summary statistics
+
+# by default, tidyGWAS returns the cleaned sumstats inside R
+# AND writes out the file in a temp directory
 cleaned <- tidyGWAS(
-  tbl = raw_sumstats,
-  dbsnp_files = "filepath/to/raw_sumstats.csv",
-  output_format = "parquet",
-  name = "my_GWAS"
+  tbl = tidyGWAS::example_file,
+  dbsnp_files = "filepath/to/dbSNP155"
 )
 ```
 

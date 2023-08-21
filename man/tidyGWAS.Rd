@@ -22,20 +22,22 @@ tidyGWAS(
 )
 }
 \arguments{
-\item{tbl}{a `data.frame` or `character()` vector}
+\item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{...}{pass additional arguments to [arrow::read_delim_arrow()] which is the function
+\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}} which is the function
 that will be called if tbl is a filepath
-possible arguments are `study_n` to set N, and `build` to set genome build.}
+possible arguments are \code{study_n} to set N, and \code{build} to set genome build.}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
 \item{output_format}{How should the finished cleaned file be saved?
-* "csv" corresponds to [arrow::write_csv_arrow()]
-* 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
-* 'parquet' corresponds to [arrow::write_parquet()]}
+\itemize{
+\item "csv" corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
+\item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
+\item 'parquet' corresponds to \code{\link[arrow:write_parquet]{arrow::write_parquet()}}
+}}
 
-\item{build}{Can be used to skip [infer_build()]}
+\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{outdir}{Where should results be saved after a succesful execution?}
 
@@ -59,25 +61,25 @@ possible arguments are `study_n` to set N, and `build` to set genome build.}
 a tibble or NULL, depending on outdir
 }
 \description{
-`tidyGWAS()` performs a set of validations on input colummns, repairs missing
+\code{tidyGWAS()} performs a set of validations on input colummns, repairs missing
 columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
 standardised to GRCh38, with coordinates on GRCh37 added in as well.
 
-Briefly, `tidyGWAS()` updates RSID if possible using the
-[refsnp-merged](https://ftp.ncbi.nih.gov/snp/latest_release/JSON/) file
+Briefly, \code{tidyGWAS()} updates RSID if possible using the
+\href{https://ftp.ncbi.nih.gov/snp/latest_release/JSON/}{refsnp-merged} file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
-[repair_rsid()] or [repair_chr_pos()]. If both RSID and CHR:POS is present,
-[verify_chr_pos_rsid()] is executed to check that dbSNP CHR:POS:RSID agrees
-with CHR:POS:RSID in `tbl`.
+\code{\link[=repair_rsid]{repair_rsid()}} or \code{\link[=repair_chr_pos]{repair_chr_pos()}}. If both RSID and CHR:POS is present,
+\code{\link[=verify_chr_pos_rsid]{verify_chr_pos_rsid()}} is executed to check that dbSNP CHR:POS:RSID agrees
+with CHR:POS:RSID in \code{tbl}.
 
-If statistis such as `P`, `B` are missing, `tidyGWAS()` will attempt to impute
-them if possible using [repair_stats()]
+If statistis such as \code{P}, \code{B} are missing, \code{tidyGWAS()} will attempt to impute
+them if possible using \code{\link[=repair_stats]{repair_stats()}}
 
 Standard column names are assumed, BEFORE inputting into the function. This is
 a deliberate decision, as automatic parsing of some important column names
 can be ambigious For example, in some sumstats, A1 referes to effect allele,
-while other formats use A1 as non-effect allele. [tidyGWAS_columns()] can be
+while other formats use A1 as non-effect allele. \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} can be
 used to standardise column names, and see the standard format.
 }
 \examples{

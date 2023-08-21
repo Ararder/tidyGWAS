@@ -7,10 +7,10 @@
 flag_indels(tbl)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele`}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{EffectAllele} and \code{OtherAllele}}
 }
 \value{
-a [dplyr::tibble()] with a TRUE/FALSE column `indel` added, where
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with a TRUE/FALSE column \code{indel} added, where
 indel == TRUE corresponds to a row marked as an indel.
 }
 \description{

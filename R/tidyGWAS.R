@@ -1,5 +1,5 @@
 utils::globalVariables(c(
-  "chr_pos", "n", "n_chr_pos", "dup_chr_pos",
+  "chr_pos", "n", "n_chr_pos", "dup_rsid",
   ".data", "invalid_rsid",  "new_rsid",
   "has_rsid", "head", "CHR_37", "POS_37",
    "reason", "filter_callback", "no_dbsnp_entry", "logfile"))
@@ -243,7 +243,8 @@ parse_tbl <- function(tbl, ...) {
 #' @param build Genome build of sumstats. if `'NA'` [infer_build()] will be used
 #' to automatically detect build.
 #' @param dbsnp_path filepath to dbSNP files in .parquet format.
-#' @param filter_func used to remove rows which fail validation. see [make_callback()]
+#' @param filter_func A function that is applied to the tibble before exiting. This is used
+#' to write to disk any rows that removed.
 #'
 #' @return a [dplyr::tibble()]
 #' @export

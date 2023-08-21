@@ -2,7 +2,7 @@
 % Please edit documentation in R/tidyGWAS.R
 \name{tidyGWAS_columns}
 \alias{tidyGWAS_columns}
-\title{Create a [dplyr::tibble()] with tidyGWAS column names}
+\title{Create a \code{\link[dplyr:reexports]{dplyr::tibble()}} with tidyGWAS column names}
 \usage{
 tidyGWAS_columns(
   tbl,
@@ -24,7 +24,7 @@ tidyGWAS_columns(
 )
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] or something coercible to one}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} or something coercible to one}
 
 \item{CHR}{chromosome}
 

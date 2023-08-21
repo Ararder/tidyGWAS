@@ -7,12 +7,12 @@
 repair_chr_pos(tbl, dbsnp_path)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
 \item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
-a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added
 }
 \description{
 Get CHR and POS using RSID

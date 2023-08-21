@@ -96,7 +96,7 @@ remove_duplicates <- function(tbl, filepaths) {
 
 update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
-  rsid_info <- update_merged_rsid(tbl, paste(dbsnp_path, "refsnp-merged", sep = "/")
+  rsid_info <- update_merged_rsid(tbl, paste(dbsnp_path, "refsnp-merged", sep = "/"))
   tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
     dplyr::select(-old_RSID)
 

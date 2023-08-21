@@ -7,17 +7,18 @@
 validate_with_dbsnp(tbl, build = c("NA", "37", "38"), dbsnp_path, filter_func)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
-\item{build}{Genome build of sumstats. if `'NA'` [infer_build()] will be used
+\item{build}{Genome build of sumstats. if \code{'NA'} \code{\link[=infer_build]{infer_build()}} will be used
 to automatically detect build.}
 
 \item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 
-\item{filter_func}{used to remove rows which fail validation. see [make_callback()]}
+\item{filter_func}{A function that is applied to the tibble before exiting. This is used
+to write to disk any rows that removed.}
 }
 \value{
-a [dplyr::tibble()]
+a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
 Update CHR/POS/RSID/EffectAllele/OtherAllele for GWAS sumstats using dbSNP

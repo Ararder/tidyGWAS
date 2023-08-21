@@ -7,18 +7,18 @@
 repair_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
-\item{build}{Genome build of sumstats. if `'NA'` [infer_build()] will be used
+\item{build}{Genome build of sumstats. if \code{'NA'} \code{\link[=infer_build]{infer_build()}} will be used
 to automatically detect build.}
 
 \item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
-a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added
 }
 \description{
-This function assumes tidyGWAS column names, see [tidyGWAS_columns()]
+This function assumes tidyGWAS column names, see \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}
 }
 \examples{
 \dontrun{

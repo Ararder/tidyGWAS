@@ -7,7 +7,7 @@
 infer_build(tbl, n_snps = 10000, dbsnp_path)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
 \item{n_snps}{number of snps to check CHR and POS for}
 

@@ -7,7 +7,7 @@
 repair_stats(tbl, verbose = FALSE)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
 
 \item{verbose}{Should repair_stats print a masthead explaining what it does?}
 }
@@ -15,7 +15,7 @@ repair_stats(tbl, verbose = FALSE)
 a tibble
 }
 \description{
-`repair_stats()` is a collection of functions that can be used to
+\code{repair_stats()} is a collection of functions that can be used to
 infer missing columns in GWAS summary statistics. The functions are based on
 functionality found online.
 }

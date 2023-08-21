@@ -7,14 +7,14 @@
 verify_chr_pos_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{tbl}{a `data.frame` or `character()` vector}
+\item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{build}{Can be used to skip [infer_build()]}
+\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 }
 \value{
-a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added
 }
 \description{
 Compare CHR, POS and RSID with dbSNP reference data
