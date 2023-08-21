@@ -7,7 +7,9 @@
 repair_stats(tbl, verbose = FALSE)
 }
 \arguments{
-\item{tbl}{a [dplyr::tibble()] with [tidyGWAS_columns()] columns}
+\item{tbl}{a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.}
+
+\item{verbose}{Should repair_stats print a masthead explaining what it does?}
 }
 \value{
 a tibble

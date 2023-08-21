@@ -1,18 +1,24 @@
-select_correct_columns <- function(tbl, study_n) {
+select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
+
   # check input columns
   cli::cli_h3("1) Checking that columns follow tidyGWAS format")
   cli::cli_alert_success("The following columns are used for further steps: {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
+
   n_invalid_cols <- length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)
   if(n_invalid_cols) cli::cli_alert_danger("{.strong Removed columns:  {colnames(tbl)[!colnames(tbl) %in% valid_column_names]}}")
 
-  tbl <- dplyr::mutate(tbl, rowid = as.integer(row.names(tbl)))
-  tbl <- dplyr::select(tbl,dplyr::any_of(valid_column_names))
+  tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
 
   if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) {
+
     stop("Either CHR and POS or RSID are required columns")
+
   }
+
   if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) {
+
     stop("EffectAllele and OtherAllele are required columns")
+
   }
 
   # handle N ----------------------------------------------------------------
@@ -44,6 +50,8 @@ remove_rows_with_na <- function(tbl, filepaths) {
     cli::cli_alert_danger("Found {nrow(na_rows)} rows with missing values. These are removed: ")
     cli::cli_inform("{.file {outfile}}")
     arrow::write_parquet(na_rows, outfile)
+  } else {
+    cli::cli_alert_success("No rows contained missing values")
   }
 
   tmp
@@ -79,6 +87,8 @@ remove_duplicates <- function(tbl, filepaths) {
     cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
     cli::cli_li("{.file {out}}")
     arrow::write_parquet(removed, out, compression = "gzip")
+  } else {
+    cli::cli_alert_success("Found no duplications")
   }
 
   no_dups
@@ -90,8 +100,19 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
   tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
     dplyr::select(-old_RSID)
 
-  cli::cli_li("{sum(!is.na(rsid_info$old_RSID))} rows with updated RSID: {.file {filepaths$updated_rsid}}")
-  arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
+  updated_rows <- sum(!is.na(rsid_info$old_RSID))
+
+  if(updated_rows > 0) {
+    cli::cli_alert_success("{updated_rows} rows with updated RSID")
+    cli::cli_li("{.file {filepaths$updated_rsid}}")
+    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
+
+  } else {
+    cli::cli_li("Found no RSIDs that has been merged")
+  }
+
+
+
 
   tbl
 }

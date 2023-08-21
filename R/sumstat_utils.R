@@ -49,6 +49,10 @@ flag_invalid_rsid <- function(tbl, regex = "^[rR][sS]?\\d{1,10}$") {
 
 }
 
+flag_multi_allelic <- function(tbl) {
+
+}
+
 split_rsid_by_regex <- function(tbl) {
   stopifnot(all(c("RSID", "rowid") %in% colnames(tbl)))
 
@@ -104,8 +108,8 @@ split_rsid_by_regex <- function(tbl) {
 #' `repair_stats()` is a collection of functions that can be used to
 #' infer missing columns in GWAS summary statistics. The functions are based on
 #' functionality found online.
-#'
-#' @param tbl a [dplyr::tibble()] with [tidyGWAS_columns()] columns
+#' @inheritParams validate_with_dbsnp
+#' @param verbose Should repair_stats print a masthead explaining what it does?
 #'
 #' @return a tibble
 #' @export
@@ -113,7 +117,7 @@ split_rsid_by_regex <- function(tbl) {
 #' @examples \dontrun{
 #' updated <- repair_stats(my_gwas)
 #' }
-repair_stats <- function(tbl, verbose=FALSE) {
+repair_stats <- function(tbl, verbose = FALSE) {
   # reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
   # Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
 

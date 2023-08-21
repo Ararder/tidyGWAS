@@ -89,71 +89,71 @@ map_to_dbsnp_arrow <- function(tbl, build, by, dbsnp_path) {
 
 }
 
-map_to_dbsnp_bsgenome <- function(tbl, build, by) {
-
-
-
-  bsgenome_objects <- get_bsgenome()
-  if(build == "37") {
-    snps <- bsgenome_objects$snps_37
-    genome <- bsgenome_objects$genome_37
-  } else {
-    snps <- bsgenome_objects$snps_38
-    genome <- bsgenome_objects$genome_38
-  }
-
-
-
-  if(by == "rsid") {
-
-    res <- BSgenome::snpsById(
-      x = snps,
-      genome = genome,
-      # make sure only valid RSIDs are passed to snpsById
-      ids = dplyr::filter(tbl, stringr::str_detect(RSID, "rs\\d{1,9}"))[["RSID"]],
-      ifnotfound="drop"
-    )
-
-  } else {
-
-    res <-
-      # splitting by chromosome reduces memory usage of BSgenome::snpsByOverlaps
-      split(tbl, tbl$CHR) |>
-      purrr::map(\(chr_df) dplyr::arrange(chr_df, POS)) |>
-      # convert to GPos object
-      purrr::map(\(chr_df) GenomicRanges::GPos(chr_df[["CHR"]], chr_df[["POS"]])) |>
-      purrr::map(\(chr_df_as_gpos) BSgenome::snpsByOverlaps(ranges = chr_df_as_gpos, x = snps, genome = genome)) |>
-      # remove empty entries
-      purrr::keep(\(x) nrow(x) > 0) |>
-      purrr::list_rbind()
-    if(rlang::is_empty(res)) res <- dplyr::tibble("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
-
-  }
-
-
-  # clean up and return results ---------------------------------------------
-
-
-  dbsnp <- res |>
-    tibble::as_tibble() |>
-    dplyr::rename(CHR = seqnames, POS = pos, RSID = RefSNP_id) |>
-    dplyr::select(-dplyr::any_of(c("strand", "alleles_as_ambig", "genome_compat")))
-    # this will ensure correct types AND that these columns exist
-    # while possible superfluous, ensures type safety from output of BSgenome::snpsByXX functions
-
-
-
-
-    dbsnp
-}
-
-
-get_bsgenome <- function() {
-  list(
-    "snps_37" = SNPlocs.Hsapiens.dbSNP155.GRCh37::SNPlocs.Hsapiens.dbSNP155.GRCh37,
-    "genome_37" = BSgenome.Hsapiens.1000genomes.hs37d5::BSgenome.Hsapiens.1000genomes.hs37d5,
-    "snps_38" = SNPlocs.Hsapiens.dbSNP155.GRCh38::SNPlocs.Hsapiens.dbSNP155.GRCh38,
-    "genome_38" = BSgenome.Hsapiens.NCBI.GRCh38::BSgenome.Hsapiens.NCBI.GRCh38
-  )
-
-}
+# map_to_dbsnp_bsgenome <- function(tbl, build, by) {
+#
+#
+#
+#   bsgenome_objects <- get_bsgenome()
+#   if(build == "37") {
+#     snps <- bsgenome_objects$snps_37
+#     genome <- bsgenome_objects$genome_37
+#   } else {
+#     snps <- bsgenome_objects$snps_38
+#     genome <- bsgenome_objects$genome_38
+#   }
+#
+#
+#
+#   if(by == "rsid") {
+#
+#     res <- BSgenome::snpsById(
+#       x = snps,
+#       genome = genome,
+#       # make sure only valid RSIDs are passed to snpsById
+#       ids = dplyr::filter(tbl, stringr::str_detect(RSID, "rs\\d{1,9}"))[["RSID"]],
+#       ifnotfound="drop"
+#     )
+#
+#   } else {
+#
+#     res <-
+#       # splitting by chromosome reduces memory usage of BSgenome::snpsByOverlaps
+#       split(tbl, tbl$CHR) |>
+#       purrr::map(\(chr_df) dplyr::arrange(chr_df, POS)) |>
+#       # convert to GPos object
+#       purrr::map(\(chr_df) GenomicRanges::GPos(chr_df[["CHR"]], chr_df[["POS"]])) |>
+#       purrr::map(\(chr_df_as_gpos) BSgenome::snpsByOverlaps(ranges = chr_df_as_gpos, x = snps, genome = genome)) |>
+#       # remove empty entries
+#       purrr::keep(\(x) nrow(x) > 0) |>
+#       purrr::list_rbind()
+#     if(rlang::is_empty(res)) res <- dplyr::tibble("seqnames" = character(), "pos" = integer(), "RefSNP_id" = character(), "ref_allele" = character(),"alt_alleles" = list())
+#
+#   }
+#
+#
+#   # clean up and return results ---------------------------------------------
+#
+#
+#   dbsnp <- res |>
+#     tibble::as_tibble() |>
+#     dplyr::rename(CHR = seqnames, POS = pos, RSID = RefSNP_id) |>
+#     dplyr::select(-dplyr::any_of(c("strand", "alleles_as_ambig", "genome_compat")))
+#     # this will ensure correct types AND that these columns exist
+#     # while possible superfluous, ensures type safety from output of BSgenome::snpsByXX functions
+#
+#
+#
+#
+#     dbsnp
+# }
+#
+#
+# get_bsgenome <- function() {
+#   list(
+#     "snps_37" = SNPlocs.Hsapiens.dbSNP155.GRCh37::SNPlocs.Hsapiens.dbSNP155.GRCh37,
+#     "genome_37" = BSgenome.Hsapiens.1000genomes.hs37d5::BSgenome.Hsapiens.1000genomes.hs37d5,
+#     "snps_38" = SNPlocs.Hsapiens.dbSNP155.GRCh38::SNPlocs.Hsapiens.dbSNP155.GRCh38,
+#     "genome_38" = BSgenome.Hsapiens.NCBI.GRCh38::BSgenome.Hsapiens.NCBI.GRCh38
+#   )
+#
+# }

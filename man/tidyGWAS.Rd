@@ -24,7 +24,7 @@ tidyGWAS(
 \arguments{
 \item{tbl}{a `data.frame` or `character()` vector}
 
-\item{...}{pass arguments to to [arrow::read_delim_arrow()] which is the function
+\item{...}{pass additional arguments to [arrow::read_delim_arrow()] which is the function
 that will be called if tbl is a filepath
 possible arguments are `study_n` to set N, and `build` to set genome build.}
 
@@ -39,6 +39,8 @@ possible arguments are `study_n` to set N, and `build` to set genome build.}
 
 \item{outdir}{Where should results be saved after a succesful execution?}
 
+\item{study_n}{Use to set N in tbl}
+
 \item{convert_p}{What value should be used for P = 0?}
 
 \item{name}{name of the output directory}
@@ -52,8 +54,6 @@ possible arguments are `study_n` to set N, and `build` to set genome build.}
 \item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
 \item{verbose}{Explain filters in detail?}
-
-\item{implementation}{Use arrow or bsgenome as backend to interact with dbSNP? Only arrow is supported at the moment}
 }
 \value{
 a tibble or NULL, depending on outdir
@@ -63,7 +63,8 @@ a tibble or NULL, depending on outdir
 columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
 standardised to GRCh38, with coordinates on GRCh37 added in as well.
 
-Briefly, `tidyGWAS()` updates RSID if possible using RsMergeArch file
+Briefly, `tidyGWAS()` updates RSID if possible using the
+[refsnp-merged](https://ftp.ncbi.nih.gov/snp/latest_release/JSON/) file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
 [repair_rsid()] or [repair_chr_pos()]. If both RSID and CHR:POS is present,

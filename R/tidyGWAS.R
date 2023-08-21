@@ -1,6 +1,6 @@
 utils::globalVariables(c(
-  "chr_pos", "n", "n_chr_pos",
-  ".data", "invalid_rsid",  "new_rsid", "merged_into_new_rsid",
+  "chr_pos", "n", "n_chr_pos", "dup_chr_pos",
+  ".data", "invalid_rsid",  "new_rsid",
   "has_rsid", "head", "CHR_37", "POS_37",
    "reason", "filter_callback", "no_dbsnp_entry", "logfile"))
 
@@ -19,7 +19,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
 #' standardised to GRCh38, with coordinates on GRCh37 added in as well.
 #'
-#' Briefly, `tidyGWAS()` updates RSID if possible using RsMergeArch file
+#' Briefly, `tidyGWAS()` updates RSID if possible using the
+#' [refsnp-merged](https://ftp.ncbi.nih.gov/snp/latest_release/JSON/) file
 #' from dbSNP. Each inputed column is then validated and coerced to
 #' the correct type. Missing CHR/POS or RSID is detected and imputed using
 #' [repair_rsid()] or [repair_chr_pos()]. If both RSID and CHR:POS is present,
@@ -36,7 +37,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' used to standardise column names, and see the standard format.
 #'
 #' @param tbl a `data.frame` or `character()` vector
-#' @param ... pass arguments to to [arrow::read_delim_arrow()] which is the function
+#' @param ... pass additional arguments to [arrow::read_delim_arrow()] which is the function
 #' that will be called if tbl is a filepath
 #' possible arguments are `study_n` to set N, and `build` to set genome build.
 #' @param output_format How should the finished cleaned file be saved?
@@ -98,21 +99,20 @@ tidyGWAS <- function(
   }
 
 
+  # write out the raw sumstats to always be able to find what changes was made to input file
+
+  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
+  start_time <- Sys.time()
+  rows_start <- nrow(tbl)
 
   # welcome message ----------------------------------------------------------
 
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
-  rows_start <- nrow(tbl)
-  # write out the raw sumstats to always be able to find what changes was made to input file
-  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
-  start_time <- Sys.time()
   cli::cli_inform("Starting at {start_time}, with {rows_start} in input data.frame")
   cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
   cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
-  cli::cli_li("number of rows: {rows_start}")
+  cli::cli_alert_info("Detected {rows_start} rows in input summary statistics")
 
-
-  # start the pipeline ------------------------------------------------------
 
   tbl <- select_correct_columns(tbl, study_n)
 
@@ -186,9 +186,13 @@ tidyGWAS <- function(
 
   # merge together and repair missing statistics columns ---------------------
 
-
   if(keep_indels) main <- dplyr::bind_rows(main, data_list$indels)
   if(repair_cols) main <- repair_stats(main)
+
+  # flag indels and multi-allelics
+  main <- flag_duplicates(main, "rsid") |>
+    flag_indels() |>
+    dplyr::rename(multi_allelic = dup_rsid)
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
 
 
@@ -207,7 +211,7 @@ parse_tbl <- function(tbl, ...) {
 
   rlang::check_required(tbl)
   if("character" %in% class(tbl) & length(tbl) != 1) {
-    stop("Cannot parse character vectors of length < 1 or > 1")
+    stop("A filepath has to a character vector of length 1")
   }
 
     if("character" %in% class(tbl)) {
@@ -220,8 +224,10 @@ parse_tbl <- function(tbl, ...) {
 
   } else {
 
-    stop("tbl is not a character vector of length 1 or a data.frame")
+    stop("tbl is not a character vector or a data.frame")
   }
+
+  if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
 
   tbl
 }
@@ -299,8 +305,6 @@ identify_removed_rows <- function(finished, filepaths) {
 
   # remove the file with all rowids
   files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), pattern = "*removed_row*", full.names = TRUE)
-  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "start_ids.tsv.gz")]
-  files_in_dir <- files_in_dir[!stringr::str_detect(files_in_dir, "updated_rsid.log.gz")]
 
 
   removed_rows_with_flags <-
@@ -336,7 +340,6 @@ identify_removed_rows <- function(finished, filepaths) {
 # -------------------------------------------------------------------------
 
 
-
 setup_pipeline_paths <- function(name) {
 
   # define workdir
@@ -366,20 +369,27 @@ setup_pipeline_paths <- function(name) {
 
 write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
-  df <- dplyr::select(df, dplyr::any_of(c("CHR", "POS", "RSID","EffectAllele", "OtherAllele", "B", "SE", "EAF", "P", "N")), dplyr::everything())
+  df <- standardize_column_order(df)
 
   if(output_format == "hivestyle") {
+
     arrow::write_dataset(dplyr::group_by(df, CHR), filepaths$cleaned)
+
   } else if(output_format == "parquet") {
+
     arrow::write_parquet(df, paste(filepaths$base, "cleaned_GRCh38.parquet", sep = "/"))
+
   } else if(output_format == "csv") {
+
     outfile <- paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/")
     arrow::write_csv_arrow(df, paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/"))
     system(glue::glue("gzip {outfile}"))
+
   }
 
 
   if(outdir != tempdir()) {
+
     file.copy(filepaths$base, outdir, recursive = TRUE)
 
   }
@@ -463,5 +473,15 @@ tidyGWAS_columns <- function(
       "Z" = Z,
       "OR" = OR
     )))
+
+}
+
+
+standardize_column_order <- function(tbl) {
+  dplyr::select(tbl, dplyr::any_of(
+    c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "EAF",
+      "Z", "B", "SE", "P", "N", "CaseN", "ControlN", "INFO"
+      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel"))
+    )
 
 }
