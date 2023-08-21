@@ -58,11 +58,11 @@
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>tbl</dt>
-<dd><p>a [dplyr::tibble()] with column names in [tidyGWAS_columns()] format.</p></dd>
+<dd><p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code> with column names in <code><a href="tidyGWAS_columns.html">tidyGWAS_columns()</a></code> format.</p></dd>
 
 
 <dt>build</dt>
-<dd><p>Genome build of sumstats. if `'NA'` [infer_build()] will be used
+<dd><p>Genome build of sumstats. if <code>'NA'</code> <code><a href="infer_build.html">infer_build()</a></code> will be used
 to automatically detect build.</p></dd>
 
 
@@ -71,14 +71,17 @@ to automatically detect build.</p></dd>
 
 
 <dt>filter_func</dt>
-<dd><p>used to remove rows which fail validation. see [make_callback()]</p></dd>
+<dd><p>A function that is applied to the tibble before exiting. This is used
+to write to disk any rows that removed.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>a [dplyr::tibble()]</p>
+<p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code></p>
+
+
     </div>
 
     <div class="section level2">
