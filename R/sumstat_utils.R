@@ -49,9 +49,6 @@ flag_invalid_rsid <- function(tbl, regex = "^[rR][sS]?\\d{1,10}$") {
 
 }
 
-flag_multi_allelic <- function(tbl) {
-
-}
 
 split_rsid_by_regex <- function(tbl) {
   stopifnot(all(c("RSID", "rowid") %in% colnames(tbl)))
