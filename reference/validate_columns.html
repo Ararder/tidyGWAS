@@ -65,7 +65,7 @@ flag for the specified column.</p>
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>tbl</dt>
-<dd><p>a tibble in <code><a href="tidyGWAS_columns.html">tidyGWAS_columns()</a></code> format.</p></dd>
+<dd><p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code> as created by <code><a href="parse_tbl.html">parse_tbl()</a></code></p></dd>
 
 
 <dt>col</dt>
@@ -73,15 +73,11 @@ flag for the specified column.</p>
 
 
 <dt>verbose</dt>
-<dd><p>Should details about what is in each filter be reported?</p></dd>
+<dd><p>Explain filters in detail?</p></dd>
 
 
 <dt>convert_p</dt>
-<dd><p>if a pvalue is equal to 0, what value should be it be replaced with?
-By default, the value is the smallest possible double that R can represent. When
-P values are smaller than this, R often reads it in as a character. This can cause
-issues in downstream analysis, and it is therefore recommended to deal with extremely
-small pvalues early on.</p></dd>
+<dd><p>What value should be used for P = 0?</p></dd>
 
 </dl></div>
     <div class="section level2">

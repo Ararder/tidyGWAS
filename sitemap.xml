@@ -25,6 +25,9 @@
     <loc>http://arvidharder.com/tidyGWAS/index.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/detect_indels.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/flag_duplicates.html</loc>
   </url>
   <url>
@@ -40,6 +43,15 @@
     <loc>http://arvidharder.com/tidyGWAS/reference/infer_build.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/parse_tbl.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/remove_duplicates.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/remove_rows_with_na.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/repair_chr_pos.html</loc>
   </url>
   <url>
@@ -47,6 +59,12 @@
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/repair_stats.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/select_correct_columns.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/setup_pipeline_paths.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/test_file.html</loc>
@@ -58,7 +76,16 @@
     <loc>http://arvidharder.com/tidyGWAS/reference/tidyGWAS_columns.html</loc>
   </url>
   <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/update_rsid.html</loc>
+  </url>
+  <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/validate_columns.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/validate_rsid.html</loc>
+  </url>
+  <url>
+    <loc>http://arvidharder.com/tidyGWAS/reference/validate_sumstat.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/reference/validate_with_dbsnp.html</loc>
