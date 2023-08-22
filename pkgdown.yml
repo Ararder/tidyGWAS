@@ -2,10 +2,9 @@ pandoc: 2.19.2
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
-  get-to-know-dbsnp: get-to-know-dbsnp.html
-  tidyGWAS-workflow: tidyGWAS-workflow.html
   tidyGWAS: tidyGWAS.html
-last_built: 2023-08-21T15:18Z
+  transforming_dbsnp_to_parquet: transforming_dbsnp_to_parquet.html
+last_built: 2023-08-22T08:21Z
 urls:
   reference: http://arvidharder.com/tidyGWAS/reference
   article: http://arvidharder.com/tidyGWAS/articles

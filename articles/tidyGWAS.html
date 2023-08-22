@@ -44,8 +44,7 @@
 <li class="nav-item dropdown">
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/get-to-know-dbsnp.html">get-to-know-dbsnp</a>
-    <a class="dropdown-item" href="../articles/tidyGWAS-workflow.html">tidyGWAS-workflow</a>
+    <a class="dropdown-item" href="../articles/transforming_dbsnp_to_parquet.html">get-to-know-dbsnp</a>
   </div>
 </li>
       </ul>
@@ -74,76 +73,327 @@
 
     
     
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://arvidharder.com/tidyGWAS/">tidyGWAS</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Attaching package: 'dplyr'</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:stats':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     filter, lag</span></span>
-<span><span class="co">#&gt; The following objects are masked from 'package:base':</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt;     intersect, setdiff, setequal, union</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="downloaded-reference-files">Downloaded reference files<a class="anchor" aria-label="anchor" href="#downloaded-reference-files"></a>
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>tidyGWAS uses a version of dbSNP transformed into <a href="https://arrow.apache.org/docs/r/" class="external-link">parquet</a> files, which is
-needed to</p>
-<p>perform validation and reparation of CHR, POS and RSID. These files
-can be downloaded here:<br><a href="https://drive.google.com/drive/folders/1ZcwnQtwWC476a5OiAYfSR2qCX6PiqhV3" class="external-link uri">https://drive.google.com/drive/folders/1ZcwnQtwWC476a5OiAYfSR2qCX6PiqhV3</a></p>
+<p>tidyGWAS dependencies should be easily installed on most systems,
+with the arrow dependecy being the most likely to cause trouble. In the
+case that installation of arrow is causing trouble, see <a href="https://arrow.apache.org/docs/r/articles/install.html" class="external-link">here</a>.</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span>
+<span><span class="co"># or</span></span>
+<span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="dbsnp155-reference-file">dbSNP155 reference file<a class="anchor" aria-label="anchor" href="#dbsnp155-reference-file"></a>
+</h4>
+<p>tidyGWAS uses a version dbSNP 155 converted to the <a href="https://arrow.apache.org" class="external-link">Apache Arrow</a> .parquet files. You can
+download the dbSNP155 reference file from inside R using the
+<code>googledrive</code> package, or by manually navigating to this <a href="https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link" class="external-link">file</a></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_deauth</span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="va">file_id</span> <span class="op">&lt;-</span> <span class="fu">googledrive</span><span class="fu">::</span><span class="fu">as_id</span><span class="op">(</span><span class="st">"1hg6jxQUj6UmEdLIH46md7eJcgfVlzmNn"</span><span class="op">)</span></span>
-<span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_download</span><span class="op">(</span><span class="va">file_id</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">DIRPATH</span> = <span class="st">"dbsnp155"</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> dbSNP155.tar <span class="va">$DIRPATH</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># You can download the file from inside R using the googledrive package:</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://googledrive.tidyverse.org" class="external-link">googledrive</a></span><span class="op">)</span></span>
+<span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_deauth</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">id</span> <span class="op">&lt;-</span> <span class="fu">googledrive</span><span class="fu">::</span><span class="fu">as_id</span><span class="op">(</span><span class="st">"1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">##### EDIT THIS:</span></span>
+<span><span class="va">filepath_to_store_dir</span> <span class="op">&lt;-</span> <span class="st">""</span></span>
+<span><span class="co">##### ---------------------</span></span>
+<span></span>
+<span><span class="fu">drive_download</span><span class="op">(</span><span class="va">id</span>, path <span class="op">=</span> <span class="va">filepath_to_store_dir</span><span class="op">)</span></span></code></pre></div>
+<p>The file needs to be untarred</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
+<p>You should provide the full path to the directory
+<code>dbSNP155</code>, which should contain the following folders after
+untarring.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fs.r-lib.org" class="external-link">fs</a></span><span class="op">)</span></span>
+<span><span class="co">#</span></span>
+<span><span class="co"># this is how the untarred folder should look if you ls inside it</span></span>
+<span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_ls.html" class="external-link">dir_ls</a></span><span class="op">(</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"tidyGWAS"</span><span class="op">)</span>, <span class="st">"extdata/dbSNP155"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/home/runner/work/_temp/Library/tidyGWAS/extdata/dbSNP155/GRCh37</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/home/runner/work/_temp/Library/tidyGWAS/extdata/dbSNP155/GRCh38</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/home/runner/work/_temp/Library/tidyGWAS/extdata/dbSNP155/refsnp-merged</span></span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
+<h2 id="getting-started">Getting started<a class="anchor" aria-label="anchor" href="#getting-started"></a>
 </h2>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span>
-<span><span class="co"># or</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span></code></pre></div>
-<p>The GWAS summary statistics file can be provided in-memory as a
-data.frame/tibble or a filepath that can be read with data.table::fread.
-We will use the 100k random rows from the PGC wave 3 schizophrenia <a href="https://pgc.unc.edu/for-researchers/download-results/" class="external-link">GWAS</a> as
-an example file.</p>
-<p>Here, the column names have already been renamed to the correct
-format.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">example_file</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span><span class="op">)</span></span>
-<span><span class="va">example_file</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 100,000 × 12</span></span></span>
-<span><span class="co">#&gt;      CHR       POS RSID     EffectAllele OtherAllele        B     SE   EAF  INFO</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     6  31<span style="text-decoration: underline;">819</span>813 rs18398… C            G           -<span style="color: #BB0000;">0.005</span><span style="color: #BB0000; text-decoration: underline;">70</span> 0.029<span style="text-decoration: underline;">2</span> 0.975 0.936</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>    16  13<span style="text-decoration: underline;">991</span>338 rs80444… T            C           -<span style="color: #BB0000;">0.017</span><span style="color: #BB0000; text-decoration: underline;">7</span>  0.009<span style="text-decoration: underline;">2</span> 0.641 0.951</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     9  85<span style="text-decoration: underline;">016</span>930 rs11140… A            T           -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">30</span> 0.018<span style="text-decoration: underline;">5</span> 0.916 0.701</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>    19  15<span style="text-decoration: underline;">743</span>403 rs48079… C            G            0.002<span style="text-decoration: underline;">40</span> 0.009<span style="text-decoration: underline;">9</span> 0.256 0.996</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>    18   5<span style="text-decoration: underline;">948</span>313 rs948293 T            C            0.001<span style="text-decoration: underline;">70</span> 0.009<span style="text-decoration: underline;">2</span> 0.332 0.971</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>    13  47<span style="text-decoration: underline;">224</span>772 rs837    G            A            0.027<span style="text-decoration: underline;">2</span>  0.008<span style="text-decoration: underline;">6</span> 0.447 1.01 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>    10  23<span style="text-decoration: underline;">782</span>010 rs79100… A            T           -<span style="color: #BB0000;">0.022</span><span style="color: #BB0000; text-decoration: underline;">6</span>  0.009<span style="text-decoration: underline;">1</span> 0.666 0.995</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>    12  14<span style="text-decoration: underline;">061</span>867 rs99718… A            T            0.007<span style="text-decoration: underline;">80</span> 0.009  0.641 0.999</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     7  57<span style="text-decoration: underline;">393</span>801 rs48706… A            G           -<span style="color: #BB0000;">0.008</span><span style="color: #BB0000; text-decoration: underline;">00</span> 0.009<span style="text-decoration: underline;">7</span> 0.703 0.942</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     2 222<span style="text-decoration: underline;">786</span>280 rs824920 T            G            0.002<span style="text-decoration: underline;">10</span> 0.012  0.150 0.996</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 99,990 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: P &lt;dbl&gt;, CaseN &lt;int&gt;, ControlN &lt;int&gt;</span></span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://arvidharder.com/tidyGWAS/">tidyGWAS</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fs.r-lib.org" class="external-link">fs</a></span><span class="op">)</span></span>
+<span><span class="va">example_file</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span></span>
+<span><span class="co"># Change this to fit your own system. Here a very small demo version is used</span></span>
+<span><span class="va">dbsnp_file</span> <span class="op">&lt;-</span>  <span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"tidyGWAS"</span><span class="op">)</span>, <span class="st">"extdata/dbSNP155"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/message.html" class="external-link">suppressMessages</a></span><span class="op">(</span></span>
+<span>  <span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
+<span>  <span class="co"># only tbl (the data.frame), is a mandatory argument.</span></span>
+<span>  tbl <span class="op">=</span> <span class="va">example_file</span>, </span>
+<span>  <span class="co"># However, if the dbsnp_path argument is not passed,</span></span>
+<span>  <span class="co"># no comparisons against dbSNP155 will be done, or any</span></span>
+<span>  <span class="co"># merged RSIDs will be updated</span></span>
+<span>  dbsnp_path <span class="op">=</span> <span class="va">dbsnp_file</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="section level4">
+<h4 id="a-more-typical-functional-call">A more typical functional call<a class="anchor" aria-label="anchor" href="#a-more-typical-functional-call"></a>
+</h4>
+<p>Typically, you will call <code><a href="../reference/tidyGWAS.html">tidyGWAS()</a></code> with a few more
+arguments. By default <code><a href="../reference/tidyGWAS.html">tidyGWAS()</a></code> will use
+<code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">base::tempdir()</a></code> to write to during execution. In addition,
+the cleaned sumstat is also returned by the function. The final output
+will also be saved in this tempdir. Since its a temporary directory, you
+will loose all files if you exit the R Session. This behaviour can be
+adjusteded with the <code>outdir</code> argument.</p>
+<p>Let’s take a look at how a more typical call to tidyGWAS would
+look:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># here is where you would substite your own sumstats, either as a filepath,</span></span>
+<span><span class="co"># or in-memory data.frame</span></span>
+<span></span>
+<span><span class="co"># your own sumstat</span></span>
+<span><span class="va">your_sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span></span>
+<span><span class="co"># a directory where you want your data to be stored after succesful cleaning.</span></span>
+<span><span class="va">gwas_folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
+<span>  tbl <span class="op">=</span> <span class="va">your_sumstats</span>, </span>
+<span>  dbsnp_path <span class="op">=</span> <span class="va">dbsnp_file</span>,</span>
+<span>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
+<span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
+<span>  <span class="co"># by default, the name of the output folder is a concotonated call to Sys.time()</span></span>
+<span>  <span class="co"># but you can adjust this by using the name argument</span></span>
+<span>  name <span class="op">=</span> <span class="st">"my_first_tidyGWAS"</span>,</span>
+<span>  <span class="co"># by default, the saved file is written out as a gzipped csv file,</span></span>
+<span>  <span class="co"># however, the arrow parquet format offers many advantages over the classical csv file</span></span>
+<span>  output_format <span class="op">=</span> <span class="st">"parquet"</span>,</span>
+<span>  <span class="co"># by passing the argument outdir, you can tell tidyGWAS to copy over files</span></span>
+<span>  <span class="co"># after a finished execution to that directory</span></span>
+<span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpaiifT7/my_first_tidyGWAS/my_first_tidyGWAS/tidyGWAS_logfile.txt</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.2.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; Starting at 2023-08-22 08:21:40.253323, with 100000 in input data.frame</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files during execution to <span style="color: #0000BB;">/tmp/RtmpaiifT7/my_first_tidyGWAS/my_first_tidyGWAS</span>,</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> After execution, files will be copied to <span style="color: #0000BB;">/tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Detected 100000 rows in input summary statistics</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── 1) Checking that columns follow tidyGWAS format </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> The following columns are used for further steps: <span style="font-style: italic;">CHR</span>, <span style="font-style: italic;">POS</span>, <span style="font-style: italic;">RSID</span>, <span style="font-style: italic;">EffectAllele</span>, <span style="font-style: italic;">OtherAllele</span>, <span style="font-style: italic;">B</span>, <span style="font-style: italic;">SE</span>, <span style="font-style: italic;">EAF</span>, <span style="font-style: italic;">INFO</span>, <span style="font-style: italic;">P</span>, <span style="font-style: italic;">CaseN</span>, <span style="font-style: italic;">ControlN</span>, and <span style="font-style: italic;">rowid</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">1) Scanning for rows with NA</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows contained missing values</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">2) Updating merged RSIDs</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 175 rows with updated RSID</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; •</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpaiifT7/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/updated_rsid.parquet</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">3) Scanning for rows with duplications</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A unique ID is formed by concontenating CHR, POS, EffectAllele, and OtherAllele</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no duplications</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">4) Scanning for indels</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">5) Scanning for invalid RSID </span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found 307 rows with invalid RSID format. RSID will be repaired using CHR:POS if `dbsnp_files is passed`</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating columns, for main rows</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">All rows passed validation</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating columns, for rows without RSID</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0022, which seems reasonable</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">All rows passed validation</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating CHR/POS/RSID dbSNP for main rows</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Remove rows where REF/ALT in dbSNP is not compatible with EffectAllele /</span></span>
+<span><span class="co">#&gt; OtherAllele</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Remove rows where RSID/CHR:POS does not match a entry in dbSNP v.155</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Checking that CHR:POS and RSID match. RSID will be updated accordingly to</span></span>
+<span><span class="co">#&gt; dbSNP</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by checking 10000 snps matches against GRCh37 and GRCh38</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; 3448 snps matched GRCh38, 9999 for GRCh37, inferring build to be 37</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows had incompatible CHR:POS and RSID data. These have been updated</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Checking for incompatible alleles</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Listing how many rows are removed per flag: </span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   no_dbsnp_entry: 11</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Removed a total of 11 rows:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpaiifT7/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/removed_rows_main_incompat_alleles_or_not_in_dbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold;">Validating CHR/POS/RSID using dbSNP for rows without RSID</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Remove rows where REF/ALT in dbSNP is not compatible with EffectAllele /</span></span>
+<span><span class="co">#&gt; OtherAllele</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Remove rows where RSID/CHR:POS does not match a entry in dbSNP v.155</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; • Repairing RSID</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by checking 10000 snps matches against GRCh37 and GRCh38</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; 101 snps matched GRCh38, 306 for GRCh37, inferring build to be 37</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── <span style="font-weight: bold; font-style: italic;">All rows passed validation</span> ──</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Z missing: Calculating Z using the formula:  Z = B / SE</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Finished repair_stats:  </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Added 1 new columns: Z</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   main_incompat_alleles_or_not_in_dbsnp: 11</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Finished tidyGWAS</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows were removed</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 9.4s</span></span></code></pre></div>
+<p>Now we have saved our output in <code>gwas_folder</code> . By using
+the <code>name</code> and <code>outdir</code> argument, tidyGWAS has
+saved all the output in our outdir, in a directory named
+“my_first_tidyGWAS”.</p>
+<p>Inside this folder we have several files that can be used to
+understand what tidyGWAS has done.</p>
+<p>tidyGWAS_logfile.txt contains the messages you see printed above.</p>
+<p>in /pipeline_info/ we can find files containing the rowid of all rows
+that were removed.</p>
+<p>In /raw_sumstats.parquet, we can find the raw sumstats, as we passed
+it to <code><a href="../reference/tidyGWAS.html">tidyGWAS()</a></code>.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_ls.html" class="external-link">dir_ls</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recurse <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS</span></span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/cleaned_GRCh38.parquet</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info</span></span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info/removed_rows_main_col_validation.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info/removed_rows_main_incompat_alleles_or_not_in_dbsnp.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info/removed_rows_without_rsid_col_validation.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info/removed_rows_without_rsid_incompat_alleles_or_not_in_dbsnp.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/pipeline_info/updated_rsid.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/raw_sumstats.parquet</span></span>
+<span><span class="co">#&gt; /tmp/RtmpaiifT7/file16dc60e3d11c/my_first_tidyGWAS/tidyGWAS_logfile.txt</span></span></code></pre></div>
+</div>
 <div class="section level3">
 <h3 id="creating-the-correct-column-names">Creating the correct column names<a class="anchor" aria-label="anchor" href="#creating-the-correct-column-names"></a>
 </h3>
-<p>If our input file had column names that were not in the correct
-format, you can use <code><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns()</a></code>` to first rename
-columns to the correct format. This can also be useful because
-<code><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns()</a></code> will drop any columns not matching the
-correct format, so you can quickly identify any mislabelled columns</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<p>tidyGWAS does not automatically detect column names, but expect the
+<code><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">dplyr::tibble()</a></code> to contain the correct column names.
+<code>tidyGWAS_columns</code> is a helper function created to match
+column name to the tidyGWAS format.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># what if we have a file where POS was named bp, and B was named BETA?</span></span>
 <span><span class="co"># tidyGWAS will not recognize these as valid column names and would drop them.</span></span>
-<span><span class="va">wrong_colnames</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span><span class="va">example_file</span>, bp <span class="op">=</span> <span class="va">POS</span>, BETA <span class="op">=</span> <span class="va">B</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># we can use tidyGWAS_columns to specify current names:</span></span>
+<span><span class="va">wrong_colnames</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span><span class="va">example_file</span>, bp <span class="op">=</span> <span class="va">POS</span>, BETA <span class="op">=</span> <span class="va">B</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">wrong_colnames</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   CHR       bp        RSID EffectAllele OtherAllele         BETA     SE</span></span>
+<span><span class="co">#&gt; 1   6 31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
+<span><span class="co">#&gt; 2  16 13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
+<span><span class="co">#&gt; 3   9 85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
+<span><span class="co">#&gt; 4  19 15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
+<span><span class="co">#&gt; 5  18  5948313    rs948293            T           C  0.001698557 0.0092</span></span>
+<span><span class="co">#&gt; 6  13 47224772       rs837            G           A  0.027196792 0.0086</span></span>
+<span><span class="co">#&gt;         EAF  INFO        P CaseN ControlN</span></span>
+<span><span class="co">#&gt; 1 0.9754088 0.936 0.844400 51235    74087</span></span>
+<span><span class="co">#&gt; 2 0.6407741 0.951 0.053150 53386    77258</span></span>
+<span><span class="co">#&gt; 3 0.9160000 0.701 0.899700 53386    77258</span></span>
+<span><span class="co">#&gt; 4 0.2556345 0.996 0.807400 53386    77258</span></span>
+<span><span class="co">#&gt; 5 0.3318173 0.971 0.857800 53386    77258</span></span>
+<span><span class="co">#&gt; 6 0.4470432 1.010 0.001594 53386    77258</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># we can use tidyGWAS_columns to specify current names:</span></span>
 <span><span class="va">correct_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns</a></span><span class="op">(</span></span>
 <span>  <span class="co"># first argument is the data.frame</span></span>
 <span>  tbl <span class="op">=</span> <span class="va">wrong_colnames</span>, </span>
@@ -151,68 +401,93 @@ correct format, so you can quickly identify any mislabelled columns</p>
 <span>  POS <span class="op">=</span> <span class="st">"bp"</span>,</span>
 <span>  B <span class="op">=</span> <span class="st">"BETA"</span></span>
 <span>  <span class="op">)</span></span>
-<span></span>
-<span><span class="va">correct_names</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 100,000 × 12</span></span></span>
-<span><span class="co">#&gt;      CHR       POS RSID   EffectAllele OtherAllele        B     SE       P   EAF</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     6  31<span style="text-decoration: underline;">819</span>813 rs183… C            G           -<span style="color: #BB0000;">0.005</span><span style="color: #BB0000; text-decoration: underline;">70</span> 0.029<span style="text-decoration: underline;">2</span> 0.844   0.975</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>    16  13<span style="text-decoration: underline;">991</span>338 rs804… T            C           -<span style="color: #BB0000;">0.017</span><span style="color: #BB0000; text-decoration: underline;">7</span>  0.009<span style="text-decoration: underline;">2</span> 0.053<span style="text-decoration: underline;">2</span>  0.641</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     9  85<span style="text-decoration: underline;">016</span>930 rs111… A            T           -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">30</span> 0.018<span style="text-decoration: underline;">5</span> 0.900   0.916</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>    19  15<span style="text-decoration: underline;">743</span>403 rs480… C            G            0.002<span style="text-decoration: underline;">40</span> 0.009<span style="text-decoration: underline;">9</span> 0.807   0.256</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>    18   5<span style="text-decoration: underline;">948</span>313 rs948… T            C            0.001<span style="text-decoration: underline;">70</span> 0.009<span style="text-decoration: underline;">2</span> 0.858   0.332</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>    13  47<span style="text-decoration: underline;">224</span>772 rs837  G            A            0.027<span style="text-decoration: underline;">2</span>  0.008<span style="text-decoration: underline;">6</span> 0.001<span style="text-decoration: underline;">59</span> 0.447</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>    10  23<span style="text-decoration: underline;">782</span>010 rs791… A            T           -<span style="color: #BB0000;">0.022</span><span style="color: #BB0000; text-decoration: underline;">6</span>  0.009<span style="text-decoration: underline;">1</span> 0.013<span style="text-decoration: underline;">3</span>  0.666</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>    12  14<span style="text-decoration: underline;">061</span>867 rs997… A            T            0.007<span style="text-decoration: underline;">80</span> 0.009  0.384   0.641</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     7  57<span style="text-decoration: underline;">393</span>801 rs487… A            G           -<span style="color: #BB0000;">0.008</span><span style="color: #BB0000; text-decoration: underline;">00</span> 0.009<span style="text-decoration: underline;">7</span> 0.413   0.703</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     2 222<span style="text-decoration: underline;">786</span>280 rs824… T            G            0.002<span style="text-decoration: underline;">10</span> 0.012  0.860   0.150</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 99,990 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: CaseN &lt;int&gt;, ControlN &lt;int&gt;, INFO &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">correct_names</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   CHR      POS        RSID EffectAllele OtherAllele            B     SE</span></span>
+<span><span class="co">#&gt; 1   6 31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
+<span><span class="co">#&gt; 2  16 13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
+<span><span class="co">#&gt; 3   9 85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
+<span><span class="co">#&gt; 4  19 15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
+<span><span class="co">#&gt; 5  18  5948313    rs948293            T           C  0.001698557 0.0092</span></span>
+<span><span class="co">#&gt; 6  13 47224772       rs837            G           A  0.027196792 0.0086</span></span>
+<span><span class="co">#&gt;          P       EAF CaseN ControlN  INFO</span></span>
+<span><span class="co">#&gt; 1 0.844400 0.9754088 51235    74087 0.936</span></span>
+<span><span class="co">#&gt; 2 0.053150 0.6407741 53386    77258 0.951</span></span>
+<span><span class="co">#&gt; 3 0.899700 0.9160000 53386    77258 0.701</span></span>
+<span><span class="co">#&gt; 4 0.807400 0.2556345 53386    77258 0.996</span></span>
+<span><span class="co">#&gt; 5 0.857800 0.3318173 53386    77258 0.971</span></span>
+<span><span class="co">#&gt; 6 0.001594 0.4470432 53386    77258 1.010</span></span></code></pre></div>
 </div>
-</div>
-<div class="section level2">
-<h2 id="running-tidygwas">Running tidyGWAS<a class="anchor" aria-label="anchor" href="#running-tidygwas"></a>
-</h2>
-<p>tidyGWAS requires one mandatory argument: <code>tbl</code> , which is
-either a data.frame, or filepath</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># input the filepath where you untarred the downloaded reference files</span></span>
-<span><span class="va">path_to_dbsnp</span> <span class="op">=</span> <span class="st">""</span></span>
-<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">correct_names</span>, dbsnp_path <span class="op">=</span> <span class="va">path_to_dbsnp</span><span class="op">)</span></span></code></pre></div>
-<p>You can run tidyGWAS without dbSNP filtering. This will substantially
-quicker. By default, all outputted files are stored in a
-<code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>. You can add
-<code>outdir = "filepath/to_dir/"</code> to automatically copy over
-files after finished execution.</p>
-<p>tidyGWAS cannot find all rows that were removed. This is because it
-removed some rows where RSID was coded as CHR:POS:REF:ALT. Normally,
-RSID would be repaired using dbSNP, but since we passed
-<code>use_dbnp = FALSE</code>, these rows are instead dropped.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">my_outdir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"all_my_gwas_sumstats"</span>, sep <span class="op">=</span> <span class="st">"/"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># We can also add logfile = TRUE to save output to a logfile</span></span>
-<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span><span class="va">correct_names</span>, outdir <span class="op">=</span> <span class="va">my_outdir</span>, logfile <span class="op">=</span> <span class="cn">TRUE</span>, dbsnp_path <span class="op">=</span> <span class="va">path_to_dbsnp</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
 </h2>
 <p>Memory use and time scales with the size of the summary statistics.
-From running tidyGWAS extensively, here’s an estimation of time and
-memory:</p>
+From running tidyGWAS experimentally, here’s an estimation of time and
+memory.</p>
+<div class="section level5">
+<h5 id="cpu-usage">CPU usage<a class="anchor" aria-label="anchor" href="#cpu-usage"></a>
+</h5>
+<p>CPU usage depends heavily on underlying architecture.</p>
 <ol style="list-style-type: decimal">
-<li>1 - 10 mil rows: &lt;16gb memory, ~20 min</li>
+<li>Macbook Pro M2: 8 million rows, ~4.42 minutes, &lt; 16GB memory
+used</li>
+<li>AMD EPYC 75F3 32-Core Processor; ~ 6 minutes &lt; 16GB memory
+used</li>
+<li>Intel blabla</li>
+</ol>
+</div>
+<div class="section level4">
+<h4 id="memory-usage-and-number-of-rows">Memory usage and number of rows<a class="anchor" aria-label="anchor" href="#memory-usage-and-number-of-rows"></a>
+</h4>
+<p>The memory usage will likely be the main constraint with increasing
+size of summary statistics.</p>
+<ol style="list-style-type: decimal">
+<li>20 million rows &lt; 20gb</li>
+<li>40 million rows &lt; 40gb</li>
+<li>60 million rows &lt; 75gb</li>
+</ol>
+</div>
+<div class="section level4">
+<h4 id="a-note-on-multiple-cores">A note on multiple cores<a class="anchor" aria-label="anchor" href="#a-note-on-multiple-cores"></a>
+</h4>
+<p>The main computational cost is reading in and transforming the dbSNP
+155 reference data. This is handled by the Apache Arrow C++
+implementation, which automatically detects the number of cores
+available.</p>
+</div>
+<div class="section level3">
+<h3 id="reading-in-files-from-disk">Reading in files from disk<a class="anchor" aria-label="anchor" href="#reading-in-files-from-disk"></a>
+</h3>
+<p>Behind the scenes, tidyGWAS uses
+<code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_delim_arrow()</a></code> to read in the file using the
+filepath provided.</p>
+<p>Through …, you can pass specific arguments if your file requires
+adjustments to read in propery, such as <code>delim = "\t"</code>. You
+can read more about this <a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">here</a>.
+In general, if your GWAS is in a file format that tidyGWAS struggles to
+read in properly, it is often more easy to first read in the file using
+<code><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">data.table::fread()</a></code> or <code>readr::read_tsv</code>, or any
+package that focus specifically on reading in files, and then passing
+the data.frame to tidyGWAS in-memory</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">file</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="st">"/file/that/is/challenging_to_read.vcf.gz"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
+<span>  tbl <span class="op">=</span> <span class="va">file</span>,</span>
+<span>  dbsnp_path <span class="op">=</span> <span class="va">dbsnp_files</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<ol style="list-style-type: decimal">
+<li>
 <li>
 </ol>
-<p>tidyGWAS exposes several smaller functions that can help when
-interactively working with sumstats.</p>
+</div>
 <div class="section level3">
 <h3 id="getting-b-and-se-from-z-n-and-eaf">Getting B and SE from Z, N and EAF<a class="anchor" aria-label="anchor" href="#getting-b-and-se-from-z-n-and-eaf"></a>
 </h3>
 <p><code><a href="../reference/repair_stats.html">repair_stats()</a></code> can be used to add any missing statistics
 column, such as P, Z, B or SE, depending on which columns exist. Note
 that there some</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">example_file</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span><span class="va">test_file</span><span class="op">)</span></span>
 <span><span class="co"># Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)</span></span>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span><span class="va">example_file</span>, Z <span class="op">=</span> <span class="va">B</span><span class="op">/</span><span class="va">SE</span>, N <span class="op">=</span> <span class="va">CaseN</span> <span class="op">+</span> <span class="va">ControlN</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -234,7 +509,7 @@ that there some</p>
 <span></span>
 <span></span>
 <span><span class="co"># Getting Z, if you only have B and P</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tmp</span> <span class="op">&lt;-</span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">example_file</span>,  <span class="op">-</span><span class="va">SE</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu"><a href="../reference/repair_stats.html">repair_stats</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Found B and P but not Z. Imputing Z using:</span></span>
@@ -247,14 +522,14 @@ that there some</p>
 <h3 id="identifying-incorrect-rsids">Identifying incorrect RSIDs<a class="anchor" aria-label="anchor" href="#identifying-incorrect-rsids"></a>
 </h3>
 <p>uses a regex to identify any non RrSs rows.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/flag_invalid_rsid.html">flag_invalid_rsid</a></span><span class="op">(</span><span class="va">example_file</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">invalid_rsid</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="a-fast-function-for-finding-all-entries-in-a-duplication">A fast function for finding all entries in a duplication<a class="anchor" aria-label="anchor" href="#a-fast-function-for-finding-all-entries-in-a-duplication"></a>
+<h3 id="a-fast-function-for-finding-all-rows-in-a-duplication-set">A fast function for finding all rows in a duplication set<a class="anchor" aria-label="anchor" href="#a-fast-function-for-finding-all-rows-in-a-duplication-set"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/flag_duplicates.html">flag_duplicates</a></span><span class="op">(</span><span class="va">example_file</span>, column <span class="op">=</span> <span class="st">"rsid"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 100,000 × 13</span></span></span>
 <span><span class="co">#&gt;      CHR       POS RSID     EffectAllele OtherAllele        B     SE   EAF  INFO</span></span>

@@ -10,16 +10,13 @@
     <loc>http://arvidharder.com/tidyGWAS/LICENSE.html</loc>
   </url>
   <url>
-    <loc>http://arvidharder.com/tidyGWAS/articles/get-to-know-dbsnp.html</loc>
-  </url>
-  <url>
     <loc>http://arvidharder.com/tidyGWAS/articles/index.html</loc>
   </url>
   <url>
-    <loc>http://arvidharder.com/tidyGWAS/articles/tidyGWAS-workflow.html</loc>
+    <loc>http://arvidharder.com/tidyGWAS/articles/tidyGWAS.html</loc>
   </url>
   <url>
-    <loc>http://arvidharder.com/tidyGWAS/articles/tidyGWAS.html</loc>
+    <loc>http://arvidharder.com/tidyGWAS/articles/transforming_dbsnp_to_parquet.html</loc>
   </url>
   <url>
     <loc>http://arvidharder.com/tidyGWAS/authors.html</loc>
