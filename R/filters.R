@@ -96,25 +96,65 @@ remove_duplicates <- function(tbl, filepaths) {
 
 update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
-  rsid_info <- update_merged_rsid(tbl, paste(dbsnp_path, "refsnp-merged", sep = "/"))
+
+  # detect merged rsIDs -----------------------------------------------------
+
+  dset <- arrow::open_dataset(paste(dbsnp_path, "refsnp-merged", sep = "/"))
+  updates <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID"))) |>
+    dplyr::semi_join(dset, y = _,  by = c("old_RSID" = "RSID")) |>
+    dplyr::collect()
+
+  rsid_info <-
+    dplyr::left_join(tbl, updates, by = c("RSID" = "old_RSID")) |>
+    dplyr::mutate(
+      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
+      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
+    ) |>
+    dplyr::select(rowid, RSID = new_RSID, old_RSID, -RSID.y)
+
+  # add updated rsid to tbl
   tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
     dplyr::select(-old_RSID)
 
+  # identify rows with updated rsid
   updated_rows <- sum(!is.na(rsid_info$old_RSID))
 
   if(updated_rows > 0) {
+
     cli::cli_alert_success("{updated_rows} rows with updated RSID")
     cli::cli_li("{.file {filepaths$updated_rsid}}")
     arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
 
   } else {
+
     cli::cli_li("Found no RSIDs that has been merged")
+
   }
 
-
-
-
   tbl
+
+}
+
+update_merged_rsid <- function(tbl, rs_merge_arch_filepath) {
+
+
+  dset <- arrow::open_dataset(rs_merge_arch_filepath)
+  df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
+
+  updates <- dplyr::semi_join(dset, df,  by = c("old_RSID" = "RSID")) |>
+    dplyr::collect()
+
+  out <- dplyr::left_join(df, updates, by = c("RSID" = "old_RSID")) |>
+    dplyr::mutate(
+      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
+      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
+    ) |>
+    dplyr::select(rowid, RSID = new_RSID, old_RSID)
+
+
+  out
+
+
 }
 
 

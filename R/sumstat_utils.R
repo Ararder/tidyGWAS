@@ -187,30 +187,6 @@ repair_stats <- function(tbl, verbose = FALSE) {
 
 }
 
-update_merged_rsid <- function(tbl, rs_merge_arch_filepath) {
-
-
-  dset <- arrow::open_dataset(rs_merge_arch_filepath)
-
-  df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
-
-  updates <- dplyr::semi_join(dset, df,  by = c("old_RSID" = "RSID")) |>
-    dplyr::collect()
-
-  out <- dplyr::left_join(df, updates, by = c("RSID" = "old_RSID")) |>
-    dplyr::mutate(
-      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
-      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
-      ) |>
-    dplyr::select(rowid, RSID = new_RSID, old_RSID)
-
-
-  out
-
-
-}
-
-
 
 
 

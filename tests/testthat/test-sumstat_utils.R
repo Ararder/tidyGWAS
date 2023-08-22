@@ -33,7 +33,7 @@ test_that("flag_incorrect_rsid_format detects incorrect formats", {
 })
 
 test_that("repair_stats works can impute Z using B and P", {
-  load(test_path("data/sumstats/test_sumstat.rds"))
+
   tmp <- dplyr::select(test_sumstat, -SE) |>
     dplyr::mutate(N = CaseN + ControlN)
   expect_no_error(repair_stats(tmp))

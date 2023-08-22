@@ -48,12 +48,14 @@ test_that("infer_build runs", {
   expect_no_error(infer_build(test_sumstat, dbsnp_path = dbsnp_files))
 })
 
-test_that("flatten_dbsnp runs", {
-  expect_no_error(flatten_dbsnp(b38))
-})
+
 
 
 test_that("check_incompat_alleles runs", {
+  b38 <- arrow::open_dataset(paste(dbsnp_path, "GRCh38", sep = "/")) |>
+    dplyr::collect() |>
+    dplyr::rename(ref_allele = REF, alt_alleles = ALT) |>
+    dplyr::mutate(RSID = stringr::str_c("rs", RSID))
  tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
 
  expect_no_error(check_incompat_alleles(tmp, flatten_dbsnp(b38)))
