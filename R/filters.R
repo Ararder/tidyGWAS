@@ -1,3 +1,13 @@
+#' Remove all columns that do not follow tidyGWAS naming
+#'
+#' @inheritParams tidyGWAS
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @return a [dplyr::tibble()], with only columns following [tidyGWAS_columns()] naming kept
+#' @export
+#'
+#' @examples \dontrun{
+#' sumstats <- select_correct_columns(sumstats)
+#' }
 select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 
   # check input columns
@@ -38,6 +48,17 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 }
 
 
+#' Remove rows with missing values, and write out the remowed files to disk
+#'
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @param filepaths a list of filepaths, created by [setup_pipeline_paths()]
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' df <- remove_rows_with_na(sumstat, setup_pipeline_paths("testing"))
+#' }
 remove_rows_with_na <- function(tbl, filepaths) {
 
 
@@ -58,6 +79,23 @@ remove_rows_with_na <- function(tbl, filepaths) {
 
 }
 
+#' Remove duplicated rows
+#' @description
+#' remove_duplicates uses either CHR:POS:EffectAllele:OtherAllele
+#' or RSID:EffectAllele:OtherAllele to compute uniqueness.
+#'
+#' If possible rows are arranged by p-value, to select the row with the smallest P.
+#'
+#'
+#' @inheritParams remove_rows_with_na
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' paths <- setup_pipeline_paths("testing")
+#' df <- remove_duplicates(sumstat, paths)
+#' }
 remove_duplicates <- function(tbl, filepaths) {
 
 
@@ -94,6 +132,17 @@ remove_duplicates <- function(tbl, filepaths) {
   no_dups
 }
 
+#' Update rsIDs from dbSNP that have been merged into other RSIDs
+#'
+#' @inheritParams remove_rows_with_na
+#' @param dbsnp_path filepath to dbSNP155 directory
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' update_rsid(sumstat, filepaths = setup_pipeline_paths("testing"), dbsnp_path = "~/dbSNP155")
+#' }
 update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
 
@@ -135,30 +184,24 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
 }
 
-update_merged_rsid <- function(tbl, rs_merge_arch_filepath) {
-
-
-  dset <- arrow::open_dataset(rs_merge_arch_filepath)
-  df <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID")))
-
-  updates <- dplyr::semi_join(dset, df,  by = c("old_RSID" = "RSID")) |>
-    dplyr::collect()
-
-  out <- dplyr::left_join(df, updates, by = c("RSID" = "old_RSID")) |>
-    dplyr::mutate(
-      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
-      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
-    ) |>
-    dplyr::select(rowid, RSID = new_RSID, old_RSID)
-
-
-  out
-
-
-}
 
 
 
+#' Detect Insertions/Deletions ('indels')
+#' @description
+#' Indels are detected by examining `EffectAllele` and `OtherAllele`
+#'
+#'
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @inheritParams tidyGWAS
+#' @inheritParams remove_rows_with_na
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' detect_indels(sumstat, TRUE, filepaths = setup_pipeline_paths("testing"))
+#' }
 detect_indels <- function(tbl, keep_indels, filepaths) {
 
   cli::cli_ol(c(

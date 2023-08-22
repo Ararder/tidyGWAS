@@ -8,3 +8,5 @@
 .inst/extdata
 inst/doc
 docs
+/doc/
+/Meta/

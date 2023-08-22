@@ -10,6 +10,10 @@ stats_cols <- c("B", "Z", "OR", "P", "SE", info_cols)
 valid_column_names <- c(snp_cols, stats_cols, info_cols)
 
 
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+
 
 
 #' Execute validation and quality control of GWAS summmary statistics
@@ -50,7 +54,9 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param convert_p What value should be used for P = 0?
 #' @param name name of the output directory
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
-#' @param study_n Use to set N in tbl
+#' @param study_n Sometimes N is missing from GWAS summary statistics. It is then
+#' often much more useful to set a study-wide N for all rows, instead of leaving
+#' the N column missing. study_n can be used to set the N column.
 #' @param keep_indels Should indels be kept?
 #' @param repair_cols Should any missing columns be repaired?
 #' @param logfile Should messages be redirected to a logfile?
@@ -207,6 +213,27 @@ tidyGWAS <- function(
   }
 
 
+
+
+
+# -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+
+
+
+#' Parse the input data.frame or filepath to tidyGWAS
+#' @inheritParams tidyGWAS
+#' @param ... optional arguments passed to [arrow::read_delim_arrow()]
+#'
+#' @return a [dplyr::tibble()]
+#' @export
+#'
+#' @examples \dontrun{
+#' # read in file from disk, using tab delimiter and skipping first 100 rows
+#' df <- parse_tbl("path/to_sumstats", delim = "\t", skip = 100)
+#' df <- parse_tbl(tibble(RSID = "rs1001", B = 0.01, P = 0.005, SE = 0.001, N = 100))
+#' }
 parse_tbl <- function(tbl, ...) {
 
   rlang::check_required(tbl)
@@ -234,6 +261,8 @@ parse_tbl <- function(tbl, ...) {
 
 
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
 
 
 
@@ -293,11 +322,11 @@ validate_with_dbsnp <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, fi
 
 
 
-
-
-
-
 # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+
+
+
 
 identify_removed_rows <- function(finished, filepaths) {
   start <- arrow::read_parquet(paste0(filepaths$base , "/raw_sumstats.parquet"), select = "rowid")
@@ -338,9 +367,21 @@ identify_removed_rows <- function(finished, filepaths) {
 }
 
 
+
+# -------------------------------------------------------------------------
 # -------------------------------------------------------------------------
 
 
+
+#' Create the folder structure for tidyGWAS
+#'
+#' @inheritParams tidyGWAS
+#'
+#' @return a list of filepaths
+#' @export
+#'
+#' @examples
+#' setup_pipeline_paths("tidyGWAS_first")
 setup_pipeline_paths <- function(name) {
 
   # define workdir

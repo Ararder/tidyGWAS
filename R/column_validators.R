@@ -3,6 +3,21 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 
 # -------------------------------------------------------------------------
 
+#' Validate statistics columns in a GWAS summary statistics file
+#'
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @param remove_cols Columns that should not be validated
+#' @param filter_func handles reporting and writing removed files to disk
+#' @inheritParams tidyGWAS
+#' @param id Used to customize messages.
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' validate_sumstat(sumstat, remove_cols = "EffectAllele", convert_p = 0)
+#' }
+#'
 validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FALSE, convert_p, id) {
   if(is.null(tbl)) return(NULL)
   if(!missing(id)) cli::cli_h2("Validating columns, for {id}")
@@ -29,6 +44,18 @@ validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FA
 }
 
 
+#' Validate format of the RSID column in a GWAS summary statistics file
+#'
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @inheritParams tidyGWAS
+#' @param outpath Filepath: Where to write rows with invalid RSID?
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' validate_rsid(sumstat, "~/invalid_rsid.parquet")
+#' }
 validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 
   if(verbose) start_message("RSID")
@@ -122,15 +149,9 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 #'
 #'
 #'
-#' @param tbl a tibble in [tidyGWAS_columns()] format.
+#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
 #' @param col Which column to check values in?
-#' @param verbose Should details about what is in each filter be reported?
-#' @param convert_p if a pvalue is equal to 0, what value should be it be replaced with?
-#' By default, the value is the smallest possible double that R can represent. When
-#' P values are smaller than this, R often reads it in as a character. This can cause
-#' issues in downstream analysis, and it is therefore recommended to deal with extremely
-#' small pvalues early on.
-#'
+#' @inheritParams tidyGWAS
 #'
 #'
 #' @return a [dplyr::tibble()], with a column added named as invalid_{col}.
@@ -152,7 +173,7 @@ validate_columns <- function(
     tbl,
     col = c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele"),
     verbose = TRUE,
-    convert_p=2.225074e-308
+    convert_p = 2.225074e-308
     ) {
   col = rlang::arg_match(col)
   if(verbose) start_message(col)

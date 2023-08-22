@@ -163,11 +163,14 @@ Memory use and time scales with the size of the summary statistics. From running
 
 #### CPU usage
 
-CPU usage depends heavily on underlying architecture.
+CPU usage depends heavily on underlying architecture, and CPU.
 
 1.  Macbook Pro M2: 8 million rows, \~4.42 minutes, \< 16GB memory used
 2.  AMD EPYC 75F3 32-Core Processor; \~ 6 minutes \< 16GB memory used
-3.  Intel blabla
+
+For 60 million rows:
+
+1.  AMD EPYC 75F3 32-Core Processor; \~ 34 minutes \< 75gb using 5 cores
 
 ### Memory usage and number of rows
 
@@ -181,13 +184,13 @@ The memory usage will likely be the main constraint with increasing size of summ
 
 The main computational cost is reading in and transforming the dbSNP 155 reference data. This is handled by the Apache Arrow C++ implementation, which automatically detects the number of cores available.
 
-## Reading in files from disk
+# Reading in files from disk
 
 Behind the scenes, tidyGWAS uses `arrow::read_delim_arrow()` to read in the file using the filepath provided.
 
 Through ..., you can pass specific arguments if your file requires adjustments to read in propery, such as `delim = "\t"`. You can read more about this [here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html). In general, if your GWAS is in a file format that tidyGWAS struggles to read in properly, it is often more easy to first read in the file using `data.table::fread()` or `readr::read_tsv`, or any package that focus specifically on reading in files, and then passing the data.frame to tidyGWAS in-memory
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 
 file <- data.table::fread("/file/that/is/challenging_to_read.vcf.gz")
 tidyGWAS(
@@ -197,15 +200,13 @@ tidyGWAS(
 
 ```
 
-1.  
+# Other functions
 
-2.  
-
-## Getting B and SE from Z, N and EAF
+### Getting B and SE from Z, N and EAF
 
 `repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. Note that there some
 
-```{r}
+```{r, eval = FALSE}
 example_file <- dplyr::tibble(test_file)
 # Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)
 tmp <- dplyr::mutate(example_file, Z = B/SE, N = CaseN + ControlN) |> 
@@ -222,12 +223,12 @@ dplyr::inner_join(example_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y)
 
 ```
 
-```{r}
+```{r, eval = FALSE}
 tmp <-  dplyr::select(example_file,  -SE) |> 
   repair_stats()
 ```
 
-## Identifying incorrect RSIDs
+### Identifying incorrect RSIDs
 
 uses a regex to identify any non RrSs rows.
 
@@ -237,9 +238,9 @@ flag_invalid_rsid(example_file) |>
 
 ```
 
-## A fast function for finding all rows in a duplication set
+### A fast function for finding all rows in a duplication set
 
-```{r}
+```{r, eval = FALSE}
 flag_duplicates(example_file, column = "rsid")
 # or 
 flag_duplicates(example_file, column = "chr_pos")

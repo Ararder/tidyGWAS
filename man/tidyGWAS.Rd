@@ -41,7 +41,9 @@ possible arguments are \code{study_n} to set N, and \code{build} to set genome b
 
 \item{outdir}{Where should results be saved after a succesful execution?}
 
-\item{study_n}{Use to set N in tbl}
+\item{study_n}{Sometimes N is missing from GWAS summary statistics. It is then
+often much more useful to set a study-wide N for all rows, instead of leaving
+the N column missing. study_n can be used to set the N column.}
 
 \item{convert_p}{What value should be used for P = 0?}
 

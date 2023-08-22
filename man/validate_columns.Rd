@@ -12,17 +12,13 @@ validate_columns(
 )
 }
 \arguments{
-\item{tbl}{a tibble in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
 
 \item{col}{Which column to check values in?}
 
-\item{verbose}{Should details about what is in each filter be reported?}
+\item{verbose}{Explain filters in detail?}
 
-\item{convert_p}{if a pvalue is equal to 0, what value should be it be replaced with?
-By default, the value is the smallest possible double that R can represent. When
-P values are smaller than this, R often reads it in as a character. This can cause
-issues in downstream analysis, and it is therefore recommended to deal with extremely
-small pvalues early on.}
+\item{convert_p}{What value should be used for P = 0?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with a column added named as invalid_{col}.
