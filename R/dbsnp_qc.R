@@ -81,7 +81,6 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
 
   # add flag that EffectAllele/OtherAllele is incompatible with REF/ALT in dbSNP
-  cli::cli_li("Checking for incompatible alleles")
   flags <- check_incompat_alleles(updated, dbsnp_df = dbsnp_ref) |>
     dplyr::select(dplyr::all_of(c("rowid", "incompat_alleles")))
 

@@ -88,6 +88,7 @@ tidyGWAS <- function(
 
 
   # parse arguments ---------------------------------------------------------
+
   tbl <- parse_tbl(tbl, ...)
 
   output_format <- rlang::arg_match(output_format)
@@ -114,10 +115,9 @@ tidyGWAS <- function(
   # welcome message ----------------------------------------------------------
 
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
-  cli::cli_inform("Starting at {start_time}, with {rows_start} in input data.frame")
+  cli::cli_inform("Starting at {start_time}, with {rows_start} rows in input data.frame")
   cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
   cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
-  cli::cli_alert_info("Detected {rows_start} rows in input summary statistics")
 
 
   tbl <- select_correct_columns(tbl, study_n)
@@ -134,16 +134,18 @@ tidyGWAS <- function(
   # setup list
   data_list <-  list("main" = NULL, "indels" = NULL, "without_rsid" = NULL)
   cli::cli_h2("4) Scanning for indels")
-  tmp <- detect_indels(tbl, keep_indels)
-  data_list$main <- tmp$main
-  if(!is.null(tmp$indels)) data_list$indels <- tmp$indels
+  tbl <- detect_indels(tbl, keep_indels)
+  data_list$main <- tbl$main
+  if(!is.null(tbl$indels)) data_list$indels <- tbl$indels
+  tbl <- NULL
 
 
+  if("RSID" %in% colnames(data_list$main)) {
 
-  if("RSID" %in% colnames(tbl)) {
     cli::cli_h2("5) Scanning for invalid RSID ")
     unpack <- validate_rsid(data_list$main, outpath = paste(filepaths$removed_rows, "invalid_chr_pos_rsid.parquet"))
     data_list$main <- unpack$main
+
     if(!is.null(unpack$without_rsid)) data_list$without_rsid <- unpack$without_rsid
   }
 
@@ -155,7 +157,6 @@ tidyGWAS <- function(
 
   data_list <- list(tbl = data_list, remove_cols = cols_to_not_validate, filter_func = filter_funcs, verbose = list(verbose), convert_p = list(convert_p), id = id) |>
     purrr::pmap(validate_sumstat)
-
 
 
   # fix CHR/POS/RSID --------------------------------------------------------
@@ -172,7 +173,9 @@ tidyGWAS <- function(
       cli::cli_h2("Validating CHR/POS/RSID using dbSNP for rows without RSID")
       data_list$without_rsid <- validate_with_dbsnp(data_list$without_rsid, build = build, dbsnp_path, filter_func = filter_funcs[[2]])
 
+
       main <- dplyr::bind_rows(main,data_list$without_rsid)
+      before_unique_check <- dplyr::select(main, rowid)
 
       # handle duplications
       b38_missing <- dplyr::filter(main, is.na(CHR)) |>
@@ -182,6 +185,12 @@ tidyGWAS <- function(
         dplyr::distinct(CHR,POS,EffectAllele,OtherAllele, .keep_all = TRUE) |>
         dplyr::bind_rows(b38_missing)
 
+
+      removed <- dplyr::anti_join(before_unique_check, main, by = "rowid")
+      if(nrow(removed) > 0) {
+        cli::cli_alert_info("Found {nrow(removed)} rows which map to a CHR:POS:REF:ALT that another variant maps to. These are removed")
+        arrow::write_parquet(removed, paste0(filepaths$removed_rows, "map_to_dbsnp_duplications.parquet"))
+      }
 
 
     }
@@ -286,8 +295,6 @@ parse_tbl <- function(tbl, ...) {
 validate_with_dbsnp <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, filter_func) {
   build <- rlang::arg_match(build)
   if(nrow(tbl) == 0) return(tbl)
-  cli::cli_li("Remove rows where REF/ALT in dbSNP is not compatible with EffectAllele / OtherAllele")
-  cli::cli_li("Remove rows where RSID/CHR:POS does not match a entry in dbSNP v.155")
 
   has_rsid <- "RSID" %in% colnames(tbl)
   has_chr_pos <- all(c("CHR", "POS") %in% colnames(tbl))
@@ -295,18 +302,18 @@ validate_with_dbsnp <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, fi
   # existence of chr:pos or rsid decides which columns to repair
   if(has_rsid & !has_chr_pos) {
 
-    cli::cli_li("Repairing chromosome and position")
+    cli::cli_h3("Repairing chromosome and position")
     main_df <- repair_chr_pos(tbl, dbsnp_path = dbsnp_path)
 
   } else if(has_chr_pos & !has_rsid) {
 
-    cli::cli_li("Repairing RSID")
+    cli::cli_h3("Repairing RSID")
     main_df <- repair_rsid(tbl, build = build, dbsnp_path =  dbsnp_path)
 
 
   } else if(has_chr_pos & has_rsid) {
 
-    cli::cli_li("Checking that CHR:POS and RSID match. RSID will be updated accordingly to dbSNP")
+    cli::cli_h3("Checking that CHR:POS and RSID match. RSID will be updated accordingly to dbSNP")
     main_df <- verify_chr_pos_rsid(tbl, build = build, dbsnp_path)
 
   }
