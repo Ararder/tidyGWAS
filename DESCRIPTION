@@ -26,6 +26,7 @@ Suggests:
     knitr,
     rmarkdown,
     testthat (>= 3.0.0),
+    tictoc,
     utils
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)

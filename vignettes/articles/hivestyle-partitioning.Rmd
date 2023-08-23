@@ -1,0 +1,176 @@
+---
+title: "hivestyle-partitioning"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, include=FALSE}
+
+library(tidyGWAS)
+library(fs)
+library(dplyr)
+library(ggplot2)
+```
+
+Apache Arrow also supports something called [hivestyle-partitioning](https://arrow.apache.org/docs/r/articles/dataset.html), which allows with some minimal effort, quick, easy and memory efficient analysis across tens to hundreds of GWAS summary statistics.
+
+# Setting up a hivestyle partitions across many summary statistics
+
+It's common to want to look at summary statistics data outside of just one file. This can annoying, especially if you want to look across many sumstats, as you have to:
+
+1.  read in the files (Which can be very time and memory consuming, if it's many traits)
+2.  filter to your variants of interest
+3.  Join the dataframes together, and munge to whatever data format you want to use.
+
+This can be made extremely simple with hivestyle-partitioning and Arrows multi-file [workflow](https://arrow.apache.org/docs/r/articles/dataset.html).
+
+The files i will use have been cleaned using `tidyGWAS()`, using `output_format = "hivestyle"`. This means that the output of the cleaning is a folder, with the clean GWAS split out across all existing chromosomes.
+
+You might note that one folder is named `CHR=__HIVE_DEFAULT_PARTITION__`. This is the value for NA, and exists because some SNPs only exist on GRCh37, while the folders are created based on CHR for GRCh38.
+
+```{r}
+dir_ls("~/arvhar/update_gwas_sumstats/sumstats/bip2021/tidyGWAS_hivestyle/", recurse = TRUE)
+```
+
+## 
+
+The default `tidyGWAS()` output format has the following pattern:
+
+"/filepath_to_dir/name/tidyGWAS_hivestyle".
+
+This allows us to easily create a name for each sumstat
+
+```{r}
+# save the filepaths to all
+cleaned_hivestyle <- dir_ls("~/arvhar/update_gwas_sumstats/sumstats", type = "dir", glob = "*tidyGWAS_hivestyle", recurse = 2)
+
+df <- dplyr::tibble(
+  path_to_dir = cleaned_hivestyle,
+  # this will get the name of each directory
+  name = path_file(path_dir(path_to_dir))
+)
+# create hivestyle-partitions using sumstats name
+df <- mutate(df, new_name = paste0("dataset_name=", name))
+
+# in the folder arrow_hivestyle, i will create symlinks to all these GWASes
+df <- mutate(df, new_name = path("~/arvhar/update_gwas_sumstats/arrow_hivestyle", new_name))
+
+# with this, we create a symbolic from our cleaned GWAS hivestyle folders,
+# to a new folder, where each folder is named using hivestyle format
+link_create(df$path_to_dir, df$new_name)
+
+```
+
+With this we are ready to analyze however many gwas sumstast we have available. The dplyr interface to arrow allows us to write classical dplyr code. This is how the new folder with the symbolic links look:
+
+```{r}
+dir_ls("~/arvhar/update_gwas_sumstats/arrow_hivestyle")
+
+```
+
+## Analysing indels
+
+Indels are often removed in GWAS analysis, as they have historically been harder to impute and detect reliably.
+
+We can connect to all the sumstats by using `arrow::open_dataset()`.
+
+Let's take a look at indels across our six traits.
+
+```{r}
+# connect to the data by supplying the folder name
+dset <- arrow::open_dataset("~/arvhar/update_gwas_sumstats/arrow_hivestyle")
+traits_of_interest <- c("mdd2019", "scz2022_core", "iq","bip2021", "adhd2023", "asd2019")
+
+tictoc::tic()
+data <- dset |> 
+  filter(indel) |> 
+  filter(P < 5e-08) |> 
+  filter(dataset_name %in% traits_of_interest) |> 
+  # normal dplyr code, untill we are finished. Then we need to use dplyr::collect
+  collect()
+tictoc::toc()
+count(data, dataset_name)
+```
+
+Filtering across 6 files, and extracting \~1 million rows, took 0.3 seconds. That's fast!
+
+Seems likely only the autism-spectrum disorder GWAS has found genome-wide significant indels.\
+
+```{r}
+head(select(data, CHR, POS, RSID, EffectAllele, OtherAllele, B,SE, P, N))
+
+```
+
+## Multi-allelics SNPs
+
+We can take a look at another class of variation that is typically removed: multi-allelic SNPs.
+
+Bipolar disorder has 2 significant SNPs that are multi-allelics, while Schizophrenia has 35!
+
+```{r}
+tictoc::tic()
+data <- dset |> 
+  filter(multi_allelic) |> 
+  filter(P < 5e-08) |> 
+  filter(dataset_name %in% traits_of_interest) |> 
+  # normal dplyr code, untill we are finished. Then we need to use dplyr::collect
+  collect()
+tictoc::toc()
+count(data, dataset_name)
+```
+
+## Analyzing a specific loci
+
+The top loci outside of MHC is located on CHR 7, spanning the region 1812557 - 2289862.
+
+Let's take a look at whether any other sumstats have significant SNPs in this regio
+
+```{r}
+tictoc::tic()
+top_scz_region <- dset |> 
+  # note that if you have a loci on GRCh37 instead, you can simply use those columns instead:
+  # filter(CHR_37 == "7" & POS_37 >= 1812557 & POS_37 <= 2289862)
+  filter(CHR == "7" & POS >= 1812557 & POS <= 2289862) |> 
+  select(POS, B, P, dataset_name) |> 
+  collect()
+tictoc::toc()
+```
+
+# 
+
+There's actually a couple of other traits that have variants that are quite significant in this region, for example MDD, educational attainment, bipolar disorder, and BMI.
+
+```{r}
+theme_set(theme_light())
+top_scz_region |> 
+  group_by(dataset_name) |> 
+  # grab top significant SNP in each sumstat
+  slice_min(P, n = 1) |> 
+  # only SNPs with "suggestive" significance
+  filter(P < 5e-06) |> 
+  ggplot(aes(POS, -log10(P), size = abs(B))) +
+  geom_point() + 
+  geom_text(aes(label = dataset_name), nudge_y = 0.5)
+
+```
+
+# Summary
+
+By using `arrow::open_dataset()` we can easily and *speedily* analyse data across tens to hundreds of summary statistics, with minimal memory requirements. In addition, the interface is written in `dplyr`, requiring only a small change to normal data analysis code.
+
+`arrow::read_parquet()` is also significantly faster than `data.table::fread()`
+
+```{r}
+tictoc::tic()
+arrow::read_parquet("~/arvhar/update_gwas_sumstats/sumstats/coronary_artery_disease/raw_sumstats.parquet")
+tictoc::toc()
+
+tictoc::tic()
+data.table::fread("~/shared/gwas_sumstats/sumstats/coronary_artery_disease/coronary_artery_disease/raw/CAD_GWAS_primary_discovery_meta.tsv.gz")
+tictoc::toc()
+```
