@@ -133,6 +133,12 @@ In /raw_sumstats.parquet, we can find the raw sumstats, as we passed it to `tidy
 dir_ls(gwas_folder, recurse = TRUE)
 ```
 
+### Hivestyle partitioning
+
+You might have noted that there are there possible arguments to output_format. The last option is "hivestyle", and splits the dataset into separate files based on CHR.
+
+The `vignette("Hivestyle-partitioning")` explains how this format can be used to analyse many summary statistics at the same time, at low memory cost and speed.
+
 ## Creating the correct column names
 
 tidyGWAS does not automatically detect column names, but expect the `dplyr::tibble()` to contain the correct column names. `tidyGWAS_columns` is a helper function created to match column name to the tidyGWAS format.
