@@ -15,7 +15,8 @@ name <- "testing"
 convert_p <- 0
 verbose <- FALSE
 keep_indels <- TRUE
-
+build <- "NA"
+tbl <- test_sumstat
 
 
 

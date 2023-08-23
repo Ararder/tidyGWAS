@@ -250,11 +250,11 @@ make_callback <- function(id) {
 
 
     if(nrow(remove) > 0) {
-      cli::cli_h2("Listing how many rows are removed per flag: ")
+      cli::cli_h3("Listing how many rows are removed per flag: ")
       cli::cli_dl(purrr::list_simplify(count_by_flag))
-      cli::cli_inform("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
+      cli::cli_li("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
     } else {
-      cli::cli_h2("{.emph All rows passed validation}")
+      cli::cli_h3("{.emph All rows passed validation}")
     }
 
 

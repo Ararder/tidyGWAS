@@ -20,7 +20,7 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 #'
 validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FALSE, convert_p, id) {
   if(is.null(tbl)) return(NULL)
-  if(!missing(id)) cli::cli_h2("Validating columns, for {id}")
+  if(!missing(id)) cli::cli_h3("6) Validating columns: for {id}")
   stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
 
 
@@ -75,7 +75,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
   # invalid RSIDs, but other columns exist ----------------------------------
 
   if(all(c("CHR", "POS", "EffectAllele", "OtherAllele") %in% colnames(tbl))) {
-    cli::cli_alert_info("Found { nrow(dplyr::filter(tbl, invalid_rsid)) } rows with invalid RSID format. RSID will be repaired using CHR:POS if {.code dbsnp_files is passed}")
+    cli::cli_alert_info("{ nrow(dplyr::filter(tbl, invalid_rsid)) } rows had an invalid RSID. RSID will be repaired using dbSNP if possible")
     return(
       list(
         "main" = dplyr::filter(tbl, !invalid_rsid),
