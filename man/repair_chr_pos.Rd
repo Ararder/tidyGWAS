@@ -7,9 +7,9 @@
 repair_chr_pos(tbl, dbsnp_path)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
-\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added

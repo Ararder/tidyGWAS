@@ -7,7 +7,7 @@
 verify_chr_pos_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{tbl}{a \code{data.frame} or \code{character()} vector}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
 \item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 

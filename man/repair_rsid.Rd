@@ -7,12 +7,11 @@
 repair_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
-\item{build}{Genome build of sumstats. if \code{'NA'} \code{\link[=infer_build]{infer_build()}} will be used
-to automatically detect build.}
+\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
-\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added

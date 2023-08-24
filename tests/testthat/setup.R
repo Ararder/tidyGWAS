@@ -8,7 +8,10 @@ test_sumstat$rowid <- 1:nrow(test_sumstat)
 test_sumstat$CHR <- as.character(test_sumstat$CHR)
 dbsnp_files <- test_path("fixtures/dbSNP155")
 dbsnp_path <- test_path("fixtures/dbSNP155")
-
+data_list <- list()
+data_list$main <- dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid)
+data_list$without_rsid <- dplyr::filter(flag_invalid_rsid(test_sumstat), invalid_rsid) |>
+  dplyr::select(-RSID)
 
 # default args
 name <- "testing"

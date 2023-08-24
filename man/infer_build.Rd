@@ -7,11 +7,11 @@
 infer_build(tbl, n_snps = 10000, dbsnp_path)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
 \item{n_snps}{number of snps to check CHR and POS for}
 
-\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 }
 \value{
 either "37" or "38"

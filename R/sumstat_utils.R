@@ -105,7 +105,7 @@ split_rsid_by_regex <- function(tbl) {
 #' `repair_stats()` is a collection of functions that can be used to
 #' infer missing columns in GWAS summary statistics. The functions are based on
 #' functionality found online.
-#' @inheritParams validate_with_dbsnp
+#' @inheritParams verify_chr_pos_rsid
 #' @param verbose Should repair_stats print a masthead explaining what it does?
 #'
 #' @return a tibble

@@ -4,18 +4,22 @@
 \alias{validate_with_dbsnp}
 \title{Update CHR/POS/RSID/EffectAllele/OtherAllele for GWAS sumstats using dbSNP}
 \usage{
-validate_with_dbsnp(tbl, build = c("NA", "37", "38"), dbsnp_path, filter_func)
+validate_with_dbsnp(
+  data_list,
+  build = c("NA", "37", "38"),
+  filepaths,
+  dbsnp_path
+)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} with column names in \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} format.}
+\item{data_list}{a list containing three \code{\link[dplyr:reexports]{dplyr::tibble()}}s: main, indel, without_rsid}
 
 \item{build}{Genome build of sumstats. if \code{'NA'} \code{\link[=infer_build]{infer_build()}} will be used
 to automatically detect build.}
 
-\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
+\item{filepaths}{a \code{list()} of filepaths, as created by \code{\link[=setup_pipeline_paths]{setup_pipeline_paths()}}}
 
-\item{filter_func}{A function that is applied to the tibble before exiting. This is used
-to write to disk any rows that removed.}
+\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}

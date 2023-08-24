@@ -11,8 +11,8 @@ utils::globalVariables(c(
 
 #' Compare CHR, POS and RSID with dbSNP reference data
 #'
+#' @param tbl a [dplyr::tibble()], formated with [tidyGWAS_columns()]
 #' @inheritParams tidyGWAS
-#'
 #' @return a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 #' @export
 #'
@@ -94,7 +94,7 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
 
   #3) add CHR and POS from remaining build ------------------------------------
-  add_missing_build(tbl, ifelse(build == "37", "38", "37"),dbsnp_path = dbsnp_path)
+  add_missing_build(tbl, ifelse(build == "37", "38", "37"), dbsnp_path = dbsnp_path)
 
 
 }
@@ -104,7 +104,7 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 #'
 #' This function assumes tidyGWAS column names, see [tidyGWAS_columns()]
 #'
-#' @inheritParams validate_with_dbsnp
+#' @inheritParams verify_chr_pos_rsid
 #'
 #' @return a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 #' @export
@@ -146,7 +146,7 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path){
 
 #' Get CHR and POS using RSID
 #'
-#' @inheritParams validate_with_dbsnp
+#' @inheritParams verify_chr_pos_rsid
 #' @return a [dplyr::tibble()] with columns `CHR`, `POS`, `POS_37` and `CHR_37` added
 #' @export
 #'
@@ -211,7 +211,7 @@ add_missing_build <- function(sumstat, missing_build = c("37", "38"), dbsnp_path
 
 
 #' Infer what genome build a GWAS summary statistics file is on.
-#' @inheritParams validate_with_dbsnp
+#' @inheritParams verify_chr_pos_rsid
 #' @param n_snps number of snps to check CHR and POS for
 #'
 #' @return either "37" or "38"
@@ -221,7 +221,7 @@ add_missing_build <- function(sumstat, missing_build = c("37", "38"), dbsnp_path
 #' genome_build <- infer_build(gwas_sumstats)
 #' }
 infer_build <- function(tbl, n_snps = 10000, dbsnp_path) {
-  cli::cli_alert_info("Inferring build by checking {n_snps} snps matches against GRCh37 and GRCh38")
+  cli::cli_alert_info("Inferring build by matching {n_snps} rows to GRCh37 and GRCh38")
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(tbl)))
 
   subset <- dplyr::slice_sample(tbl, n = {{ n_snps }})
