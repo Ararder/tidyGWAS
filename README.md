@@ -7,22 +7,19 @@
 
 [![Codecov test
 coverage](https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Ararder/tidyGWAS?branch=main)
-[![codecov](https://codecov.io/gh/Ararder/tidyGWAS/graph/badge.svg?token=GQ3ZVJ3PA6)](https://codecov.io/gh/Ararder/tidyGWAS)
 <!-- badges: end -->
 
-# Standardized and automatic cleaning and harmonization of GWAS summary statistics
+Genome-wide summary statistics are becoming a staple in many different
+genetics and genomcis analysis pipelines. Often, the specific filters
+suggested for pipelines can be different, requiring each pipeline to
+have a step where summary statistics are “munged”.
 
-The typical process of starting a project that relies on GWAS summary
-statistics typically involvle
+tidyGWAS aims to provide a standardized format *before* before any
+pipeline specific munging is done. With that in mind, tidyGWAS is
+conservative in removing rows, and by default keeps both indels and
+multi-allelic variants.
 
-1.  Manually loading the sumstats into R/Python/Bash
-2.  Standardizing column names and data format
-3.  Identifying incorrect values
-4.  Rinse and repeat for the next project
-
-To make this process more standardized and automatic, we developed
-`tidyGWAS`, a R package which does automatic standardization and quality
-control of summary statistics.
+`tidyGWAS` does the following:
 
 1.  Detection of duplicated rows (based on RSID_REF_ALT or
     CHR_POS_REF_ALT)
