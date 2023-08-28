@@ -26,9 +26,6 @@ jobs:
           extra-packages: |
             any::covr
             any::testthat
-            any::Biostrings
-            any::BSgenome
-            any::GenomicRanges
           needs: coverage
           dependencies: '"hard"'
 

@@ -17,6 +17,7 @@ knitr::opts_chunk$set(
 
 <!-- badges: start -->
 
+[![Codecov test coverage](https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Ararder/tidyGWAS?branch=main)
 <!-- badges: end -->
 
 # Standardized and automatic cleaning and harmonization of GWAS summary statistics
