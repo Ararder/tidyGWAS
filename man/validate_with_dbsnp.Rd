@@ -8,18 +8,20 @@ validate_with_dbsnp(
   data_list,
   build = c("NA", "37", "38"),
   filepaths,
-  dbsnp_path
+  dbsnp_path,
+  add_missing_build = TRUE
 )
 }
 \arguments{
 \item{data_list}{a list containing three \code{\link[dplyr:reexports]{dplyr::tibble()}}s: main, indel, without_rsid}
 
-\item{build}{Genome build of sumstats. if \code{'NA'} \code{\link[=infer_build]{infer_build()}} will be used
-to automatically detect build.}
+\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{filepaths}{a \code{list()} of filepaths, as created by \code{\link[=setup_pipeline_paths]{setup_pipeline_paths()}}}
 
-\item{dbsnp_path}{filepath to dbSNP files in .parquet format.}
+\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
+\item{add_missing_build}{Should the build which the sumstats are NOT on also be added in?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}

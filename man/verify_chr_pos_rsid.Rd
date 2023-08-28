@@ -4,7 +4,12 @@
 \alias{verify_chr_pos_rsid}
 \title{Compare CHR, POS and RSID with dbSNP reference data}
 \usage{
-verify_chr_pos_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
+verify_chr_pos_rsid(
+  tbl,
+  build = c("NA", "37", "38"),
+  dbsnp_path,
+  add_missing_build = TRUE
+)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
@@ -12,6 +17,8 @@ verify_chr_pos_rsid(tbl, build = c("NA", "37", "38"), dbsnp_path)
 \item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
+\item{add_missing_build}{Should the build which the sumstats are NOT on also be added in?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added

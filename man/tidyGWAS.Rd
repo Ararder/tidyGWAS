@@ -18,15 +18,14 @@ tidyGWAS(
   repair_cols = TRUE,
   logfile = FALSE,
   log_on_err = "tidyGWAS_logfile.txt",
-  verbose = FALSE
+  verbose = FALSE,
+  add_missing_build = TRUE
 )
 }
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}} which is the function
-that will be called if tbl is a filepath
-possible arguments are \code{study_n} to set N, and \code{build} to set genome build.}
+\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
@@ -58,9 +57,11 @@ the N column missing. study_n can be used to set the N column.}
 \item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
 \item{verbose}{Explain filters in detail?}
+
+\item{add_missing_build}{Should the build which the sumstats are NOT on also be added in?}
 }
 \value{
-a tibble or NULL, depending on outdir
+a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
 \code{tidyGWAS()} performs a set of validations on input colummns, repairs missing

@@ -133,11 +133,6 @@ In /raw_sumstats.parquet, we can find the raw sumstats, as we passed it to `tidy
 dir_ls(gwas_folder, recurse = TRUE)
 ```
 
-### Hivestyle partitioning
-
-You might have noted that there are there possible arguments to output_format. The last option is "hivestyle", and splits the dataset into separate files based on CHR.
-
-The `vignette("Hivestyle-partitioning")` explains how this format can be used to analyse many summary statistics at the same time, at low memory cost and speed.
 
 ## Creating the correct column names
 
@@ -161,7 +156,32 @@ correct_names <- tidyGWAS_columns(
   B = "BETA"
   )
 head(correct_names)
+
+
 ```
+
+# Parallel computation
+
+The Apache Arrow C++ implementation, automatically detects and uses multiple cores.
+In some cases, for example when running tidyGWAS in a HPC cluster, you might need to
+manually set the number of cores, which can be done using the `OMP_NUM_THREADS` 
+variable. This should not be a larger number of cores than what you have requested in
+your HPC job (in the example below, the "--cpus-per-task" flag)
+
+```{bash, eval=FALSE}
+
+#SBATCH --mem=60gb
+#SBATCH --time=24:0:00
+#SBATCH --cpus-per-task 8
+export OMP_NUM_THREADS=8
+
+outdir=$(pwd)
+gwas=$outdir/my_gwas.tsv.gz
+dbsnp_files="dbSNP155"
+Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)" $gwas $dbsnp_files $outdir
+
+```
+
 
 # Computational cost
 
@@ -169,7 +189,7 @@ Memory use and time scales with the size of the summary statistics. From running
 
 #### CPU usage
 
-CPU usage depends heavily on underlying architecture, and CPU.
+CPU usage depends heavily on CPU type and number of available cores.
 
 1.  Macbook Pro M2: 8 million rows, \~4.42 minutes, \< 16GB memory used
 2.  AMD EPYC 75F3 32-Core Processor; \~ 6 minutes \< 16GB memory used
@@ -186,15 +206,13 @@ The memory usage will likely be the main constraint with increasing size of summ
 2.  40 million rows \< 40gb
 3.  60 million rows \< 75gb
 
-### A note on multiple cores
 
-The main computational cost is reading in and transforming the dbSNP 155 reference data. This is handled by the Apache Arrow C++ implementation, which automatically detects the number of cores available.
 
 # Reading in files from disk
 
 Behind the scenes, tidyGWAS uses `arrow::read_delim_arrow()` to read in the file using the filepath provided.
 
-Through ..., you can pass specific arguments if your file requires adjustments to read in propery, such as `delim = "\t"`. You can read more about this [here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html). In general, if your GWAS is in a file format that tidyGWAS struggles to read in properly, it is often more easy to first read in the file using `data.table::fread()` or `readr::read_tsv`, or any package that focus specifically on reading in files, and then passing the data.frame to tidyGWAS in-memory
+Through `...`, you can pass specific arguments if your file requires adjustments to read in, such as `delim = "\t"`. You can read more about this [here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html). In general, if your GWAS is in a file format that tidyGWAS struggles to read in properly, it is often easier toread in the file using `data.table::fread()` or `readr::read_tsv`, or any package that focus specifically on reading in files, and then passing the data.frame to tidyGWAS in-memory.
 
 ```{r, eval = FALSE}
 
@@ -207,10 +225,12 @@ tidyGWAS(
 ```
 
 # Useful functions
+tidyGWAS exposes many of it's internal functions, if there is only a specific part you want to use.
 
 ### Getting B and SE from Z, N and EAF
 
-`repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. Note that there some
+`repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. 
+Note that this imputation is not error free, and will not perfectly impute missing data.
 
 ```{r, eval = FALSE}
 example_file <- dplyr::tibble(test_file)
@@ -229,27 +249,4 @@ dplyr::inner_join(example_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y)
 
 ```
 
-```{r, eval = FALSE}
-tmp <-  dplyr::select(example_file,  -SE) |> 
-  repair_stats()
-```
 
-### Identifying incorrect RSIDs
-
-uses a regex to identify any non RrSs rows.
-
-```{r, eval = FALSE}
-flag_invalid_rsid(example_file) |> 
-  dplyr::filter(invalid_rsid)
-
-```
-
-### A fast function for finding all rows in a duplication set
-
-```{r, eval = FALSE}
-flag_duplicates(example_file, column = "rsid")
-# or 
-flag_duplicates(example_file, column = "chr_pos")
-
-
-```

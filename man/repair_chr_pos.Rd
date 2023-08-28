@@ -4,12 +4,14 @@
 \alias{repair_chr_pos}
 \title{Get CHR and POS using RSID}
 \usage{
-repair_chr_pos(tbl, dbsnp_path)
+repair_chr_pos(tbl, dbsnp_path, add_missing_build = TRUE)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
+\item{add_missing_build}{Should the build which the sumstats are NOT on also be added in?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added

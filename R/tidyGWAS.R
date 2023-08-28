@@ -41,9 +41,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' used to standardise column names, and see the standard format.
 #'
 #' @param tbl a `data.frame` or `character()` vector
-#' @param ... pass additional arguments to [arrow::read_delim_arrow()] which is the function
-#' that will be called if tbl is a filepath
-#' possible arguments are `study_n` to set N, and `build` to set genome build.
+#' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
 #' @param output_format How should the finished cleaned file be saved?
 #'  * "csv" corresponds to [arrow::write_csv_arrow()]
 #'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
@@ -59,11 +57,14 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' the N column missing. study_n can be used to set the N column.
 #' @param keep_indels Should indels be kept?
 #' @param repair_cols Should any missing columns be repaired?
+#' @param add_missing_build Should the build which the sumstats are NOT on also be added in?
 #' @param logfile Should messages be redirected to a logfile?
 #' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
 #' @param verbose Explain filters in detail?
 #'
-#' @return a tibble or NULL, depending on outdir
+#' @return a [dplyr::tibble()]
+#'
+#'
 #' @export
 #'
 #' @examples \dontrun{
@@ -77,13 +78,14 @@ tidyGWAS <- function(
     build = c("NA","37", "38"),
     outdir = tempdir(),
     study_n,
-    convert_p=2.225074e-308,
+    convert_p = 2.225074e-308,
     name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
     keep_indels = TRUE,
     repair_cols = TRUE,
     logfile = FALSE,
     log_on_err="tidyGWAS_logfile.txt",
-    verbose = FALSE
+    verbose = FALSE,
+    add_missing_build = TRUE
     ) {
 
 
@@ -169,7 +171,7 @@ tidyGWAS <- function(
     cli::cli_li("Variants with CHR and POS or RSID not present in dbSNP are removed")
     cli::cli_li("Checking that EffectAllele and OtherAllele is compatible with REF and ALT in dbSNP")
 
-    data_list <- validate_with_dbsnp(data_list = data_list, build = build, dbsnp_path = dbsnp_path, filepaths = filepaths)
+    data_list <- validate_with_dbsnp(data_list = data_list, build = build, dbsnp_path = dbsnp_path, filepaths = filepaths, add_missing_build = add_missing_build)
 
     main <- data_list
 
@@ -208,6 +210,7 @@ tidyGWAS <- function(
   cli::cli_alert_info("Total running time: {fmt}")
 
   # -------------------------------------------------------------------------
+  if(outdir != tempdir()) file.copy(filepaths$base, outdir, recursive = TRUE)
 
 
   main
@@ -269,12 +272,9 @@ parse_tbl <- function(tbl, ...) {
 
 #' Update CHR/POS/RSID/EffectAllele/OtherAllele for GWAS sumstats using dbSNP
 #'
+#' @inheritParams tidyGWAS
 #' @param data_list a list containing three [dplyr::tibble()]s: main, indel, without_rsid
-#' @param build Genome build of sumstats. if `'NA'` [infer_build()] will be used
-#' to automatically detect build.
-#' @param dbsnp_path filepath to dbSNP files in .parquet format.
 #' @param filepaths a `list()` of filepaths, as created by [setup_pipeline_paths()]
-#'
 #' @return a [dplyr::tibble()]
 #' @export
 #'
@@ -283,7 +283,7 @@ parse_tbl <- function(tbl, ...) {
 #' validate_with_dbsnp(sumstats, build = "NA", dbsnp_path = "/dbsnp155/dbsnp")
 #' }
 #'
-validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths, dbsnp_path) {
+validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths, dbsnp_path, add_missing_build=TRUE) {
 
   rlang::check_required(dbsnp_path)
   build <- rlang::arg_match(build)
@@ -293,7 +293,7 @@ validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths
 
 
   cli::cli_h3("7a) Starting with main rows: ")
-  data_list$main <- repair_dbnsp(data_list$main, dbsnp_path = dbsnp_path, build = build)
+  data_list$main <- repair_dbnsp(data_list$main, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
   filter_func <- make_callback(id = paste0(filepaths$removed_rows, "main_validate_with_dbsnp"))
   data_list$main <- filter_func(data_list$main)
 
@@ -304,7 +304,7 @@ validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths
 
   if(!is.null(data_list$without_rsid)) {
     cli::cli_h3("7b) rows without RSID: ")
-    data_list$without_rsid <- repair_dbnsp(data_list$without_rsid, dbsnp_path = dbsnp_path, build = build)
+    data_list$without_rsid <- repair_dbnsp(data_list$without_rsid, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
     filter_func <- make_callback(id = paste0(filepaths$removed_rows, "without_rsid_validate_with_dbsnp"))
     data_list$without_rsid <- filter_func(data_list$without_rsid)
 
@@ -343,23 +343,23 @@ validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths
 
 
 
-repair_dbnsp <- function(tbl, dbsnp_path, build) {
+repair_dbnsp <- function(tbl, dbsnp_path, build, add_missing_build) {
   # existence of chr:pos or rsid decides which columns to repair
   has_rsid <- "RSID" %in% colnames(tbl)
   has_chr_pos <- all(c("CHR", "POS") %in% colnames(tbl))
 
   if(has_rsid & !has_chr_pos) {
     cli::cli_inform("Using RSID to align with dbSNP")
-    tbl <- repair_chr_pos(tbl, dbsnp_path = dbsnp_path)
+    tbl <- repair_chr_pos(tbl, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
 
   } else if(has_chr_pos & !has_rsid) {
     cli::cli_inform("Using CHR and POS to align with dbSNP")
-    tbl <- repair_rsid(tbl, build = build, dbsnp_path =  dbsnp_path)
+    tbl <- repair_rsid(tbl, build = build, dbsnp_path =  dbsnp_path, add_missing_build =add_missing_build)
 
 
   } else if(has_chr_pos & has_rsid) {
     cli::cli_inform("Using CHR, POS and RSID to align with dbSNP")
-    tbl <- verify_chr_pos_rsid(tbl, build = build, dbsnp_path)
+    tbl <- verify_chr_pos_rsid(tbl, build = build, dbsnp_path, add_missing_build = add_missing_build)
 
   }
 
@@ -475,12 +475,6 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
   }
 
-
-  if(outdir != tempdir()) {
-
-    file.copy(filepaths$base, outdir, recursive = TRUE)
-
-  }
 
 }
 

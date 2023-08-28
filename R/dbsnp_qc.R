@@ -22,7 +22,7 @@ utils::globalVariables(c(
 #' callback <- make_callback("~/output_folder/verify_chr_pos_rsid_removed_rows.tsv")
 #' verify_chr_pos_rsid(gwas, bs, build = 37)
 #' }
-verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
+verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missing_build =TRUE) {
 
   # start -------------------------------------------------------------------
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
@@ -99,9 +99,11 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
 
   #3) add CHR and POS from remaining build ------------------------------------
-  add_missing_build(tbl, ifelse(build == "37", "38", "37"), dbsnp_path = dbsnp_path)
+  if(isTRUE(add_missing_build)) {
+    tbl <- add_missing_build(tbl, ifelse(build == "37", "38", "37"), dbsnp_path = dbsnp_path)
+  }
 
-
+  tbl
 }
 
 
@@ -118,7 +120,7 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 #' sumstat_df <- repair_rsid(sumstat, bsgenome_list)
 #' }
 #'
-repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path){
+repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missing_build=TRUE){
   build = rlang::arg_match(build)
   tbl <- dplyr::select(tbl, -dplyr::any_of("RSID"))
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
@@ -139,9 +141,12 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path){
   # merge in flag
   tbl <- dplyr::left_join(tbl, flags, by = "rowid")
 
-  # add missing biuld
-  add_missing_build(tbl, ifelse(build == "38", "37", "38"), dbsnp_path = dbsnp_path)
+  # add missing build
+  if(isTRUE(add_missing_build)) {
+    tbl <- add_missing_build(tbl, ifelse(build == "38", "37", "38"), dbsnp_path = dbsnp_path)
+  }
 
+  tbl
 
 }
 
@@ -159,7 +164,7 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path){
 #' sumstat_df <- repair_chr_pos(sumstat)
 #' }
 #'
-repair_chr_pos <- function(tbl, dbsnp_path) {
+repair_chr_pos <- function(tbl, dbsnp_path, add_missing_build=TRUE) {
   tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
 
@@ -179,8 +184,9 @@ repair_chr_pos <- function(tbl, dbsnp_path) {
 
 
   # add GRCh37 CHR POS columns
-  tbl <- add_missing_build(tbl, missing_build = "37", dbsnp_path = dbsnp_path)
-
+  if(isTRUE(add_missing_build)) {
+    tbl <- add_missing_build(tbl, missing_build = "37", dbsnp_path = dbsnp_path)
+  }
   # return ----------------------------------------------------------------
 
   dplyr::left_join(tbl, flags, by = "rowid")

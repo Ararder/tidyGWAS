@@ -18,7 +18,7 @@ test_that("validate_with_dbsnp, all cols", {
   expect_no_error(validate_with_dbsnp(data_list, build = "NA", dbsnp_path = dbsnp_files,filepaths= paths))
 
   data_list$without_rsid <- NULL
-  expect_no_error(validate_with_dbsnp(data_list, build = "NA", dbsnp_path = dbsnp_files,filepaths= paths))
+  expect_no_error(validate_with_dbsnp(data_list, build = "NA", dbsnp_path = dbsnp_files, filepaths = paths))
 
 
 })
