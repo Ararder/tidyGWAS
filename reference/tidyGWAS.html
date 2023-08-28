@@ -42,7 +42,7 @@ used to standardise column names, and see the standard format."><!-- mathjax -->
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -113,7 +113,8 @@ used to standardise column names, and see the standard format.</p>
 <span>  repair_cols <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  logfile <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  log_on_err <span class="op">=</span> <span class="st">"tidyGWAS_logfile.txt"</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  add_missing_build <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -124,9 +125,7 @@ used to standardise column names, and see the standard format.</p>
 
 
 <dt>...</dt>
-<dd><p>pass additional arguments to <code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_delim_arrow()</a></code> which is the function
-that will be called if tbl is a filepath
-possible arguments are <code>study_n</code> to set N, and <code>build</code> to set genome build.</p></dd>
+<dd><p>pass additional arguments to <code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_delim_arrow()</a></code>, if tbl is a filepath.</p></dd>
 
 
 <dt>dbsnp_path</dt>
@@ -181,12 +180,18 @@ the N column missing. study_n can be used to set the N column.</p></dd>
 <dt>verbose</dt>
 <dd><p>Explain filters in detail?</p></dd>
 
+
+<dt>add_missing_build</dt>
+<dd><p>Should the build which the sumstats are NOT on also be added in?</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>a tibble or NULL, depending on outdir</p>
+<p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code></p>
+
+
     </div>
 
     <div class="section level2">

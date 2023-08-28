@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">repair_chr_pos</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">dbsnp_path</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">repair_chr_pos</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">dbsnp_path</span>, add_missing_build <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -62,6 +62,10 @@
 
 <dt>dbsnp_path</dt>
 <dd><p>filepath to the dbSNP155 directory (untarred dbSNP155.tar)</p></dd>
+
+
+<dt>add_missing_build</dt>
+<dd><p>Should the build which the sumstats are NOT on also be added in?</p></dd>
 
 </dl></div>
     <div class="section level2">

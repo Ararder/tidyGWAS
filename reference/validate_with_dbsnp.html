@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,8 @@
 <span>  <span class="va">data_list</span>,</span>
 <span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
 <span>  <span class="va">filepaths</span>,</span>
-<span>  <span class="va">dbsnp_path</span></span>
+<span>  <span class="va">dbsnp_path</span>,</span>
+<span>  add_missing_build <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -66,8 +67,7 @@
 
 
 <dt>build</dt>
-<dd><p>Genome build of sumstats. if <code>'NA'</code> <code><a href="infer_build.html">infer_build()</a></code> will be used
-to automatically detect build.</p></dd>
+<dd><p>Can be used to skip <code><a href="infer_build.html">infer_build()</a></code></p></dd>
 
 
 <dt>filepaths</dt>
@@ -75,7 +75,11 @@ to automatically detect build.</p></dd>
 
 
 <dt>dbsnp_path</dt>
-<dd><p>filepath to dbSNP files in .parquet format.</p></dd>
+<dd><p>filepath to the dbSNP155 directory (untarred dbSNP155.tar)</p></dd>
+
+
+<dt>add_missing_build</dt>
+<dd><p>Should the build which the sumstats are NOT on also be added in?</p></dd>
 
 </dl></div>
     <div class="section level2">
