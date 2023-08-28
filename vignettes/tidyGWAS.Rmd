@@ -206,7 +206,7 @@ tidyGWAS(
 
 ```
 
-# Other functions
+# Useful functions
 
 ### Getting B and SE from Z, N and EAF
 

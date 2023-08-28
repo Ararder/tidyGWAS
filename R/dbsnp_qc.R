@@ -38,10 +38,13 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
   # get dbsnp data using CHR and POS
   dbsnp_ref <- map_to_dbsnp(tbl, build = build, by = "chr:pos", dbsnp_path = dbsnp_path)
+
   # check for rows that doesn't match
   chr_pos_not_in_dbsnp <- dplyr::anti_join(tbl, dbsnp_ref, by = c("CHR", "POS"))
+
   # update with RSID from dbsnp
-  updated <- dplyr::inner_join(dplyr::select(tbl, -RSID), dplyr::select(dbsnp_ref, -ref_allele, -alt_alleles), by = c("CHR", "POS"))
+  updated <- dplyr::inner_join(dplyr::select(tbl, -RSID), dplyr::select(dbsnp_ref, -alt_alleles), by = c("CHR", "POS"))
+
   # check how many rows had RSIDs different from what was found in dbSNP
   rsid_was_updated <- dplyr::inner_join(tbl, dbsnp_ref, by = c("CHR", "POS")) |>
     dplyr::filter(RSID.x != RSID.y)
@@ -53,7 +56,7 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
     updated_2 <- dplyr::inner_join(
       dplyr::select(chr_pos_not_in_dbsnp, -CHR, -POS),
-      dplyr::select(dbsnp_ref_2, -ref_allele, -alt_alleles),
+      dplyr::select(dbsnp_ref_2, -alt_alleles),
       by = "RSID"
     )
   } else {
@@ -77,7 +80,9 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path) {
 
 
 
-  if(nrow(rows_with_changed_values) > 0) cli::cli_alert_info("A total of {nrow(rows_with_changed_values)} rows had incompatible CHR:POS and RSID data. These have been updated")
+  if(nrow(rows_with_changed_values) > 0) {
+    cli::cli_alert_info("A total of {nrow(rows_with_changed_values)} rows had incompatible CHR:POS and RSID data. These have been updated")
+  }
 
 
   # add flag that EffectAllele/OtherAllele is incompatible with REF/ALT in dbSNP
@@ -125,7 +130,7 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path){
 
   # Add RSID, and flag any rows without a matching dbSNP entry
   tbl <-
-    dplyr::left_join(tbl, dplyr::select(dbsnp_ref, CHR,POS, RSID), by = c("CHR","POS")) |>
+    dplyr::left_join(tbl, dplyr::select(dbsnp_ref, CHR,POS, RSID, ref_allele), by = c("CHR","POS")) |>
     dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(RSID), TRUE, FALSE))
 
   # identify rows with incompatible alleles
@@ -165,7 +170,7 @@ repair_chr_pos <- function(tbl, dbsnp_path) {
   dbsnp_38 <- map_to_dbsnp(tbl = tbl, build = "38", by = "rsid", dbsnp_path = dbsnp_path)
 
   # add CHR and POS, and flag that indicates if a match was found in dbsnp
-  tbl <- dplyr::left_join(tbl, dplyr::select(dbsnp_38, CHR, POS, RSID), by = "RSID") |>
+  tbl <- dplyr::left_join(tbl, dplyr::select(dbsnp_38, CHR, POS, RSID, ref_allele), by = "RSID") |>
     dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(CHR), TRUE, FALSE))
 
   # add flags to see if REF/ALT is consistent with EA/OA

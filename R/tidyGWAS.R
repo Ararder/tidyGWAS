@@ -568,7 +568,7 @@ standardize_column_order <- function(tbl) {
   dplyr::select(tbl, dplyr::any_of(
     c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "EAF",
       "Z", "B", "SE", "P", "N", "CaseN", "ControlN", "INFO"
-      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel"))
+      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel", "REF" = "ref_allele"))
     )
 
 }
