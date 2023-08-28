@@ -68,18 +68,9 @@
 </h1></div>
 <!-- badges: start -->
 
-</div>
-<div class="section level1">
-<h1 id="standardized-and-automatic-cleaning-and-harmonization-of-gwas-summary-statistics">Standardized and automatic cleaning and harmonization of GWAS summary statistics<a class="anchor" aria-label="anchor" href="#standardized-and-automatic-cleaning-and-harmonization-of-gwas-summary-statistics"></a>
-</h1>
-<p>The typical process of starting a project that relies on GWAS summary statistics typically involvle</p>
-<ol style="list-style-type: decimal">
-<li>Manually loading the sumstats into R/Python/Bash</li>
-<li>Standardizing column names and data format</li>
-<li>Identifying incorrect values</li>
-<li>Rinse and repeat for the next project</li>
-</ol>
-<p>To make this process more standardized and automatic, we developed <code>tidyGWAS</code>, a R package which does automatic standardization and quality control of summary statistics.</p>
+<p>Genome-wide summary statistics are becoming a staple in many different genetics and genomcis analysis pipelines. Often, the specific filters suggested for pipelines can be different, requiring each pipeline to have a step where summary statistics are “munged”.</p>
+<p>tidyGWAS aims to provide a standardized format <em>before</em> before any pipeline specific munging is done. With that in mind, tidyGWAS is conservative in removing rows, and by default keeps both indels and multi-allelic variants.</p>
+<p><code>tidyGWAS</code> does the following:</p>
 <ol style="list-style-type: decimal">
 <li><p>Detection of duplicated rows (based on RSID_REF_ALT or CHR_POS_REF_ALT)</p></li>
 <li><p>Standardized column names</p></li>
@@ -100,7 +91,6 @@
 <p>From working with standardized GWAS formats, we’ve found that having both GRCh37 and GRCh38 coordinates, and standardized column names significantly speeds up downstream analysis.</p>
 <p>The computationally intensive part of aligning summary statistics with dbSNP 155 (&gt; 940 million rows) for both GRCh37 and GRCh38 (in total 1.8 billion rows) is implemented using the <a href="https://arrow.apache.org/docs/r/" class="external-link">Apache Arrow R</a> implementation, allowing for the full function to run in &lt;5 minutes, using less than 16gb, with ~7 million rows on a Macbook Pro M2.</p>
 </div>
-
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
@@ -128,7 +118,6 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://app.codecov.io/gh/Ararder/tidyGWAS?branch=main" class="external-link"><img src="https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg" alt="Codecov test coverage"></a></li>
-<li><a href="https://codecov.io/gh/Ararder/tidyGWAS" class="external-link"><img src="https://codecov.io/gh/Ararder/tidyGWAS/graph/badge.svg?token=GQ3ZVJ3PA6" alt="codecov"></a></li>
 </ul>
 </div>
 
