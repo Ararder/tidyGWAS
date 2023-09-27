@@ -10,7 +10,7 @@ coverage](https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg)](h
 <!-- badges: end -->
 
 Genome-wide summary statistics are becoming a staple in many different
-genetics and genomcis analysis pipelines. Often, the specific filters
+genetics and genomics analysis pipelines. Often, the specific filters
 suggested for pipelines can be different, requiring each pipeline to
 have a step where summary statistics are “munged”.
 
