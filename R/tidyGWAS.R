@@ -151,6 +151,7 @@ tidyGWAS <- function(
     data_list$main <- validate_rsid(data_list$main, outpath = paste(filepaths$removed_rows, "invalid_chr_pos_rsid.parquet"))
     if(!is.null(data_list$main$without_rsid)) data_list$without_rsid <- data_list$main$without_rsid
     data_list$main <- data_list$main$main
+    if(nrow(data_list$main) == 0) data_list[1] <- list(NULL)
 
   }
 
@@ -293,13 +294,16 @@ validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths
 
 
   cli::cli_h3("7a) Starting with main rows: ")
-  data_list$main <- repair_dbnsp(data_list$main, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
-  filter_func <- make_callback(id = paste0(filepaths$removed_rows, "main_validate_with_dbsnp"))
-  data_list$main <- filter_func(data_list$main)
+  if(!is.null(data_list$main)) {
+    data_list$main <- repair_dbnsp(data_list$main, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
+    filter_func <- make_callback(id = paste0(filepaths$removed_rows, "main_validate_with_dbsnp"))
+    data_list$main <- filter_func(data_list$main)
+
+  }
 
   # handle edge case of length 0 tibble in without RSID
   if(!is.null(data_list$without_rsid)) {
-    if(nrow(data_list$without_rsid) == 0) return(data_list$main)
+    if(nrow(data_list$without_rsid) == 0) return(dplyr::bind_rows(data_list$main, data_list$indels))
   }
 
   if(!is.null(data_list$without_rsid)) {
@@ -567,4 +571,8 @@ standardize_column_order <- function(tbl) {
 
 }
 
+
+row_removal_report <- function(filepath) {
+
+}
 

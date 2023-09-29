@@ -114,10 +114,11 @@ test_that("Handles edge cases", {
 
     # test with indels
     expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files))
-
-
     expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, keep_indels = FALSE))
 
+    # handle where all rows are invalid_rsid
+    tdf <- dplyr::filter(flag_invalid_rsid(test_sumstat), invalid_rsid)
+    expect_no_error(tidyGWAS(tdf, dbsnp_path = dbsnp_files))
 
 })
 
