@@ -571,8 +571,59 @@ standardize_column_order <- function(tbl) {
 
 }
 
+check_correct_files <- function(dir) {
 
-row_removal_report <- function(filepath) {
+
+  stopifnot(
+    "The reference files have been damaged or are missing. Please re-download the reference files.,
+        Expected to find folders GRCh37, GRCh38 and refsnp-merged in reference dir." =
+      all(c("GRCh37", "GRCh38", "refsnp-merged") %in% list.files(dir))
+  )
+
+  stopifnot(
+    "Expected to find a total of 51 parquet files across GRCh37 and GRCh38 and merged RSIDs. This
+    indicates that the reference files have been damaged or corrupted. Please re-download the reference files" =
+      length(list.files(dir, recursive = TRUE)) == 51
+  )
+
+
+  cli::cli_alert_success("Reference files are present and correct. Saved in {.path {dir}}")
+
+}
+
+#' Download references files used by tidyGWAS
+#'
+#' @param save_dir directory to save reference files to
+#'
+#' @return NULL
+#' @export
+#'
+#' @examples \dontrun{
+#' download_ref_files("path/to_dir")
+#' }
+download_ref_files <- function(save_dir) {
+  # check that save_path is writeable
+  if(!dir.exists(save_dir)) {
+    stop("save_dir does not exist, please provide a filepath to an existing directory")
+  }
+
+  cli::cli_alert_info("Starting download of reference files using {.code googledrive::drive_download()}.This will take about 20 minutes")
+  save_path <- paste0(save_dir, "/drive_tmp_download.tar")
+  googledrive::drive_deauth()
+  googledrive::drive_download(googledrive::as_id("1aZ_y1gpkW69Gd2hYk1P4r7OeofgG9pwK"), save_path)
+
+
+
+  cli::cli_inform("Reference files downloaded. Attempting to extract files..:")
+  withr::local_dir(save_dir)
+  tar_cmd <- paste0("tar -xvf ", save_path)
+  system(tar_cmd)
+
+  cli::cli_inform("Checking that downloaded files are correct..:")
+  check_correct_files(paste0(save_dir, "/dbSNP155"))
+
+  cli::cli_alert_success("Use {.path {save_path}} as input to {.code tidyGWAS()}")
+
 
 }
 

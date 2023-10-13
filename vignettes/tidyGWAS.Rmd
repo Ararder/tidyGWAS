@@ -3,8 +3,11 @@ title: "tidyGWAS"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{tidyGWAS}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r, include = FALSE}
@@ -14,91 +17,141 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Installation
+# Quick start
 
-tidyGWAS dependencies should be easily installed on most systems, with the arrow dependecy being the most likely to cause trouble. In the case that installation of arrow is causing trouble, see [here](https://arrow.apache.org/docs/r/articles/install.html).
-
-```{r, eval = FALSE}
-# install.packages("devtools")
-devtools::install_github("ararder/tidyGWAS")
-# or
-# install.packages("remotes")
-remotes::install_github("ararder/tidyGWAS")
-```
-
-### dbSNP155 reference file
-
-tidyGWAS uses a version dbSNP 155 converted to the [Apache Arrow](https://arrow.apache.org) .parquet files. You can download the dbSNP155 reference file from inside R using the `googledrive` package, or by manually navigating to this [file](https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link)
+### Installation
 
 ```{r, eval = FALSE}
-# You can download the file from inside R using the googledrive package:
-library(googledrive)
-googledrive::drive_deauth()
-id <- googledrive::as_id("1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6")
-
-##### EDIT THIS:
-filepath_to_store_dir <- ""
-##### ---------------------
-
-drive_download(id, path = filepath_to_store_dir)
+devtools::install_github("ararder/tidyGWAS") # install.packages("devtools")
+remotes::install_github("ararder/tidyGWAS") # install.packages("remotes")
 ```
 
-The file needs to be untarred
+### Download reference files - This only has to be done once
 
-```{bash, eval = FALSE}
-# change directory to where the downloaded file is
-tar -xf dbSNP155.tar dbSNP155
-
-```
-
-You should provide the full path to the directory `dbSNP155`, which should contain the following folders after untarring.
-
-```{r}
+```{r, eval = FALSE}
+library(tidyGWAS)
 library(fs)
-#
-# this is how the untarred folder should look if you ls inside it
-dir_ls(path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"))
+
+# Provide filepath to a directory where you want to store reference files
+ref_dir <- "path/to/storage/directory"
+download_ref_files(ref_dir)
+
+# the reference files will be stored in ref_dir/dbSNP155
+dbsnp_files <- paste0(ref_dir, "/dbSNP155")
+# the reference data will be stored in
 ```
 
-# Getting started
+### Provide column names tidyGWAS understands
+
+tidyGWAS does NOT automatically parse common column names, so you need
+to provide it with the correct column names. tidyGWAS_columns is a
+helper function to do this. tidyGWAS uses the following naming:
+
+CHR POS RSID EffectAllele OtherAllele EAF B SE P N CaseN ControlN N INFO
+OR
+
+```{r, eval=FALSE}
+# Read in the sumstats you want to clean
+# sumstats <- readr::read_tsv("path/to_sumstats/gwas.tsv.gz")
+df <- tidyGWAS_columns(
+  df = sumstats,
+  CHR = "CHROM",
+  POS = "BP",
+  A1 = "Allele1"
+)
+
+cleaned <- tidyGWAS(
+  # we f
+  tbl = df, 
+  dbsnp_path = dbsnp_files,
+  # it's useful to write all the messages to a logfile, so messages are saved.
+  logfile=TRUE,
+  # by default, the name of the output folder is a concotonated call to Sys.time()
+  # but you can adjust this by using the name argument
+  name = "my_first_tidyGWAS",
+  # by default, the saved file is written out as a gzipped csv file,
+  # however, the arrow parquet format offers many advantages over the classical csv file
+  output_format = "parquet",
+  # by passing the argument outdir, you can tell tidyGWAS to copy over files
+  # after a finished execution to that directory
+  outdir = gwas_folder
+  )
+
+
+```
+
+# In depth walk-through
+
+Let's walk through each step more carefully, using some example files
+provided in the tidyGWAS package. We will be using a version of the
+sumstats from the latest GWAS on schizophrenia from the Psychiatric
+Genomics Consortium
+[(PGC3)](https://www.nature.com/articles/s41586-022-04434-5)
 
 ```{r}
 library(tidyGWAS)
 library(fs)
 example_file <- tidyGWAS::test_file
 
-# Change this to fit your own system. Here a very small demo version is used
-dbsnp_file <-  path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
+```
 
+The columns have been renamed to follow the tidyGWAS format:
 
+```{r}
+colnames(example_file)
+```
+
+```{r}
+example_file |> 
+  head()
+
+```
+
+The only mandatory argument is `tbl`. tidyGWAS accepts either a
+in-memory data.frame or a filepath to tsv file. if `dbsnp_path` is not
+passed, tidyGWAS cannot perform any functions relating to dbSNP, such as
+repairing CHR or POS, or detecting and providing coordinate on both
+genome builds.
+
+```{r}
+# here we use the example files provided in the tidyGWAS package
+dbsnp_file <-  fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
 suppressMessages(
   cleaned <- tidyGWAS(
-  # only tbl (the data.frame), is a mandatory argument.
-  tbl = example_file, 
-  # However, if the dbsnp_path argument is not passed,
-  # no comparisons against dbSNP155 will be done, or any
-  # merged RSIDs will be updated
-  dbsnp_path = dbsnp_file
+    tbl = example_file 
+    # dbsnp_path = dbsnp_file
   )
 )
 
 
 ```
 
-### A more typical functional call
+### A more typical workflow 
 
-Typically, you will call `tidyGWAS()` with a few more arguments. By default `tidyGWAS()` will use `base::tempdir()` to write to during execution. In addition, the cleaned sumstat is also returned by the function. The final output will also be saved in this tempdir. Since its a temporary directory, you will loose all files if you exit the R Session. This behaviour can be adjusteded with the `outdir` argument.
+Typically, you will call `tidyGWAS()` with a few more arguments than the
+example above. By default `tidyGWAS()` will use `base::tempdir()` to
+write to during execution. In addition, the cleaned sumstat is also
+returned by the function. This means that files will NOT be saved after
+you quit the R session.\
+This behavior can be adjusted with the `outdir` argument, where files
+will be copied to `outdir` after a successful run.
 
 Let's take a look at how a more typical call to tidyGWAS would look:
 
-```{r}
-# here is where you would substite your own sumstats, either as a filepath,
-# or in-memory data.frame
+1.  `logfile` can be set to TRUE, so the output of tidyGWAS will be
+    saved in a logfile
+2.  `name` The output directory can be named as a convenience.
+3.  `output_format` tidyGWAS supports three output formats: 'csv',
+    'parquet' or 'hivestyle'
+4.  `outdir` a filepath to a directory where you want to store the
+    output
 
+```{r}
 # your own sumstat
 your_sumstats <- tidyGWAS::test_file
 
 # a directory where you want your data to be stored after succesful cleaning.
+# here we are using a tempdir, as an example
 gwas_folder <- withr::local_tempdir()
 
 cleaned <- tidyGWAS(
@@ -117,26 +170,56 @@ cleaned <- tidyGWAS(
   outdir = gwas_folder
   )
 
+
 ```
 
-Now we have saved our output in `gwas_folder` . By using the `name` and `outdir` argument, tidyGWAS has saved all the output in our outdir, in a directory named "my_first_tidyGWAS".
-
-Inside this folder we have several files that can be used to understand what tidyGWAS has done.
-
-tidyGWAS_logfile.txt contains the messages you see printed above.
-
-in /pipeline_info/ we can find files containing the rowid of all rows that were removed.
-
-In /raw_sumstats.parquet, we can find the raw sumstats, as we passed it to `tidyGWAS()`.
+If we take a look in the output folder we provided, we can see that a
+new folder has been created, called 'my_first_tidyGWAS' - the `name`
+argument we passed
 
 ```{r}
-dir_ls(gwas_folder, recurse = TRUE)
+list.files(gwas_folder, recursive = TRUE)
 ```
 
+If we take a look at all the files inside this directory, we can see
+that we a lot of files. This is to make it easy to understand what
+exactly tidyGWAS has done.
+
+Removed rows are written out, with the reason for removal in the
+filename:
+
+```         
+my_first_tidyGWAS/pipeline_info/removed_rows*
+```
+
+The cleaned output:
+
+```         
+my_first_tidyGWAS/cleaned_GRCh38.parquet
+```
+
+logfile:
+
+```         
+my_first_tidyGWAS/tidyGWAS_logfile.txt" 
+```
+
+The sumstat, prior to any cleaning:
+
+```         
+"my_first_tidyGWAS/raw_sumstats.parquet"     
+```
+
+```{r}
+list.files(gwas_folder, recursive = TRUE)
+```
 
 ## Creating the correct column names
 
-tidyGWAS does not automatically detect column names, but expect the `dplyr::tibble()` to contain the correct column names. `tidyGWAS_columns` is a helper function created to match column name to the tidyGWAS format.
+tidyGWAS does not automatically detect column names, but expect the
+`dplyr::tibble()` to contain the correct column names.
+`tidyGWAS_columns` is a helper function created to match column name to
+the tidyGWAS format.
 
 ```{r}
 # what if we have a file where POS was named bp, and B was named BETA?
@@ -162,11 +245,12 @@ head(correct_names)
 
 # Parallel computation
 
-The Apache Arrow C++ implementation, automatically detects and uses multiple cores.
-In some cases, for example when running tidyGWAS in a HPC cluster, you might need to
-manually set the number of cores, which can be done using the `OMP_NUM_THREADS` 
-variable. This should not be a larger number of cores than what you have requested in
-your HPC job (in the example below, the "--cpus-per-task" flag)
+The Apache Arrow C++ implementation, automatically detects and uses
+multiple cores. In some cases, for example when running tidyGWAS in a
+HPC cluster, you might need to manually set the number of cores, which
+can be done using the `OMP_NUM_THREADS` variable. This should not be a
+larger number of cores than what you have requested in your HPC job (in
+the example below, the "--cpus-per-task" flag)
 
 ```{bash, eval=FALSE}
 
@@ -182,10 +266,11 @@ Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandA
 
 ```
 
-
 # Computational cost
 
-Memory use and time scales with the size of the summary statistics. From running tidyGWAS experimentally, here's an estimation of time and memory.
+Memory use and time scales with the size of the summary statistics. From
+running tidyGWAS experimentally, here's an estimation of time and
+memory.
 
 #### CPU usage
 
@@ -200,19 +285,27 @@ For 60 million rows:
 
 ### Memory usage and number of rows
 
-The memory usage will likely be the main constraint with increasing size of summary statistics.
+The memory usage will likely be the main constraint with increasing size
+of summary statistics.
 
 1.  20 million rows \< 20gb
 2.  40 million rows \< 40gb
 3.  60 million rows \< 75gb
 
-
-
 # Reading in files from disk
 
-Behind the scenes, tidyGWAS uses `arrow::read_delim_arrow()` to read in the file using the filepath provided.
+Behind the scenes, tidyGWAS uses `arrow::read_delim_arrow()` to read in
+the file using the filepath provided.
 
-Through `...`, you can pass specific arguments if your file requires adjustments to read in, such as `delim = "\t"`. You can read more about this [here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html). In general, if your GWAS is in a file format that tidyGWAS struggles to read in properly, it is often easier toread in the file using `data.table::fread()` or `readr::read_tsv`, or any package that focus specifically on reading in files, and then passing the data.frame to tidyGWAS in-memory.
+Through `...`, you can pass specific arguments if your file requires
+adjustments to read in, such as `delim = "\t"`. You can read more about
+this
+[here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html).
+In general, if your GWAS is in a file format that tidyGWAS struggles to
+read in properly, it is often easier to read in the file using
+`data.table::fread()` or `readr::read_tsv`, or any package that focus
+specifically on reading in files, and then passing the data.frame to
+tidyGWAS in-memory.
 
 ```{r, eval = FALSE}
 
@@ -224,29 +317,32 @@ tidyGWAS(
 
 ```
 
-# Useful functions
-tidyGWAS exposes many of it's internal functions, if there is only a specific part you want to use.
+# download_ref_data() is not working
 
-### Getting B and SE from Z, N and EAF
 
-`repair_stats()` can be used to add any missing statistics column, such as P, Z, B or SE, depending on which columns exist. 
-Note that this imputation is not error free, and will not perfectly impute missing data.
+tidyGWAS uses a version dbSNP 155 converted to the [Apache
+Arrow](https://arrow.apache.org) .parquet files. You can download the
+dbSNP155 reference file from inside R using the `googledrive` package,
+or by manually navigating to this
+[file](https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link)
 
 ```{r, eval = FALSE}
-example_file <- dplyr::tibble(test_file)
-# Has Z , EAF and N, but not B and SE (Which are commonly used for PRS)
-tmp <- dplyr::mutate(example_file, Z = B/SE, N = CaseN + ControlN) |> 
-  dplyr::select(-B, -SE)
-repaired <- repair_stats(tmp)
+# You can download the file from inside R using the googledrive package:
+library(googledrive)
+googledrive::drive_deauth()
+id <- googledrive::as_id("1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6")
 
-# the Betas will be on a standardized scale, and can therefore be different
-# than what was initially there
-dplyr::inner_join(example_file, repaired,by = "RSID") |> dplyr::select(B.x, B.y) |> 
-  dplyr::summarise(cor(B.x, B.y))
+##### EDIT THIS:
+filepath_to_store_dir <- ""
+##### ---------------------
 
-
-# Getting Z, if you only have B and P
-
+drive_download(id, path = filepath_to_store_dir)
 ```
 
+The file needs to be untarred
 
+```{bash, eval = FALSE}
+# change directory to where the downloaded file is
+tar -xf dbSNP155.tar dbSNP155
+
+```
