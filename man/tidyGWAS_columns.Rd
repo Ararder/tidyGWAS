@@ -32,7 +32,7 @@ tidyGWAS_columns(
 
 \item{RSID}{rsID from dbSNP}
 
-\item{EffectAllele}{allele corresponding to effect, B}
+\item{EffectAllele}{allele corresponding to effect}
 
 \item{OtherAllele}{non-effect allele}
 
@@ -60,8 +60,13 @@ tidyGWAS_columns(
 a tibble with changes column names
 }
 \description{
-tidyGWAS functions assumes fixed column names. This function facilitates
-renaming column into tidyGWAS format.
+\code{\link[=tidyGWAS]{tidyGWAS()}} requires the column names to be in a specific format.
+This function facilitates that format, and also provides a list of all the columns
+tidyGWAS considers valid. Any columns with a non tidyGWAS column name will be dropped.
+}
+\details{
+The function is a simple wrapper around \code{\link[dplyr:select]{dplyr::select()}}, with each possible
+tidyGWAS column as an argument-
 }
 \examples{
 wrong_format <- dplyr::tibble(CHROM = 1, bp = 1000, A1 = "C", A2 = "A", Effect = 0.05)
@@ -69,4 +74,12 @@ formatted <- tidyGWAS_columns(
 wrong_format, CHR = "CHROM", POS = "bp",
 EffectAllele = "A1", OtherAllele = "A2", B = "Effect"
 )
+# columns that are wrongly named and NOT passed to tidyGWAS_columns() are dropped
+wrong_format <- dplyr::tibble(CHROM = 1, bp = 1000, A1 = "C", A2 = "A", Effect = 0.05)
+tidyGWAS_columns(
+wrong_format, CHR = "CHROM", POS = "bp",
+EffectAllele = "A1"
+)
+
+
 }

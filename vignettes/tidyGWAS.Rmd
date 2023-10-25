@@ -38,17 +38,15 @@ download_ref_files(ref_dir)
 
 # the reference files will be stored in ref_dir/dbSNP155
 dbsnp_files <- paste0(ref_dir, "/dbSNP155")
-# the reference data will be stored in
 ```
 
 ### Provide column names tidyGWAS understands
 
 tidyGWAS does NOT automatically parse common column names, so you need
-to provide it with the correct column names. tidyGWAS_columns is a
+to provide it with the correct column names. `tidyGWAS_columns()` is a
 helper function to do this. tidyGWAS uses the following naming:
 
-CHR POS RSID EffectAllele OtherAllele EAF B SE P N CaseN ControlN N INFO
-OR
+CHR POS RSID EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z
 
 ```{r, eval=FALSE}
 # Read in the sumstats you want to clean
@@ -57,12 +55,12 @@ df <- tidyGWAS_columns(
   df = sumstats,
   CHR = "CHROM",
   POS = "BP",
-  A1 = "Allele1"
+  EffectAllele = "Allele1"
 )
 
 cleaned <- tidyGWAS(
-  # we f
   tbl = df, 
+  # provide the filepath to the refence files you downloaded previously
   dbsnp_path = dbsnp_files,
   # it's useful to write all the messages to a logfile, so messages are saved.
   logfile=TRUE,
@@ -91,39 +89,58 @@ Genomics Consortium
 ```{r}
 library(tidyGWAS)
 library(fs)
-example_file <- tidyGWAS::test_file
 
+example_sumstats <- tidyGWAS::test_file
+# here we use the example files provided in the tidyGWAS package
+example_ref_file <-  fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
+
+#The columns have been renamed to follow the tidyGWAS format:
+
+colnames(example_sumstats)
 ```
 
-The columns have been renamed to follow the tidyGWAS format:
-
 ```{r}
-colnames(example_file)
-```
-
-```{r}
-example_file |> 
+example_sumstats |> 
   head()
 
 ```
 
 The only mandatory argument is `tbl`. tidyGWAS accepts either a
-in-memory data.frame or a filepath to tsv file. if `dbsnp_path` is not
-passed, tidyGWAS cannot perform any functions relating to dbSNP, such as
-repairing CHR or POS, or detecting and providing coordinate on both
-genome builds.
+in-memory `base::data.frame()` or a filepath to text file. If you pass a filepath
+to a text file, tidyGWAS will attempt to read it using `arrow::read_tsv_arrow()`.
 
-```{r}
-# here we use the example files provided in the tidyGWAS package
-dbsnp_file <-  fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
-suppressMessages(
-  cleaned <- tidyGWAS(
-    tbl = example_file 
-    # dbsnp_path = dbsnp_file
-  )
+It's not uncommon for sumstats to have formats that is not supported by this function,
+in which case i recommend you read in the file using `data.table::fread()` or
+`readr::read_tsv()` first, and then pass the `data.frame` to `tidyGWAS()`.
+
+if `dbsnp_path` is not passed, tidyGWAS will skip any functions relating to dbSNP, such as
+repairing CHR or POS, or detecting and providing coordinate on both genome builds.
+
+```{r, eval=FALSE}
+# a minimal example, without dbSNP reference files
+cleaned <- tidyGWAS(
+  tbl = example_sumstats 
+  # dbsnp_path = dbsnp_file
 )
+```
 
 
+```{r, eval=FALSE}
+# Passing a filepath also works
+cleaned <- tidyGWAS(
+  tbl = "/home/all_sumstats/raw_sumstats.txt.gz"
+  dbsnp_path = dbsnp_file
+)
+```
+
+```{r, eval = FALSE}
+# if the file is not parsed correctly using arrow::read_tsv_arrow, you can use
+# data.table::fread() or readr::read_tsv() first, and then pass the data.frame to tidyGWAS  
+df <- data.table::fread("/home/all_sumstats/raw_sumstats.txt.gz")
+cleaned <- tidyGWAS(
+  tbl = df,
+  dbsnp_path = dbsnp_file
+)
 ```
 
 ### A more typical workflow 
@@ -148,15 +165,15 @@ Let's take a look at how a more typical call to tidyGWAS would look:
 
 ```{r}
 # your own sumstat
-your_sumstats <- tidyGWAS::test_file
+example_file <- tidyGWAS::test_file
 
 # a directory where you want your data to be stored after succesful cleaning.
 # here we are using a tempdir, as an example
 gwas_folder <- withr::local_tempdir()
 
 cleaned <- tidyGWAS(
-  tbl = your_sumstats, 
-  dbsnp_path = dbsnp_file,
+  tbl = example_file, 
+  dbsnp_path = example_ref_file,
   # it's useful to write all the messages to a logfile, so messages are saved.
   logfile=TRUE,
   # by default, the name of the output folder is a concotonated call to Sys.time()
@@ -201,23 +218,21 @@ my_first_tidyGWAS/cleaned_GRCh38.parquet
 logfile:
 
 ```         
-my_first_tidyGWAS/tidyGWAS_logfile.txt" 
+my_first_tidyGWAS/tidyGWAS_logfile.txt
 ```
 
 The sumstat, prior to any cleaning:
 
 ```         
-"my_first_tidyGWAS/raw_sumstats.parquet"     
+my_first_tidyGWAS/raw_sumstats.parquet
 ```
 
-```{r}
-list.files(gwas_folder, recursive = TRUE)
-```
+
 
 ## Creating the correct column names
 
 tidyGWAS does not automatically detect column names, but expect the
-`dplyr::tibble()` to contain the correct column names.
+`data.frame()` to contain the correct column names.
 `tidyGWAS_columns` is a helper function created to match column name to
 the tidyGWAS format.
 
@@ -245,8 +260,9 @@ head(correct_names)
 
 # Parallel computation
 
-The Apache Arrow C++ implementation, automatically detects and uses
-multiple cores. In some cases, for example when running tidyGWAS in a
+tidGWAS automatically detects the number of cores, and uses it to parallelize
+the alignment with dbSNP.
+In some cases, for example when running tidyGWAS in a
 HPC cluster, you might need to manually set the number of cores, which
 can be done using the `OMP_NUM_THREADS` variable. This should not be a
 larger number of cores than what you have requested in your HPC job (in
@@ -292,30 +308,6 @@ of summary statistics.
 2.  40 million rows \< 40gb
 3.  60 million rows \< 75gb
 
-# Reading in files from disk
-
-Behind the scenes, tidyGWAS uses `arrow::read_delim_arrow()` to read in
-the file using the filepath provided.
-
-Through `...`, you can pass specific arguments if your file requires
-adjustments to read in, such as `delim = "\t"`. You can read more about
-this
-[here](https://arrow.apache.org/docs/r/reference/read_delim_arrow.html).
-In general, if your GWAS is in a file format that tidyGWAS struggles to
-read in properly, it is often easier to read in the file using
-`data.table::fread()` or `readr::read_tsv`, or any package that focus
-specifically on reading in files, and then passing the data.frame to
-tidyGWAS in-memory.
-
-```{r, eval = FALSE}
-
-file <- data.table::fread("/file/that/is/challenging_to_read.vcf.gz")
-tidyGWAS(
-  tbl = file,
-  dbsnp_path = dbsnp_files
-)
-
-```
 
 # download_ref_data() is not working
 

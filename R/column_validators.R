@@ -94,7 +94,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
   # use EffectAllele and OtherAllele from sumstats, not from parsed format
   without_rsid <- split_rsid_by_regex(invalid_rsid_format) |>
     dplyr::select(-EffectAllele, -OtherAllele) |>
-    dplyr::inner_join(dplyr::select(tbl, rowid, EffectAllele, OtherAllele), by = "rowid")
+    dplyr::inner_join(dplyr::select(invalid_rsid_format, -RSID), by = "rowid")
 
 
   # print results to user, if any rows have been parsed correctly
@@ -122,7 +122,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 
   # clean up flags
   main <- dplyr::filter(tbl, !invalid_rsid) |> dplyr::select(-invalid_rsid)
-  without_rsid <- dplyr::select(without_rsid, -RSID)
+  without_rsid <- dplyr::select(without_rsid, -RSID, -invalid_rsid)
 
 
 

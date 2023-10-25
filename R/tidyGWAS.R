@@ -490,14 +490,18 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
 #' Create a [dplyr::tibble()] with tidyGWAS column names
 #'
-#' tidyGWAS functions assumes fixed column names. This function facilitates
-#' renaming column into tidyGWAS format.
+#' [tidyGWAS()] requires the column names to be in a specific format.
+#' This function facilitates that format, and also provides a list of all the columns
+#' tidyGWAS considers valid. Any columns with a non tidyGWAS column name will be dropped.
+#'
+#' The function is a simple wrapper around [dplyr::select()], with each possible
+#' tidyGWAS column as an argument-
 #'
 #' @param tbl a [dplyr::tibble()] or something coercible to one
 #' @param CHR chromosome
 #' @param POS position
 #' @param RSID rsID from dbSNP
-#' @param EffectAllele allele corresponding to effect, B
+#' @param EffectAllele allele corresponding to effect
 #' @param OtherAllele  non-effect allele
 #' @param B Beta, effect,
 #' @param SE standard error
@@ -519,6 +523,14 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 #' wrong_format, CHR = "CHROM", POS = "bp",
 #' EffectAllele = "A1", OtherAllele = "A2", B = "Effect"
 #' )
+#' # columns that are wrongly named and NOT passed to tidyGWAS_columns() are dropped
+#' wrong_format <- dplyr::tibble(CHROM = 1, bp = 1000, A1 = "C", A2 = "A", Effect = 0.05)
+#' tidyGWAS_columns(
+#' wrong_format, CHR = "CHROM", POS = "bp",
+#' EffectAllele = "A1"
+#' )
+#'
+#'
 tidyGWAS_columns <- function(
     tbl,
     CHR = "CHR",
@@ -602,12 +614,13 @@ check_correct_files <- function(dir) {
 #' download_ref_files("path/to_dir")
 #' }
 download_ref_files <- function(save_dir) {
+  rlang::check_installed("googledrive")
   # check that save_path is writeable
   if(!dir.exists(save_dir)) {
     stop("save_dir does not exist, please provide a filepath to an existing directory")
   }
 
-  cli::cli_alert_info("Starting download of reference files using {.code googledrive::drive_download()}.This will take about 20 minutes")
+  cli::cli_alert_info("Starting download of reference files using {.code googledrive::drive_download()}")
   save_path <- paste0(save_dir, "/drive_tmp_download.tar")
   googledrive::drive_deauth()
   googledrive::drive_download(googledrive::as_id("1aZ_y1gpkW69Gd2hYk1P4r7OeofgG9pwK"), save_path)
@@ -622,7 +635,7 @@ download_ref_files <- function(save_dir) {
   cli::cli_inform("Checking that downloaded files are correct..:")
   check_correct_files(paste0(save_dir, "/dbSNP155"))
 
-  cli::cli_alert_success("Use {.path {save_path}} as input to {.code tidyGWAS()}")
+  cli::cli_alert_success("Use {.path {paste0(save_dir, /dbSNP155')}} as input to {.code tidyGWAS()}")
 
 
 }
