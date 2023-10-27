@@ -104,13 +104,15 @@
 need to provide it with the correct column names.
 <code><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns()</a></code> is a helper function to do this.
 tidyGWAS uses the following naming:</p>
-<p>CHR POS RSID EffectAllele OtherAllele EAF B SE P CaseN ControlN N
-INFO OR Z</p>
+<p>Note: If your RSID column is in the format CHR:BP:A1:A2, you can
+still pass it as RSID. Note: If N is missing from your sumstats, you can
+pass that later in [tidyGWAS()] The tidyGWAS column names: CHR POS RSID
+EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Read in the sumstats you want to clean</span></span>
 <span><span class="co"># sumstats &lt;- readr::read_tsv("path/to_sumstats/gwas.tsv.gz")</span></span>
 <span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns</a></span><span class="op">(</span></span>
-<span>  df <span class="op">=</span> <span class="va">sumstats</span>,</span>
+<span>  tbl <span class="op">=</span> <span class="va">sumstats</span>,</span>
 <span>  CHR <span class="op">=</span> <span class="st">"CHROM"</span>,</span>
 <span>  POS <span class="op">=</span> <span class="st">"BP"</span>,</span>
 <span>  EffectAllele <span class="op">=</span> <span class="st">"Allele1"</span></span>
@@ -119,18 +121,20 @@ INFO OR Z</p>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
 <span>  tbl <span class="op">=</span> <span class="va">df</span>, </span>
 <span>  <span class="co"># provide the filepath to the refence files you downloaded previously</span></span>
-<span>  dbsnp_path <span class="op">=</span> <span class="va">dbsnp_files</span>,</span>
+<span>  <span class="co"># and add dbSNP155</span></span>
+<span>  dbsnp_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dbsnp_files</span>, <span class="st">"/dbSNP155"</span><span class="op">)</span>,</span>
 <span>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
 <span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
 <span>  <span class="co"># by default, the name of the output folder is a concotonated call to Sys.time()</span></span>
 <span>  <span class="co"># but you can adjust this by using the name argument</span></span>
 <span>  name <span class="op">=</span> <span class="st">"my_first_tidyGWAS"</span>,</span>
 <span>  <span class="co"># by default, the saved file is written out as a gzipped csv file,</span></span>
-<span>  <span class="co"># however, the arrow parquet format offers many advantages over the classical csv file</span></span>
-<span>  output_format <span class="op">=</span> <span class="st">"parquet"</span>,</span>
+<span>  <span class="co"># but tidyGWAS can also use the parquet format</span></span>
+<span>  <span class="co"># If N is missing, you can set n with the study_n Aargument</span></span>
+<span>  <span class="co"># study_n = 150000</span></span>
+<span>  output_format <span class="op">=</span> <span class="st">"csv"</span></span>
 <span>  <span class="co"># by passing the argument outdir, you can tell tidyGWAS to copy over files</span></span>
 <span>  <span class="co"># after a finished execution to that directory</span></span>
-<span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -253,13 +257,13 @@ store the output</li>
 <span>  <span class="co"># after a finished execution to that directory</span></span>
 <span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/Rtmp0brwbC/my_first_tidyGWAS/my_first_tidyGWAS/tidyGWAS_logfile.txt</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmphWVVhQ/my_first_tidyGWAS/my_first_tidyGWAS/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.5.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-10-25 13:13:34.860139, with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files during execution to <span style="color: #0000BB;">/tmp/Rtmp0brwbC/my_first_tidyGWAS/my_first_tidyGWAS</span>,</span></span>
+<span><span class="co">#&gt; Starting at 2023-10-27 07:57:50.827003, with 100000 rows in input data.frame</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files during execution to <span style="color: #0000BB;">/tmp/RtmphWVVhQ/my_first_tidyGWAS/my_first_tidyGWAS</span>,</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> After execution, files will be copied to <span style="color: #0000BB;">/tmp/Rtmp0brwbC/file1a506a011053/my_first_tidyGWAS</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> After execution, files will be copied to <span style="color: #0000BB;">/tmp/RtmphWVVhQ/file19d9631add14/my_first_tidyGWAS</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -284,7 +288,7 @@ store the output</li>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 175 rows with updated RSID</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; •</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp0brwbC/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/updated_rsid.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmphWVVhQ/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/updated_rsid.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -358,7 +362,7 @@ store the output</li>
 <span><span class="co">#&gt; Using CHR, POS and RSID to align with dbSNP</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by matching 10000 rows to GRCh37 and GRCh38</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3461 snps matched GRCh38, 9999 for GRCh37, inferring build to be 37</span></span>
+<span><span class="co">#&gt; 3434 snps matched GRCh38, 9999 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows had incompatible CHR:POS and RSID data. These have been updated</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -368,7 +372,7 @@ store the output</li>
 <span><span class="co">#&gt;   no_dbsnp_entry: 11</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; • Removed a total of 11 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmp0brwbC/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/removed_rows_main_validate_with_dbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmphWVVhQ/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/removed_rows_main_validate_with_dbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -410,7 +414,7 @@ store the output</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 12.7s</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 10.6s</span></span></code></pre></div>
 <p>If we take a look in the output folder we provided, we can see that a
 new folder has been created, called ‘my_first_tidyGWAS’ - the
 <code>name</code> argument we passed</p>
