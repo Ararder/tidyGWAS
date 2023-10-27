@@ -46,13 +46,16 @@ tidyGWAS does NOT automatically parse common column names, so you need
 to provide it with the correct column names. `tidyGWAS_columns()` is a
 helper function to do this. tidyGWAS uses the following naming:
 
+Note: If your RSID column is in the format CHR:BP:A1:A2, you can still pass it as RSID.
+Note: If N is missing from your sumstats, you can pass that later in [tidyGWAS()]
+The tidyGWAS column names:
 CHR POS RSID EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z
 
 ```{r, eval=FALSE}
 # Read in the sumstats you want to clean
 # sumstats <- readr::read_tsv("path/to_sumstats/gwas.tsv.gz")
 df <- tidyGWAS_columns(
-  df = sumstats,
+  tbl = sumstats,
   CHR = "CHROM",
   POS = "BP",
   EffectAllele = "Allele1"
@@ -61,18 +64,20 @@ df <- tidyGWAS_columns(
 cleaned <- tidyGWAS(
   tbl = df, 
   # provide the filepath to the refence files you downloaded previously
-  dbsnp_path = dbsnp_files,
+  # and add dbSNP155
+  dbsnp_path = paste0(dbsnp_files, "/dbSNP155"),
   # it's useful to write all the messages to a logfile, so messages are saved.
   logfile=TRUE,
   # by default, the name of the output folder is a concotonated call to Sys.time()
   # but you can adjust this by using the name argument
   name = "my_first_tidyGWAS",
   # by default, the saved file is written out as a gzipped csv file,
-  # however, the arrow parquet format offers many advantages over the classical csv file
-  output_format = "parquet",
+  # but tidyGWAS can also use the parquet format
+  # If N is missing, you can set n with the study_n Aargument
+  # study_n = 150000
+  output_format = "csv"
   # by passing the argument outdir, you can tell tidyGWAS to copy over files
   # after a finished execution to that directory
-  outdir = gwas_folder
   )
 
 

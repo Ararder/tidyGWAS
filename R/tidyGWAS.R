@@ -635,7 +635,7 @@ download_ref_files <- function(save_dir) {
   cli::cli_inform("Checking that downloaded files are correct..:")
   check_correct_files(paste0(save_dir, "/dbSNP155"))
 
-  cli::cli_alert_success("Use {.path {paste0(save_dir, /dbSNP155')}} as input to {.code tidyGWAS()}")
+  cli::cli_alert_success("Use {.path {paste0(save_dir, /dbSNP155)}} as input to {.code tidyGWAS()}")
 
 
 }
