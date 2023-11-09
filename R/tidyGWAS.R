@@ -475,7 +475,7 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
     outfile <- paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/")
     arrow::write_csv_arrow(df, paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/"))
-    system(glue::glue("gzip {outfile}"))
+
 
   }
 
