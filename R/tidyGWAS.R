@@ -106,7 +106,7 @@ tidyGWAS <- function(
   }
 
   # write out the raw sumstats to always be able to find what changes was made to input file
-  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"), compression = "gzip")
+  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"))
 
   # welcome message ----------------------------------------------------------
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")

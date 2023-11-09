@@ -124,7 +124,7 @@ remove_duplicates <- function(tbl, filepaths) {
     out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
     cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
     cli::cli_li("{.file {out}}")
-    arrow::write_parquet(removed, out, compression = "gzip")
+    arrow::write_parquet(removed, out)
   } else {
     cli::cli_alert_success("Found no duplications")
   }
@@ -259,7 +259,7 @@ make_callback <- function(id) {
 
 
 
-    arrow::write_parquet(remove, outpath, compression = "gzip")
+    arrow::write_parquet(remove, outpath)
 
     dplyr::select(tbl, -dplyr::where(is.logical)) |>
       dplyr::filter(!rowid %in% remove$rowid)

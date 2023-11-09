@@ -115,7 +115,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 
     cli::cli_alert_danger("{nrow(failed)} rows had invalid RSID that could not be parsed and are removed.")
     cli::cli_inform("{.file {outpath}}")
-    arrow::write_parquet(failed, outpath, compression = "gzip")
+    arrow::write_parquet(failed, outpath)
 
   }
 
