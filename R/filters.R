@@ -19,17 +19,17 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 
   tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
 
-  if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) {
+  # check that no columns are ALL na's
+  cli::cli_h3("2) Checking for columns with all NA")
+  na_cols <- colnames(tbl)[colSums(is.na(tbl)) == nrow(tbl)]
+  tbl <- dplyr::select(tbl, -dplyr::all_of(na_cols))
+  cli::cli_alert_danger("The following columns were removed as they contained only NA's:
+                         {.emph {na_cols}}")
 
-    stop("Either CHR and POS or RSID are required columns")
+  # check that obligatory columns exist
+  if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) stop("Either CHR and POS or RSID are required columns")
+  if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) stop("EffectAllele and OtherAllele are required columns")
 
-  }
-
-  if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) {
-
-    stop("EffectAllele and OtherAllele are required columns")
-
-  }
 
   # handle N ----------------------------------------------------------------
 

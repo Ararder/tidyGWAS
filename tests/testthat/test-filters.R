@@ -48,6 +48,9 @@ test_that("select_correct_columns work", {
   expect_no_error(
     tmp_func(test_sumstat)
   )
+  # one column with all NAs should not result in all rows being removed
+  tmp <- dplyr::mutate(test_sumstat, EAF = NA_real_)
+  expect_true(nrow(select_correct_columns(tmp)) == nrow(test_sumstat))
 
 })
 
