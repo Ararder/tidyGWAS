@@ -114,28 +114,35 @@ tidyGWAS <- function(
   cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
   cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
 
-  # remove columns without tidyGWAS column names
+
+  # 0) formatting --------------------------------------------------------------
+
   tbl <- select_correct_columns(tbl, study_n)
 
-  # drop any rows with NAs
+
+  # 1) Drop na -----------------------------------------------------------------
+
   cli::cli_h2("1) Scanning for rows with NA")
   tbl <- remove_rows_with_na(tbl, filepaths)
 
-  # update RSID
+
+  # 2) update RSID -------------------------------------------------------------
+
   cli::cli_h2("2) Updating merged RSIDs")
   if("RSID" %in% colnames(tbl) & !missing(dbsnp_path)) tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
 
-  # remove duplicated rows, using CHR:POS:REF:ALT or RSID:REF:ALT to construct ID
+
+  # 3) Remove duplicated SNPs --------------------------------------------------
+
+
   cli::cli_h2("3) Scanning for rows with duplications")
   tbl <- remove_duplicates(tbl, filepaths = filepaths)
 
-
-  # -------------------------------------------------------------------------
-  # Need to split out the sumstats into separate data.frames
-  # 1) main, 2) indels, 3) inalid_rsid
-
+  # setup data foramts
   data_list <- vector("list", length = 3)
   names(data_list) <- c("main", "indels", "without_rsid")
+
+  # 4) detect indels ----------------------------------------------------------
 
   cli::cli_h2("4) Scanning for indels")
   tbl <- detect_indels(tbl, keep_indels, filepaths)
@@ -155,7 +162,10 @@ tidyGWAS <- function(
 
   }
 
-  # here the cleaning is split apart into three separate data.tables: main, indels, without_rsid
+
+
+  # 6) Validate columns --------------------------------------------------------
+
   cli::cli_h2("6) Column validation is done separately for main rows, rows without RSID and indels")
   filter_funcs <-  purrr::map(paste0(filepaths$removed_rows, c("main", "indels", "without_rsid"), "_col_validation"), make_callback)
   cols_to_not_validate <- list("", c("EffectAllele","OtherAllele"), "")
@@ -165,7 +175,10 @@ tidyGWAS <- function(
   data_list <- list(tbl = data_list, remove_cols = cols_to_not_validate, filter_func = filter_funcs, verbose = list(verbose), convert_p = list(convert_p), id = id) |>
     purrr::pmap(validate_sumstat)
 
-  # perform checks that need dbSNP if dbsnp_paths is passed
+
+  # 7) Overlap with dbSNP ------------------------------------------------------
+
+
   if(!missing(dbsnp_path)) {
 
     cli::cli_h2("7 Using dbSNP to repair and validate CHR:POS:RSID")
@@ -182,7 +195,9 @@ tidyGWAS <- function(
 
   data_list <- NULL
 
-  # repair stats if passed
+
+  # 8) repair missing statistics columns ------------------------------------
+
   if(repair_cols) {
 
     cli::cli_h2("8) Repairing missings columns if possible")
@@ -200,21 +215,21 @@ tidyGWAS <- function(
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
 
 
+  # -------------------------------------------------------------------------
   # end of pipeline  --------------------------------------------------------
-  # write out into fileformat dependnding on output_format
-  write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
+  # -------------------------------------------------------------------------
 
-  # exit header
+
+  write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
+  if(outdir != tempdir()) file.copy(filepaths$base, outdir, recursive = TRUE)
   fmt <- prettyunits::pretty_dt(Sys.time() - start_time)
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
   cli::cli_alert_info("Total running time: {fmt}")
 
-  # -------------------------------------------------------------------------
-  if(outdir != tempdir()) file.copy(filepaths$base, outdir, recursive = TRUE)
-
-
+  # let function return the cleaned sumstats
   main
+
 }
 
 
