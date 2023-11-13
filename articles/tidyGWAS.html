@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -125,16 +125,7 @@ EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z</p>
 <span>  dbsnp_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dbsnp_files</span>, <span class="st">"/dbSNP155"</span><span class="op">)</span>,</span>
 <span>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
 <span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
-<span>  <span class="co"># by default, the name of the output folder is a concotonated call to Sys.time()</span></span>
-<span>  <span class="co"># but you can adjust this by using the name argument</span></span>
-<span>  name <span class="op">=</span> <span class="st">"my_first_tidyGWAS"</span>,</span>
-<span>  <span class="co"># by default, the saved file is written out as a gzipped csv file,</span></span>
-<span>  <span class="co"># but tidyGWAS can also use the parquet format</span></span>
-<span>  <span class="co"># If N is missing, you can set n with the study_n Aargument</span></span>
-<span>  <span class="co"># study_n = 150000</span></span>
 <span>  output_format <span class="op">=</span> <span class="st">"csv"</span></span>
-<span>  <span class="co"># by passing the argument outdir, you can tell tidyGWAS to copy over files</span></span>
-<span>  <span class="co"># after a finished execution to that directory</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -232,7 +223,9 @@ convenience.</li>
 ‘csv’, ‘parquet’ or ‘hivestyle’</li>
 <li>
 <code>outdir</code> a filepath to a directory where you want to
-store the output</li>
+store the output. This folder should not exist before running tidyGWAS.
+If it does, tidyGWAS will throw an error to prevent overwriting of
+files</li>
 </ol>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own sumstat</span></span>
@@ -240,7 +233,7 @@ store the output</li>
 <span></span>
 <span><span class="co"># a directory where you want your data to be stored after succesful cleaning.</span></span>
 <span><span class="co"># here we are using a tempdir, as an example</span></span>
-<span><span class="va">gwas_folder</span> <span class="op">&lt;-</span> <span class="fu">withr</span><span class="fu">::</span><span class="fu"><a href="https://withr.r-lib.org/reference/with_tempfile.html" class="external-link">local_tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">gwas_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>pattern <span class="op">=</span> <span class="st">"tidyGWAS"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
 <span>  tbl <span class="op">=</span> <span class="va">example_file</span>, </span>
@@ -249,7 +242,6 @@ store the output</li>
 <span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
 <span>  <span class="co"># by default, the name of the output folder is a concotonated call to Sys.time()</span></span>
 <span>  <span class="co"># but you can adjust this by using the name argument</span></span>
-<span>  name <span class="op">=</span> <span class="st">"my_first_tidyGWAS"</span>,</span>
 <span>  <span class="co"># by default, the saved file is written out as a gzipped csv file,</span></span>
 <span>  <span class="co"># however, the arrow parquet format offers many advantages over the classical csv file</span></span>
 <span>  output_format <span class="op">=</span> <span class="st">"parquet"</span>,</span>
@@ -257,26 +249,23 @@ store the output</li>
 <span>  <span class="co"># after a finished execution to that directory</span></span>
 <span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpfcRIQ3/my_first_tidyGWAS/my_first_tidyGWAS/tidyGWAS_logfile.txt</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpFJIRBH/tidyGWAS1a21d9fd0c1/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.6</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-11-11 14:35:27.585937, with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving all files during execution to <span style="color: #0000BB;">/tmp/RtmpfcRIQ3/my_first_tidyGWAS/my_first_tidyGWAS</span>,</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> After execution, files will be copied to <span style="color: #0000BB;">/tmp/RtmpfcRIQ3/file19924023902f/my_first_tidyGWAS</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.6.1</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; Starting at 2023-11-13 10:42:41.783518, with 100000 rows in input data.frame</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpFJIRBH/tidyGWAS1a21d9fd0c1</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 1) Checking that columns follow tidyGWAS format </span></span>
+<span><span class="co">#&gt; ── Checking that columns follow tidyGWAS format </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> The following columns are used for further steps: <span style="font-style: italic;">CHR</span>, <span style="font-style: italic;">POS</span>, <span style="font-style: italic;">RSID</span>, <span style="font-style: italic;">EffectAllele</span>, <span style="font-style: italic;">OtherAllele</span>, <span style="font-style: italic;">B</span>, <span style="font-style: italic;">SE</span>, <span style="font-style: italic;">EAF</span>, <span style="font-style: italic;">INFO</span>, <span style="font-style: italic;">P</span>, <span style="font-style: italic;">CaseN</span>, <span style="font-style: italic;">ControlN</span>, and <span style="font-style: italic;">rowid</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 2) Checking for columns with all NA </span></span>
+<span><span class="co">#&gt; ── Checking for columns with all NA </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #BB0000;">✖</span> The following columns were removed as they contained only NA's:</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no columns with all NA</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -294,8 +283,7 @@ store the output</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> 175 rows with updated RSID</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; •</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpfcRIQ3/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/updated_rsid.parquet</span></span></span>
+<span><span class="co">#&gt; • <span style="color: #0000BB;">/tmp/RtmpFJIRBH/tidyGWAS1a21d9fd0c1/pipeline_info/updated_rsid.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -369,7 +357,7 @@ store the output</li>
 <span><span class="co">#&gt; Using CHR, POS and RSID to align with dbSNP</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by matching 10000 rows to GRCh37 and GRCh38</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3471 snps matched GRCh38, 10000 for GRCh37, inferring build to be 37</span></span>
+<span><span class="co">#&gt; 3385 snps matched GRCh38, 9999 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows had incompatible CHR:POS and RSID data. These have been updated</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -379,7 +367,7 @@ store the output</li>
 <span><span class="co">#&gt;   no_dbsnp_entry: 11</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; • Removed a total of 11 rows:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpfcRIQ3/my_first_tidyGWAS/my_first_tidyGWAS/pipeline_info/removed_rows_main_validate_with_dbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpFJIRBH/tidyGWAS1a21d9fd0c1/pipeline_info/removed_rows_main_validate_with_dbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -421,32 +409,20 @@ store the output</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 11 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 11.4s</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 7.3s</span></span></code></pre></div>
 <p>If we take a look in the output folder we provided, we can see that a
-new folder has been created, called ‘my_first_tidyGWAS’ - the
-<code>name</code> argument we passed</p>
+new folder has been created, we can see the standard files that tidyGWAS
+will output</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "my_first_tidyGWAS/cleaned_GRCh38.parquet"                                             </span></span>
-<span><span class="co">#&gt; [2] "my_first_tidyGWAS/pipeline_info/removed_rows_main_col_validation.parquet"             </span></span>
-<span><span class="co">#&gt; [3] "my_first_tidyGWAS/pipeline_info/removed_rows_main_validate_with_dbsnp.parquet"        </span></span>
-<span><span class="co">#&gt; [4] "my_first_tidyGWAS/pipeline_info/removed_rows_without_rsid_col_validation.parquet"     </span></span>
-<span><span class="co">#&gt; [5] "my_first_tidyGWAS/pipeline_info/removed_rows_without_rsid_validate_with_dbsnp.parquet"</span></span>
-<span><span class="co">#&gt; [6] "my_first_tidyGWAS/pipeline_info/updated_rsid.parquet"                                 </span></span>
-<span><span class="co">#&gt; [7] "my_first_tidyGWAS/raw_sumstats.parquet"                                               </span></span>
-<span><span class="co">#&gt; [8] "my_first_tidyGWAS/tidyGWAS_logfile.txt"</span></span></code></pre></div>
-<p>If we take a look at all the files inside this directory, we can see
-that we a lot of files. This is to make it easy to understand what
-exactly tidyGWAS has done.</p>
-<p>Removed rows are written out, with the reason for removal in the
-filename:</p>
-<pre><code>my_first_tidyGWAS/pipeline_info/removed_rows*</code></pre>
-<p>The cleaned output:</p>
-<pre><code><span><span class="va">my_first_tidyGWAS</span><span class="op">/</span><span class="va">cleaned_GRCh38.parquet</span></span></code></pre>
-<p>logfile:</p>
-<pre><code><span><span class="va">my_first_tidyGWAS</span><span class="op">/</span><span class="va">tidyGWAS_logfile.txt</span></span></code></pre>
-<p>The sumstat, prior to any cleaning:</p>
-<pre><code><span><span class="va">my_first_tidyGWAS</span><span class="op">/</span><span class="va">raw_sumstats.parquet</span></span></code></pre>
+<span><span class="co">#&gt; [1] "cleaned_GRCh38.parquet"                                             </span></span>
+<span><span class="co">#&gt; [2] "pipeline_info/removed_rows_main_col_validation.parquet"             </span></span>
+<span><span class="co">#&gt; [3] "pipeline_info/removed_rows_main_validate_with_dbsnp.parquet"        </span></span>
+<span><span class="co">#&gt; [4] "pipeline_info/removed_rows_without_rsid_col_validation.parquet"     </span></span>
+<span><span class="co">#&gt; [5] "pipeline_info/removed_rows_without_rsid_validate_with_dbsnp.parquet"</span></span>
+<span><span class="co">#&gt; [6] "pipeline_info/updated_rsid.parquet"                                 </span></span>
+<span><span class="co">#&gt; [7] "raw_sumstats.parquet"                                               </span></span>
+<span><span class="co">#&gt; [8] "tidyGWAS_logfile.txt"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="creating-the-correct-column-names">Creating the correct column names<a class="anchor" aria-label="anchor" href="#creating-the-correct-column-names"></a>
@@ -455,7 +431,7 @@ filename:</p>
 <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame()</a></code> to contain the correct column names.
 <code>tidyGWAS_columns</code> is a helper function created to match
 column name to the tidyGWAS format.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># what if we have a file where POS was named bp, and B was named BETA?</span></span>
 <span><span class="co"># tidyGWAS will not recognize these as valid column names and would drop them.</span></span>
 <span><span class="va">wrong_colnames</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span><span class="va">example_file</span>, bp <span class="op">=</span> <span class="va">POS</span>, BETA <span class="op">=</span> <span class="va">B</span><span class="op">)</span></span>
@@ -474,7 +450,7 @@ column name to the tidyGWAS format.</p>
 <span><span class="co">#&gt; 4 0.2556345 0.996 0.807400 53386    77258</span></span>
 <span><span class="co">#&gt; 5 0.3318173 0.971 0.857800 53386    77258</span></span>
 <span><span class="co">#&gt; 6 0.4470432 1.010 0.001594 53386    77258</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># we can use tidyGWAS_columns to specify current names:</span></span>
 <span><span class="va">correct_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns</a></span><span class="op">(</span></span>
 <span>  <span class="co"># first argument is the data.frame</span></span>
@@ -510,16 +486,16 @@ number of cores, which can be done using the
 <code>OMP_NUM_THREADS</code> variable. This should not be a larger
 number of cores than what you have requested in your HPC job (in the
 example below, the “–cpus-per-task” flag)</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
@@ -562,7 +538,7 @@ size of summary statistics.</p>
 <p>tidyGWAS uses a version dbSNP 155 converted to the <a href="https://arrow.apache.org" class="external-link">Apache Arrow</a> .parquet files. You can
 download the dbSNP155 reference file from inside R using the
 <code>googledrive</code> package, or by manually navigating to this <a href="https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link" class="external-link">file</a></p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># You can download the file from inside R using the googledrive package:</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://googledrive.tidyverse.org" class="external-link">googledrive</a></span><span class="op">)</span></span>
 <span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_deauth</span><span class="op">(</span><span class="op">)</span></span>
@@ -574,8 +550,8 @@ download the dbSNP155 reference file from inside R using the
 <span></span>
 <span><span class="fu">drive_download</span><span class="op">(</span><span class="va">id</span>, path <span class="op">=</span> <span class="va">filepath_to_store_dir</span><span class="op">)</span></span></code></pre></div>
 <p>The file needs to be untarred</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

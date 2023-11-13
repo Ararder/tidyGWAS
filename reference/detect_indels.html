@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect_indels</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">keep_indels</span>, <span class="va">filepaths</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect_indels</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">indel_strategy</span>, <span class="va">filepaths</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -60,8 +60,8 @@
 <dd><p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code> as created by <code><a href="parse_tbl.html">parse_tbl()</a></code></p></dd>
 
 
-<dt>keep_indels</dt>
-<dd><p>Should indels be kept?</p></dd>
+<dt>indel_strategy</dt>
+<dd><p>Should indels be kept or removed?</p></dd>
 
 
 <dt>filepaths</dt>

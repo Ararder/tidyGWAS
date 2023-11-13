@@ -42,7 +42,7 @@ used to standardise column names, and see the standard format."><!-- mathjax -->
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -105,14 +105,13 @@ used to standardise column names, and see the standard format.</p>
 <span>  <span class="va">dbsnp_path</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"hivestyle"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
 <span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
-<span>  outdir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  outdir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"/"</span>, <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html" class="external-link">str_replace_all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/date.html" class="external-link">date</a></span><span class="op">(</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>` ` <span class="op">=</span> <span class="st">"_"</span>,</span>
+<span>    `:` <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="va">study_n</span>,</span>
 <span>  convert_p <span class="op">=</span> <span class="fl">2.225074e-308</span>,</span>
-<span>  name <span class="op">=</span> <span class="fu">stringr</span><span class="fu">::</span><span class="fu"><a href="https://stringr.tidyverse.org/reference/str_replace.html" class="external-link">str_replace_all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/date.html" class="external-link">date</a></span><span class="op">(</span><span class="op">)</span>, pattern <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>` ` <span class="op">=</span> <span class="st">"_"</span>, `:` <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  keep_indels <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  indel_strategy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"keep"</span>, <span class="st">"remove"</span><span class="op">)</span>,</span>
 <span>  repair_cols <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  logfile <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  log_on_err <span class="op">=</span> <span class="st">"tidyGWAS_logfile.txt"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  add_missing_build <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -144,7 +143,7 @@ used to standardise column names, and see the standard format.</p>
 
 
 <dt>outdir</dt>
-<dd><p>Where should results be saved after a succesful execution?</p></dd>
+<dd><p>filepath to a folder where data should be stored.</p></dd>
 
 
 <dt>study_n</dt>
@@ -157,12 +156,8 @@ the N column missing. study_n can be used to set the N column.</p></dd>
 <dd><p>What value should be used for P = 0?</p></dd>
 
 
-<dt>name</dt>
-<dd><p>name of the output directory</p></dd>
-
-
-<dt>keep_indels</dt>
-<dd><p>Should indels be kept?</p></dd>
+<dt>indel_strategy</dt>
+<dd><p>Should indels be kept or removed?</p></dd>
 
 
 <dt>repair_cols</dt>
@@ -171,10 +166,6 @@ the N column missing. study_n can be used to set the N column.</p></dd>
 
 <dt>logfile</dt>
 <dd><p>Should messages be redirected to a logfile?</p></dd>
-
-
-<dt>log_on_err</dt>
-<dd><p>Optional. Can pass a filepath to copy the logfile to when the function exists.</p></dd>
 
 
 <dt>verbose</dt>
