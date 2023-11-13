@@ -48,18 +48,16 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
 #'
 #' @param build Can be used to skip [infer_build()]
-#' @param outdir Where should results be saved after a succesful execution?
+#' @param outdir filepath to a folder where data should be stored.
 #' @param convert_p What value should be used for P = 0?
-#' @param name name of the output directory
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
 #' @param study_n Sometimes N is missing from GWAS summary statistics. It is then
 #' often much more useful to set a study-wide N for all rows, instead of leaving
 #' the N column missing. study_n can be used to set the N column.
-#' @param keep_indels Should indels be kept?
+#' @param indel_strategy Should indels be kept or removed?
 #' @param repair_cols Should any missing columns be repaired?
 #' @param add_missing_build Should the build which the sumstats are NOT on also be added in?
 #' @param logfile Should messages be redirected to a logfile?
-#' @param log_on_err Optional. Can pass a filepath to copy the logfile to when the function exists.
 #' @param verbose Explain filters in detail?
 #'
 #' @return a [dplyr::tibble()]
@@ -76,14 +74,12 @@ tidyGWAS <- function(
     dbsnp_path,
     output_format = c("csv","hivestyle", "parquet"),
     build = c("NA","37", "38"),
-    outdir = tempdir(),
+    outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
     study_n,
     convert_p = 2.225074e-308,
-    name = stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")),
-    keep_indels = TRUE,
+    indel_strategy = c("keep", "remove"),
     repair_cols = TRUE,
     logfile = FALSE,
-    log_on_err="tidyGWAS_logfile.txt",
     verbose = FALSE,
     add_missing_build = TRUE
     ) {
@@ -95,14 +91,14 @@ tidyGWAS <- function(
   rows_start <- nrow(tbl)
   output_format <- rlang::arg_match(output_format)
   build = rlang::arg_match(build)
-  filepaths <- setup_pipeline_paths(name = name)
+  indel_strategy = rlang::arg_match(indel_strategy)
+  filepaths <- setup_pipeline_paths(outdir = outdir)
 
   # setup logging -----------------------------------------------------------
   if(isTRUE(logfile)) {
     cli::cli_alert_info("Output is redirected to logfile: {.file {filepaths$logfile}}")
     withr::local_message_sink(filepaths$logfile)
     withr::local_output_sink(filepaths$logfile)
-    if(!missing(log_on_err)) on.exit(file.copy(filepaths$logfile, log_on_err), add=TRUE)
   }
 
   # write out the raw sumstats to always be able to find what changes was made to input file
@@ -111,8 +107,7 @@ tidyGWAS <- function(
   # welcome message ----------------------------------------------------------
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {start_time}, with {rows_start} rows in input data.frame")
-  cli::cli_alert_info("Saving all files during execution to {.file {filepaths$base}},")
-  cli::cli_alert_info("After execution, files will be copied to {.file {paste(outdir,name, sep = '/')}}")
+  cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
 
 
   # 0) formatting --------------------------------------------------------------
@@ -145,7 +140,7 @@ tidyGWAS <- function(
   # 4) detect indels ----------------------------------------------------------
 
   cli::cli_h2("4) Scanning for indels")
-  tbl <- detect_indels(tbl, keep_indels, filepaths)
+  tbl <- detect_indels(tbl, indel_strategy, filepaths)
   data_list$main <- tbl$main
   if(!is.null(tbl$indels)) data_list$indels <- tbl$indels
   tbl <- NULL
@@ -221,7 +216,6 @@ tidyGWAS <- function(
 
 
   write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
-  if(outdir != tempdir()) file.copy(filepaths$base, outdir, recursive = TRUE)
   fmt <- prettyunits::pretty_dt(Sys.time() - start_time)
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
@@ -446,21 +440,22 @@ identify_removed_rows <- function(finished, filepaths) {
 #' @export
 #'
 #' @examples
-#' setup_pipeline_paths("tidyGWAS_first")
-setup_pipeline_paths <- function(name) {
+#' setup_pipeline_paths(tempfile())
+setup_pipeline_paths <- function(outdir) {
 
   # define workdir
-  stopifnot("name for setup_pipeline_paths has to be a character" = is.character(name))
-  workdir <- paste(tempdir(), name, name, sep = "/")
-  pipeline_info <- paste(workdir,"pipeline_info", sep = "/")
-  if(!dir.exists(workdir)) dir.create(workdir, recursive = TRUE)
-  if(!dir.exists(pipeline_info)) dir.create(pipeline_info, recursive = TRUE)
+  stopifnot("The provided output folder already exists" = !dir.exists(outdir))
+  pipeline_info <- paste(outdir,"pipeline_info", sep = "/")
+  dir.create(outdir, recursive = TRUE)
+  dir.create(pipeline_info, recursive = TRUE)
+
+
 
 
   list(
-    "base" = workdir,
-    "logfile" = paste0(workdir, "/tidyGWAS_logfile.txt"),
-    "cleaned" = paste(workdir, "tidyGWAS_hivestyle", sep = "/"),
+    "base" = outdir,
+    "logfile" = paste0(outdir, "/tidyGWAS_logfile.txt"),
+    "cleaned" = paste(outdir, "tidyGWAS_hivestyle", sep = "/"),
 
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),

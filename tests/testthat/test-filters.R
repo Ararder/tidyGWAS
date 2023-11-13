@@ -57,8 +57,7 @@ test_that("select_correct_columns work", {
 
 
 test_that("dups are removed", {
-  name <-   basename(withr::local_tempdir())
-  filepaths <- setup_pipeline_paths(name)
+  filepaths <- setup_pipeline_paths(tempfile())
   out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
   expect_no_error(remove_duplicates(tbl = test_sumstat, filepaths = filepaths))
   expect_true(!file.exists(out))
@@ -77,8 +76,8 @@ test_that("dups are removed", {
 
 
 test_that("NA rows are removed", {
-  name <-   basename(withr::local_tempdir())
-  filepaths <- setup_pipeline_paths("testing")
+
+  filepaths <- setup_pipeline_paths(tempfile())
 
   test_sumstat$RSID <- dplyr::if_else(test_sumstat$CHR == "6", NA_character_, test_sumstat$RSID)
   expect_no_error(remove_rows_with_na(test_sumstat, filepaths))
@@ -89,8 +88,8 @@ test_that("NA rows are removed", {
 
 
 test_that("indels are removed", {
-  name <-   basename(withr::local_tempdir())
-  filepaths <- setup_pipeline_paths(name)
+
+  filepaths <- setup_pipeline_paths(tempfile())
 
 
   expect_no_error(detect_indels(pval_as_char_df, FALSE, filepaths))
@@ -103,4 +102,3 @@ test_that("indels are removed", {
 })
 
 
-# if("RSID" %in% colnames(tbl) & !missing(dbsnp_path)) tbl <- update_rsid(tbl, dbsnp_paths = dbsp_paths)

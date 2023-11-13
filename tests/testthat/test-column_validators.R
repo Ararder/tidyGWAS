@@ -4,7 +4,7 @@
 
 test_that("validate RSIDs does not error", {
   # what happens if validate_rid cannot parse format?
-  filepaths <- setup_pipeline_paths("test-validate-rsid")
+  filepaths <- setup_pipeline_paths(tempfile())
   # setup cases
   # 1) no invalid rsids
   expect_no_error(validate_rsid(pval_as_char_df,filepaths$failed_rsid_parse, verbose = FALSE))
@@ -64,7 +64,7 @@ test_that("Validate_columns works", {
 })
 
 test_that("validate sumstat", {
-  filepaths <- setup_pipeline_paths("automated-testing")
+  filepaths <- setup_pipeline_paths(tempfile())
 
   pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
 

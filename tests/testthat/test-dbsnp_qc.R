@@ -1,6 +1,6 @@
 test_that("Repair_chr_pos works", {
 
-  mock_arrow()
+
 
   tmp <- dplyr::select(test_sumstat, -CHR, -POS) |>
     flag_invalid_rsid() |>
@@ -14,7 +14,7 @@ test_that("Repair_chr_pos works", {
 
 
 test_that("Repair_rsid works", {
-  mock_arrow()
+
   tmp <-
     dplyr::mutate(test_sumstat,  CHR = as.character(CHR), rowid = 1:nrow(test_sumstat)) |>
     dplyr::select(rowid, CHR, POS, RSID, EffectAllele, OtherAllele)
@@ -27,7 +27,7 @@ test_that("Repair_rsid works", {
 
 
 test_that("verify_chr_pos_rsid works", {
-  mock_arrow()
+
 
 
   expect_no_error(verify_chr_pos_rsid(test_sumstat, dbsnp_path = dbsnp_files))
@@ -44,7 +44,7 @@ test_that("verify_chr_pos_rsid works", {
 
 
 test_that("infer_build runs", {
-  mock_arrow()
+
   expect_no_error(infer_build(test_sumstat, dbsnp_path = dbsnp_files))
 })
 

@@ -10,8 +10,8 @@
 
 test_that("validate_with_dbsnp, all cols", {
 
-  mock_arrow()
-  paths <- setup_pipeline_paths("testing")
+
+  paths <- setup_pipeline_paths(tempfile())
 
   tbl <- dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid)
 
@@ -24,8 +24,8 @@ test_that("validate_with_dbsnp, all cols", {
 })
 
 test_that("validate_with_dbsnp, RSID", {
-  mock_arrow()
-  paths <- setup_pipeline_paths("testing")
+
+  paths <- setup_pipeline_paths(tempfile("tidyGWAS"))
 
   tmp <- dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid) |>
     dplyr::select(-CHR, -POS)
@@ -38,7 +38,7 @@ test_that("validate_with_dbsnp, RSID", {
 })
 
 test_that("validate_with_dbsnp, CHR and POS", {
-  paths <- setup_pipeline_paths("testing")
+  paths <- setup_pipeline_paths(tempfile("tidyGWAS"))
   tmp <- list()
   tmp$main <- dplyr::select(test_sumstat, -RSID) |>
     dplyr::mutate(CHR = as.character(CHR))
@@ -55,7 +55,7 @@ test_that("validate_with_dbsnp, CHR and POS", {
 # tidyGWAS ----------------------------------------------------------------
 
 test_that("can read in file from disk", {
-  mock_arrow()
+
   file <- withr::local_tempfile()
   arrow::write_csv_arrow(test_sumstat, file)
 
@@ -65,7 +65,6 @@ test_that("can read in file from disk", {
 
 
 test_that("Testing with CHR and POS", {
-  mock_arrow()
 
 
   expect_no_error(
@@ -101,7 +100,7 @@ test_that("Testing with CHR and POS", {
 
 test_that("Handles edge cases", {
 
-    mock_arrow()
+
 
 
     tfile <- flag_invalid_rsid(test_sumstat)
@@ -125,8 +124,8 @@ test_that("Handles edge cases", {
 
 
 test_that("setup_pipeline_paths works", {
-  basename(withr::local_tempfile())
-  expect_no_error(setup_pipeline_paths("testing"))
+
+  expect_no_error(setup_pipeline_paths(tempfile()))
 
 })
 
@@ -141,14 +140,12 @@ test_that("write_finished_tidyGWAS works", {
     unlink(paste(filepaths$base, "cleaned_GRCh38.parquet", sep="/"))
 
   }
-  mock_arrow()
   finished <- tidyGWAS(
     tbl = test_sumstat,
     logfile = TRUE,
     dbsnp_path = dbsnp_files,
-    name = "test-write_finished_tidyGWAS"
   )
-  filepaths <- setup_pipeline_paths("test-write_finished_tidyGWAS")
+  filepaths <- setup_pipeline_paths(tempfile())
   cleanup(filepaths)
   expect_no_error(write_finished_tidyGWAS(finished, output_format = "hivestyle", outdir = tempdir(), filepaths = filepaths))
   cleanup(filepaths)

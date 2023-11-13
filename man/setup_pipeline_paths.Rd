@@ -4,10 +4,10 @@
 \alias{setup_pipeline_paths}
 \title{Create the folder structure for tidyGWAS}
 \usage{
-setup_pipeline_paths(name)
+setup_pipeline_paths(outdir)
 }
 \arguments{
-\item{name}{name of the output directory}
+\item{outdir}{filepath to a folder where data should be stored.}
 }
 \value{
 a list of filepaths
@@ -16,5 +16,5 @@ a list of filepaths
 Create the folder structure for tidyGWAS
 }
 \examples{
-setup_pipeline_paths("tidyGWAS_first")
+setup_pipeline_paths(tempfile())
 }

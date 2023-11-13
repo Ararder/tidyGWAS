@@ -68,16 +68,7 @@ cleaned <- tidyGWAS(
   dbsnp_path = paste0(dbsnp_files, "/dbSNP155"),
   # it's useful to write all the messages to a logfile, so messages are saved.
   logfile=TRUE,
-  # by default, the name of the output folder is a concotonated call to Sys.time()
-  # but you can adjust this by using the name argument
-  name = "my_first_tidyGWAS",
-  # by default, the saved file is written out as a gzipped csv file,
-  # but tidyGWAS can also use the parquet format
-  # If N is missing, you can set n with the study_n Aargument
-  # study_n = 150000
   output_format = "csv"
-  # by passing the argument outdir, you can tell tidyGWAS to copy over files
-  # after a finished execution to that directory
   )
 
 
@@ -166,7 +157,8 @@ Let's take a look at how a more typical call to tidyGWAS would look:
 3.  `output_format` tidyGWAS supports three output formats: 'csv',
     'parquet' or 'hivestyle'
 4.  `outdir` a filepath to a directory where you want to store the
-    output
+    output. This folder should not exist before running tidyGWAS. If it does, 
+    tidyGWAS will throw an error to prevent overwriting of files
 
 ```{r}
 # your own sumstat
@@ -174,7 +166,7 @@ example_file <- tidyGWAS::test_file
 
 # a directory where you want your data to be stored after succesful cleaning.
 # here we are using a tempdir, as an example
-gwas_folder <- withr::local_tempdir()
+gwas_folder <- tempfile(pattern = "tidyGWAS")
 
 cleaned <- tidyGWAS(
   tbl = example_file, 
@@ -183,7 +175,6 @@ cleaned <- tidyGWAS(
   logfile=TRUE,
   # by default, the name of the output folder is a concotonated call to Sys.time()
   # but you can adjust this by using the name argument
-  name = "my_first_tidyGWAS",
   # by default, the saved file is written out as a gzipped csv file,
   # however, the arrow parquet format offers many advantages over the classical csv file
   output_format = "parquet",
@@ -196,41 +187,13 @@ cleaned <- tidyGWAS(
 ```
 
 If we take a look in the output folder we provided, we can see that a
-new folder has been created, called 'my_first_tidyGWAS' - the `name`
-argument we passed
+new folder has been created, we can see the standard files that tidyGWAS will output
 
 ```{r}
 list.files(gwas_folder, recursive = TRUE)
 ```
 
-If we take a look at all the files inside this directory, we can see
-that we a lot of files. This is to make it easy to understand what
-exactly tidyGWAS has done.
 
-Removed rows are written out, with the reason for removal in the
-filename:
-
-```         
-my_first_tidyGWAS/pipeline_info/removed_rows*
-```
-
-The cleaned output:
-
-```         
-my_first_tidyGWAS/cleaned_GRCh38.parquet
-```
-
-logfile:
-
-```         
-my_first_tidyGWAS/tidyGWAS_logfile.txt
-```
-
-The sumstat, prior to any cleaning:
-
-```         
-my_first_tidyGWAS/raw_sumstats.parquet
-```
 
 
 

@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics with minimal filtering
-Version: 0.6
+Version: 0.6.1
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
@@ -16,12 +16,13 @@ Imports:
     dplyr,
     glue,
     purrr,
+    prettyunits,
     stats,
     stringr,
     rlang,
     tidyr,
+    utils
     withr,
-    prettyunits
 Suggests: 
     fs,
     googledrive,
@@ -29,7 +30,6 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tictoc,
-    utils
 RoxygenNote: 7.2.3
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3

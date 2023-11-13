@@ -7,9 +7,8 @@
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {
-		"packages": "pak,tidyverse,arrow"
-		}
+		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {},
+		"ghcr.io/eliises/devcontainer-features/devcontainers-cli:1": {}
 	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.

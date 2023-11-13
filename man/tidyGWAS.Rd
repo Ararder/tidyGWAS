@@ -10,14 +10,13 @@ tidyGWAS(
   dbsnp_path,
   output_format = c("csv", "hivestyle", "parquet"),
   build = c("NA", "37", "38"),
-  outdir = tempdir(),
+  outdir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` = "_",
+    `:` = "_"))),
   study_n,
   convert_p = 2.225074e-308,
-  name = stringr::str_replace_all(date(), pattern = c(` ` = "_", `:` = "_")),
-  keep_indels = TRUE,
+  indel_strategy = c("keep", "remove"),
   repair_cols = TRUE,
   logfile = FALSE,
-  log_on_err = "tidyGWAS_logfile.txt",
   verbose = FALSE,
   add_missing_build = TRUE
 )
@@ -38,7 +37,7 @@ tidyGWAS(
 
 \item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
-\item{outdir}{Where should results be saved after a succesful execution?}
+\item{outdir}{filepath to a folder where data should be stored.}
 
 \item{study_n}{Sometimes N is missing from GWAS summary statistics. It is then
 often much more useful to set a study-wide N for all rows, instead of leaving
@@ -46,15 +45,11 @@ the N column missing. study_n can be used to set the N column.}
 
 \item{convert_p}{What value should be used for P = 0?}
 
-\item{name}{name of the output directory}
-
-\item{keep_indels}{Should indels be kept?}
+\item{indel_strategy}{Should indels be kept or removed?}
 
 \item{repair_cols}{Should any missing columns be repaired?}
 
 \item{logfile}{Should messages be redirected to a logfile?}
-
-\item{log_on_err}{Optional. Can pass a filepath to copy the logfile to when the function exists.}
 
 \item{verbose}{Explain filters in detail?}
 

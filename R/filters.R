@@ -11,7 +11,7 @@
 select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 
   # check input columns
-  cli::cli_h3("1) Checking that columns follow tidyGWAS format")
+  cli::cli_h3("Checking that columns follow tidyGWAS format")
   cli::cli_alert_success("The following columns are used for further steps: {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
 
   n_invalid_cols <- length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)
@@ -20,11 +20,15 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
   tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
 
   # check that no columns are ALL na's
-  cli::cli_h3("2) Checking for columns with all NA")
+  cli::cli_h3("Checking for columns with all NA")
   na_cols <- colnames(tbl)[colSums(is.na(tbl)) == nrow(tbl)]
   tbl <- dplyr::select(tbl, -dplyr::all_of(na_cols))
+  if(length(na_cols) > 0 ){
   cli::cli_alert_danger("The following columns were removed as they contained only NA's:
                          {.emph {na_cols}}")
+  } else {
+    cli::cli_alert_success("Found no columns with all NA")
+  }
 
   # check that obligatory columns exist
   if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) stop("Either CHR and POS or RSID are required columns")
@@ -202,7 +206,7 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 #' @examples \dontrun{
 #' detect_indels(sumstat, TRUE, filepaths = setup_pipeline_paths("testing"))
 #' }
-detect_indels <- function(tbl, keep_indels, filepaths) {
+detect_indels <- function(tbl, indel_strategy, filepaths) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
@@ -214,7 +218,8 @@ detect_indels <- function(tbl, keep_indels, filepaths) {
   indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
   tbl <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
   if(nrow(indels) == 0) indels <- NULL
-  if(!isTRUE(keep_indels) & !is.null(indels)) {
+
+  if(indel_strategy == "remove" & !is.null(indels)) {
 
     outpath <- paste0(filepaths$removed_rows, "indels_removed.parquet")
     arrow::write_parquet(indels, outpath)
