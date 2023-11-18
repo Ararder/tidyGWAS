@@ -5,11 +5,17 @@
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
 	"image": "ghcr.io/rocker-org/devcontainer/r-ver:4.3",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
-		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {},
-		"ghcr.io/eliises/devcontainer-features/devcontainers-cli:1": {}
+		"ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
+ 			"packages": "libbz2-dev,liblz4-dev,gzip"
+		},
+		"ghcr.io/rocker-org/devcontainer-features/r-packages:1": {
+			"notCran": true,
+			"packages": "arrow,github::ararder/tidyGWAS"
+		}
 	}
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
@@ -23,3 +29,4 @@
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "root"
 }
+
