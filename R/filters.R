@@ -66,7 +66,27 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 remove_rows_with_na <- function(tbl, filepaths) {
 
 
-  tmp <- tidyr::drop_na(tbl)
+  # remove missing values from obligatory columns ---------------------------
+
+
+  if(all(c("CHR", "POS") %in% colnames(tbl) & !"RSID" %in% colnames(tbl))) {
+
+    tmp <- tidyr::drop_na(tbl, c("CHR", "POS", "EffectAllele", "OtherAllele"))
+
+  } else if("RSID" %in% colnames(tbl) & !all(c("CHR", "POS") %in% colnames(tbl))) {
+
+    tmp <- tidyr::drop_na(tbl, c("RSID", "EffectAllele", "OtherAllele"))
+
+  } else if(all(c("CHR", "POS") %in% colnames(tbl) & "RSID" %in% colnames(tbl))) {
+    # if we have all three, recode missing RSID to "." and it will be
+    # updated if possible later
+    tmp <- dplyr::mutate(tbl, RSID = dplyr::if_else(is.na(RSID), ".", RSID))
+
+  }
+
+
+
+  # identify removed rows ---------------------------------------------------
   na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid") |>
     dplyr::select(rowid)
 

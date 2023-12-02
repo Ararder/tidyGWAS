@@ -73,6 +73,17 @@ test_that("dups are removed", {
 
 
 
+test_that("NA rows are removed", {
+
+  filepaths <- setup_pipeline_paths(tempfile())
+
+  tmp_s <- dplyr::select(test_sumstat, -RSID) |>
+    dplyr::mutate(CHR = dplyr::if_else(CHR == '6', NA_character_, CHR))
+
+  remove_rows_with_na(test_sumstat, filepaths)
+
+
+})
 
 
 test_that("NA rows are removed", {

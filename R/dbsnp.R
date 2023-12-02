@@ -7,9 +7,98 @@ utils::globalVariables(c(
 # https://www.ncbi.nlm.nih.gov/snp/docs/rs_multi_mapping/
 
 # -------------------------------------------------------------------------
+map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), duplications = c("smallest_rsid", "keep"), dbsnp_path) {
+
+
+  # checks ------------------------------------------------------------------
+
+  if(!dplyr::is.tbl(tbl)) tbl <- dplyr::tibble(tbl)
+  stopifnot("Cannot map 0 length tibble to dbsnp" = nrow(tbl) > 0)
+  stopifnot(!missing(dbsnp_path))
+  by = rlang::arg_match(by)
+  build <- rlang::arg_match(build)
+  duplications <- rlang::arg_match(duplications)
+
+  # check that RSID or CHR:POS exists
+
+  if(by == "rsid") {
+    stopifnot("When mapping with RSID, RSID needs to present" = "RSID" %in% colnames(tbl))
+    stopifnot(is.character(tbl$RSID))
+  } else {
+    stopifnot("'CHR' and 'POS' need to be present in tbl" =  all(c("CHR", "POS") %in% colnames(tbl)))
+
+  }
+
+
+  # remnant from when mapping was done with either arrow or bsgenome
+  dbsnp <- map_to_dbsnp_arrow(tbl = tbl, build = build, by= by, dbsnp_path)
+
+  # ensure correct types
+  tmp <- dplyr::mutate(dbsnp, CHR = as.character(CHR), POS = as.integer(POS), RSID = as.character(RSID)) |>
+    dplyr::distinct(CHR, POS, RSID, .keep_all = TRUE)
+
+  if(duplications == "smallest_rsid") {
+    tmp <- dplyr::distinct(dplyr::arrange(tmp, RSID), CHR, POS, .keep_all = TRUE)
+  }
+
+
+  tmp
+
+}
+
+
+map_to_dbsnp_arrow <- function(tbl, build, by, dbsnp_path) {
+  rlang::check_required(tbl)
+  rlang::check_required(build)
+  rlang::check_required(by)
+  rlang::check_required(dbsnp_path)
+  path_37 <- paste(dbsnp_path, "GRCh37", sep = "/")
+  path_38 <- paste(dbsnp_path, "GRCh38", sep ="/")
+
+  if(build == "37") path <- path_37 else path <- path_38
+  dset <- arrow::open_dataset(path)
+
+
+  if(by == "chr:pos") {
+
+    tbl$CHR <- as.character(tbl$CHR)
+    tbl$POS <- as.integer(tbl$POS)
+
+    res <-
+      split(tbl, tbl$CHR) |>
+      purrr::imap(\(df, chrom) dplyr::filter(dset, CHR == {{ chrom }} & POS %in% df$POS) |> dplyr::collect()) |>
+      purrr::list_rbind()
+
+
+  } else if(by == "rsid") {
+    # RSID is stored as integer with "rs" suffix removed for better performance
+    tbl$RSID <- as.integer(stringr::str_sub(tbl$RSID, start = 3))
+    # batching by CHR gives SIGNIFICANTLY better performance
+    # even though we check ALL rows against each chromosome
+    chrom <- c(1:22, "X", "Y", "MT")
+
+    res <-
+      purrr::map(chrom, \(chrom) dplyr::filter(dset, CHR == {{ chrom }} & RSID %in% tbl$RSID) |> dplyr::collect()) |>
+      purrr::list_rbind()
+
+  }
+
+  dplyr::rename(res, ref_allele = "REF", alt_alleles = "ALT") |>
+    dplyr::mutate(RSID = stringr::str_c("rs", RSID))
+
+}
 
 
 #' Compare CHR, POS and RSID with dbSNP reference data
+#' @description
+#' verify_chr_pos_rsid compares CHR, POS and RSID with dbSNP reference data. CHR:POS
+#' is used to map to dbSNP reference data. If no mapping is found,
+#' the variable `no_dbsnp_entry` is set to `TRUE`.
+#' If a mapping is found, the variable `no_dbsnp_entry` is set to `FALSE`. For
+#' rows where a mapping was found, a flag named `incompat_alleles` is set to `TRUE`
+#' if alleles are not compatible with reference and alt alleles in dbSNP.
+#'
+#'
 #'
 #' @param tbl a [dplyr::tibble()], formated with [tidyGWAS_columns()]
 #' @inheritParams tidyGWAS
@@ -25,78 +114,46 @@ utils::globalVariables(c(
 verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missing_build =TRUE) {
 
   # start -------------------------------------------------------------------
+
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
   build = rlang::arg_match(build)
   if(build == "NA") build <- infer_build(tbl, dbsnp_path = dbsnp_path)
 
 
   # -------------------------------------------------------------------------
-  # merge first with CHR:POS, then attempt to merge with RSID
-  # if any rows fail CHR:POS merge.
 
 
-
-  # get dbsnp data using CHR and POS
+  # get dbsnp data using CHR:POS
   dbsnp_ref <- map_to_dbsnp(tbl, build = build, by = "chr:pos", dbsnp_path = dbsnp_path)
 
-  # check for rows that doesn't match
-  chr_pos_not_in_dbsnp <- dplyr::anti_join(tbl, dbsnp_ref, by = c("CHR", "POS"))
+  tmp <- dplyr::left_join(tbl, dplyr::select(dbsnp_ref, -alt_alleles), by = c("CHR", "POS")) |>
+    dplyr::mutate(
+      no_dbsnp_entry = dplyr::if_else(is.na(RSID.y), TRUE, FALSE),
+      RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID.x)
+      )
 
-  # update with RSID from dbsnp
-  updated <- dplyr::inner_join(dplyr::select(tbl, -RSID), dplyr::select(dbsnp_ref, -alt_alleles), by = c("CHR", "POS"))
+  updated_rsid <- dplyr::filter(tmp, RSID.x != RSID.y) |> dplyr::select(rowid, RSID.x, RSID.y)
 
-  # check how many rows had RSIDs different from what was found in dbSNP
-  rsid_was_updated <- dplyr::inner_join(tbl, dbsnp_ref, by = c("CHR", "POS")) |>
-    dplyr::filter(RSID.x != RSID.y)
+  tmp <- dplyr::select(tmp, -RSID.x, -RSID.y)
 
-  # if any rows could not be found with CHR:POS mapping, try mapping with RSID
-  if(nrow(chr_pos_not_in_dbsnp > 0)) {
-
-    dbsnp_ref_2 <- map_to_dbsnp(chr_pos_not_in_dbsnp, build = build, by = "rsid", dbsnp_path = dbsnp_path)
-
-    updated_2 <- dplyr::inner_join(
-      dplyr::select(chr_pos_not_in_dbsnp, -CHR, -POS),
-      dplyr::select(dbsnp_ref_2, -alt_alleles),
-      by = "RSID"
+  if(nrow(updated_rsid) > 0) {
+    cli::cli_alert_info(
+    "A total of {nrow(updated_rsid)} rows had CHR:POS that did not match RSID in dbSNP. Updated RSID with value from dbSNP"
     )
-  } else {
-    updated_2 <- dplyr::tibble(RSID ="tmp", .rows = 0)
-    dbsnp_ref_2 <- dplyr::tibble(RSID ="tmp", .rows = 0)
   }
-  # merge the two dbsnp tables
-  dbsnp_ref <- dplyr::bind_rows(dbsnp_ref, dbsnp_ref_2) |>
-    dplyr::distinct()
-
-  # merge the two rounds of mapping
-  updated <- dplyr::bind_rows(updated, updated_2)
-
-  rows_with_changed_values <- dplyr::bind_rows(rsid_was_updated, updated_2)
-  removed <- dplyr::filter(tbl, !rowid %in% updated$rowid)
-
 
 
   # -------------------------------------------------------------------------
-
-
-
-
-  if(nrow(rows_with_changed_values) > 0) {
-    cli::cli_alert_info("A total of {nrow(rows_with_changed_values)} rows had incompatible CHR:POS and RSID data. These have been updated")
-  }
-
-
   # add flag that EffectAllele/OtherAllele is incompatible with REF/ALT in dbSNP
-  flags <- check_incompat_alleles(updated, dbsnp_df = dbsnp_ref) |>
+
+  flags <-
+    # can only do where there is a dbSNP entry
+    dplyr::filter(tmp, !no_dbsnp_entry) |>
+    check_incompat_alleles(dbsnp_df = dbsnp_ref) |>
     dplyr::select(dplyr::all_of(c("rowid", "incompat_alleles")))
 
 
-
-  tbl <-
-    dplyr::select(tbl, rowid) |>
-    dplyr::left_join(updated, by = "rowid") |>
-    dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(CHR), TRUE, FALSE)) |>
-    dplyr::left_join(flags, by = "rowid")
-
+  tbl <- dplyr::left_join(tmp, flags, by = "rowid")
 
   #3) add CHR and POS from remaining build ------------------------------------
   if(isTRUE(add_missing_build)) {
@@ -105,6 +162,8 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, ad
 
   tbl
 }
+
+
 
 
 #' Use CHR and POS to get RSID from dbSNP 155
@@ -121,13 +180,21 @@ verify_chr_pos_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, ad
 #' }
 #'
 repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missing_build=TRUE){
+
+  # parse args -------------------------------------------------------------
+
   build = rlang::arg_match(build)
-  tbl <- dplyr::select(tbl, -dplyr::any_of("RSID"))
-  if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
+  if("RSID" %in% colnames(tbl)) {
+    previous_rsid <- dplyr::select(tbl, c("rowid", "RSID"))
+    tbl <- dplyr::select(tbl, -dplyr::all_of("RSID"))
+  }
   if(build == "NA") build <- infer_build(tbl, dbsnp_path = dbsnp_path)
 
 
-  # Get RSID using CHR:POS
+
+  # map to dbsnp ------------------------------------------------------------
+
+
   dbsnp_ref <- map_to_dbsnp(tbl, build = build, by = "chr:pos", dbsnp_path = dbsnp_path)
 
   # Add RSID, and flag any rows without a matching dbSNP entry
@@ -135,8 +202,9 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missin
     dplyr::left_join(tbl, dplyr::select(dbsnp_ref, CHR,POS, RSID, ref_allele), by = c("CHR","POS")) |>
     dplyr::mutate(no_dbsnp_entry = dplyr::if_else(is.na(RSID), TRUE, FALSE))
 
+
   # identify rows with incompatible alleles
-  flags <- dplyr::select(check_incompat_alleles(tbl, dbsnp_ref), dplyr::all_of(c("rowid", "incompat_alleles")))
+  flags <- dplyr::select(check_incompat_alleles(dplyr::filter(tbl, !no_dbsnp_entry), dbsnp_ref), dplyr::all_of(c("rowid", "incompat_alleles")))
 
   # merge in flag
   tbl <- dplyr::left_join(tbl, flags, by = "rowid")
@@ -149,9 +217,6 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missin
   tbl
 
 }
-
-
-
 
 
 #' Get CHR and POS using RSID
@@ -302,49 +367,6 @@ flag_incompat_alleles <- function(tbl, dbsnp_df) {
     dplyr::select(-a1_is_ref, -a2_is_ref, -ref_allele, -alt_alleles) |>
     dplyr::filter(!incompat_alleles)
 }
-
-
-# -------------------------------------------------------------------------
-
-
-
-flatten_dbsnp <- function(dbsnp_df) {
-
-  stopifnot("flatten_dbsnp requires the following columns in dbsnp_df: CHR, POS, RSID, ref_allele,  alt_alleles"  =
-              all(c("CHR","POS", "ref_allele", "alt_alleles", "RSID") %in% colnames(dbsnp_df))
-  )
-  # dbSNP contains IUPAC ambiguity codes for cases where the reference genome
-  # can be multiple positions. (ex: ref_allele = "K", which means it can be a
-  # a G or a T)
-  # i want to map each ambiguity code (K, M, V etc, to a a vector of [A,C,G,T]),
-  # separated by ","
-  # so that i can easily expand the rows with tidyr::separate_longer_delim
-  # for this, i need to convert the Biostrings::IUPAC_CODE_MAP
-  # updated <-
-  #   stringr::str_split(Biostrings::IUPAC_CODE_MAP, "") |>
-  #   purrr::map(\(x) stringr::str_flatten(x, collapse=",")) |>
-  #   purrr::map_chr(stringr::str_c) |>
-  #   purrr::set_names(names(Biostrings::IUPAC_CODE_MAP))
-  # use_data(updated, internal = TRUE)
-  # stored in R/sysdata.rds
-
-
-  # to deal with this, i expand the possible reference alleles to multiple rows,
-  # allowing a SNP to match the specific ref allele.
-  # handle the cases where the REF or ALT allele can be multiple allelles
-  # by splitting the rows into separate rows. Each row will have one REF and one ALT.
-
-  dbsnp_df |>
-    dplyr::mutate(
-      ref_allele = updated[ref_allele],
-      alt_alleles = purrr::map_chr(alt_alleles, \(string) stringr::str_flatten(string, ","))
-    ) |>
-    tidyr::separate_longer_delim(alt_alleles, delim =",") |>
-    tidyr::separate_longer_delim(ref_allele, delim =",")
-
-}
-
-# -------------------------------------------------------------------------
 
 
 

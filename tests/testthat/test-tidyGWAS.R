@@ -102,7 +102,6 @@ test_that("Handles edge cases", {
 
 
 
-
     tfile <- flag_invalid_rsid(test_sumstat)
     tfile <- dplyr::mutate(tfile, CHR = dplyr::if_else(invalid_rsid, "50", CHR))
     tfile <- dplyr::mutate(tfile,  SE = dplyr::if_else(!invalid_rsid & CHR == "6", -50, SE))

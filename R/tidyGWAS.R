@@ -155,6 +155,9 @@ tidyGWAS <- function(
     data_list$main <- data_list$main$main
     if(nrow(data_list$main) == 0) data_list[1] <- list(NULL)
 
+    if(nrow(data_list$without_rsid) == 0) data_list[3] <- list(NULL)
+
+
   }
 
 
@@ -180,7 +183,13 @@ tidyGWAS <- function(
     cli::cli_li("Variants with CHR and POS or RSID not present in dbSNP are removed")
     cli::cli_li("Checking that EffectAllele and OtherAllele is compatible with REF and ALT in dbSNP")
 
-    data_list <- validate_with_dbsnp(data_list = data_list, build = build, dbsnp_path = dbsnp_path, filepaths = filepaths, add_missing_build = add_missing_build)
+    data_list <- validate_with_dbsnp(
+      data_list = data_list,
+      build = build,
+      dbsnp_path = dbsnp_path,
+      filepaths = filepaths,
+      add_missing_build = add_missing_build
+      )
 
     main <- data_list
 
@@ -293,33 +302,49 @@ parse_tbl <- function(tbl, ...) {
 #' validate_with_dbsnp(sumstats, build = "NA", dbsnp_path = "/dbsnp155/dbsnp")
 #' }
 #'
-validate_with_dbsnp <- function(data_list, build = c("NA", "37", "38"),filepaths, dbsnp_path, add_missing_build=TRUE) {
+validate_with_dbsnp <- function(
+    data_list,
+    dbsnp_path,
+    filepaths,
+    build = c("NA", "37", "38"),
+    add_missing_build = TRUE,
+    remove_flagged = FALSE) {
 
   rlang::check_required(dbsnp_path)
   build <- rlang::arg_match(build)
 
 
-  # -------------------------------------------------------------------------
 
+  # check which data is passed ----------------------------------------------
+  has_main <- !is.null(data_list$main)
+  has_without_rsid <- !is.null(data_list$without_rsid))
+
+
+
+  # clean main rows if they exist -------------------------------------------
 
   cli::cli_h3("7a) Starting with main rows: ")
-  if(!is.null(data_list$main)) {
+  if(has_main) {
+
     data_list$main <- repair_dbnsp(data_list$main, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
     filter_func <- make_callback(id = paste0(filepaths$removed_rows, "main_validate_with_dbsnp"))
-    data_list$main <- filter_func(data_list$main)
+
+    if(isTRUE(remove_flagged)){
+
+      data_list$main <- filter_func(data_list$main)
+
+    }
 
   }
 
-  # handle edge case of length 0 tibble in without RSID
-  if(!is.null(data_list$without_rsid)) {
-    if(nrow(data_list$without_rsid) == 0) return(dplyr::bind_rows(data_list$main, data_list$indels))
-  }
 
   if(!is.null(data_list$without_rsid)) {
     cli::cli_h3("7b) rows without RSID: ")
     data_list$without_rsid <- repair_dbnsp(data_list$without_rsid, dbsnp_path = dbsnp_path, build = build, add_missing_build = add_missing_build)
     filter_func <- make_callback(id = paste0(filepaths$removed_rows, "without_rsid_validate_with_dbsnp"))
-    data_list$without_rsid <- filter_func(data_list$without_rsid)
+    if(isTRUE(remove_flagged)){
+      data_list$without_rsid <- filter_func(data_list$without_rsid)
+    }
 
     # edge cases: -------------------------------------------------------------
     # it is possible that without_rsid subset contains rows that map to the same

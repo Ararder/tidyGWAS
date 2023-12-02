@@ -1,6 +1,8 @@
 utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR"))
 impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P", "B", "Z", "N")
 
+
+
 # -------------------------------------------------------------------------
 
 #' Validate statistics columns in a GWAS summary statistics file
