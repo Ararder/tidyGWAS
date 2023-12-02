@@ -232,7 +232,7 @@ validate_columns <- function(
 
   } else if(col == "CHR") {
 
-    valid_chr <- c(1:22, "X", "Y", "MT")
+    valid_chr <- c(1:22, "X", "Y", "MT", "XY")
     tbl <- dplyr::mutate(tbl,
                          CHR = as.character(CHR),
                          CHR = stringr::str_to_upper(CHR),
@@ -240,7 +240,7 @@ validate_columns <- function(
                          CHR = stringr::str_remove(CHR, "CHR"),
                          CHR = stringr::str_remove(CHR, "CH"),
                          # can now handle
-                         CHR = dplyr::if_else(CHR == "XY", "Y", CHR),
+                         CHR = dplyr::if_else(CHR == "XY", "XY", CHR),
                          CHR = dplyr::if_else(CHR == "23", "X", CHR),
                          CHR = dplyr::if_else(CHR == "M", "MT", CHR),
                          invalid_CHR = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)

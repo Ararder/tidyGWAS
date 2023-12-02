@@ -11,3 +11,4 @@
 ^Meta$
 ^vignettes/articles$
 ^codecov\.yml$
+.devcontainer/*

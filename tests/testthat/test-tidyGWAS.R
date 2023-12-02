@@ -6,47 +6,7 @@
 
 
 
-# validate_with_dbsnp -----------------------------------------------------
 
-test_that("validate_with_dbsnp, all cols", {
-
-
-  paths <- setup_pipeline_paths(tempfile())
-
-  tbl <- dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid)
-
-  expect_no_error(validate_with_dbsnp(data_list, build = "NA", dbsnp_path = dbsnp_files,filepaths= paths))
-
-  data_list$without_rsid <- NULL
-  expect_no_error(validate_with_dbsnp(data_list, build = "NA", dbsnp_path = dbsnp_files, filepaths = paths))
-
-
-})
-
-test_that("validate_with_dbsnp, RSID", {
-
-  paths <- setup_pipeline_paths(tempfile("tidyGWAS"))
-
-  tmp <- dplyr::filter(flag_invalid_rsid(test_sumstat), !invalid_rsid) |>
-    dplyr::select(-CHR, -POS)
-  tmp_list <- list()
-  tmp_list$main <- tmp
-
-
-  expect_no_error(validate_with_dbsnp(tmp_list, build = "NA", dbsnp_path = dbsnp_files, paths))
-
-})
-
-test_that("validate_with_dbsnp, CHR and POS", {
-  paths <- setup_pipeline_paths(tempfile("tidyGWAS"))
-  tmp <- list()
-  tmp$main <- dplyr::select(test_sumstat, -RSID) |>
-    dplyr::mutate(CHR = as.character(CHR))
-
-
-  expect_no_error(validate_with_dbsnp(tmp, build = "NA", dbsnp_path = dbsnp_files, filepaths = paths))
-
-})
 
 
 
