@@ -6,9 +6,7 @@ Briefly, tidyGWAS() updates RSID if possible using the
 refsnp-merged file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
-repair_rsid() or repair_chr_pos(). If both RSID and CHR:POS is present,
-verify_chr_pos_rsid() is executed to check that dbSNP CHR:POS:RSID agrees
-with CHR:POS:RSID in tbl.
+repair_rsid() or repair_chr_pos().
 If statistis such as P, B are missing, tidyGWAS() will attempt to impute
 them if possible using repair_stats()
 Standard column names are assumed, BEFORE inputting into the function. This is
@@ -22,9 +20,7 @@ Briefly, tidyGWAS() updates RSID if possible using the
 refsnp-merged file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
-repair_rsid() or repair_chr_pos(). If both RSID and CHR:POS is present,
-verify_chr_pos_rsid() is executed to check that dbSNP CHR:POS:RSID agrees
-with CHR:POS:RSID in tbl.
+repair_rsid() or repair_chr_pos().
 If statistis such as P, B are missing, tidyGWAS() will attempt to impute
 them if possible using repair_stats()
 Standard column names are assumed, BEFORE inputting into the function. This is
@@ -42,7 +38,7 @@ used to standardise column names, and see the standard format."><!-- mathjax -->
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,9 +81,7 @@ standardised to GRCh38, with coordinates on GRCh37 added in as well.</p>
 <a href="https://ftp.ncbi.nih.gov/snp/latest_release/JSON/" class="external-link">refsnp-merged</a> file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
-<code><a href="repair_rsid.html">repair_rsid()</a></code> or <code><a href="repair_chr_pos.html">repair_chr_pos()</a></code>. If both RSID and CHR:POS is present,
-<code><a href="verify_chr_pos_rsid.html">verify_chr_pos_rsid()</a></code> is executed to check that dbSNP CHR:POS:RSID agrees
-with CHR:POS:RSID in <code>tbl</code>.</p>
+<code><a href="repair_rsid.html">repair_rsid()</a></code> or <code><a href="repair_chr_pos.html">repair_chr_pos()</a></code>.</p>
 <p>If statistis such as <code>P</code>, <code>B</code> are missing, <code>tidyGWAS()</code> will attempt to impute
 them if possible using <code><a href="repair_stats.html">repair_stats()</a></code></p>
 <p>Standard column names are assumed, BEFORE inputting into the function. This is
@@ -110,6 +104,7 @@ used to standardise column names, and see the standard format.</p>
 <span>  <span class="va">study_n</span>,</span>
 <span>  convert_p <span class="op">=</span> <span class="fl">2.225074e-308</span>,</span>
 <span>  indel_strategy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"keep"</span>, <span class="st">"remove"</span><span class="op">)</span>,</span>
+<span>  overwrite <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  repair_cols <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  logfile <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
@@ -158,6 +153,10 @@ the N column missing. study_n can be used to set the N column.</p></dd>
 
 <dt>indel_strategy</dt>
 <dd><p>Should indels be kept or removed?</p></dd>
+
+
+<dt>overwrite</dt>
+<dd><p>Should existing files be overwritten?</p></dd>
 
 
 <dt>repair_cols</dt>

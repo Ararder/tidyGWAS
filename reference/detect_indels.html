@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect_indels</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">indel_strategy</span>, <span class="va">filepaths</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">detect_indels</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">indel_strategy</span>, <span class="va">filepaths</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -66,6 +66,10 @@
 
 <dt>filepaths</dt>
 <dd><p>a list of filepaths, created by <code><a href="setup_pipeline_paths.html">setup_pipeline_paths()</a></code></p></dd>
+
+
+<dt>...</dt>
+<dd><p>pass additional arguments to <code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_delim_arrow()</a></code>, if tbl is a filepath.</p></dd>
 
 </dl></div>
     <div class="section level2">
