@@ -47,7 +47,7 @@ test_that("repair_stats works can impute Z using B and P", {
 test_that("If OR is provided and not B, OR should be converted to B", {
   tmp1 <- dplyr::mutate(pval_as_char_df, OR = exp(B)) |>
     dplyr::select(-B)
-  repaired <- repair_stats(tmp1)
+  repaired <- select_correct_columns(tmp1)
 
 
   expect_equal(repaired$B, pval_as_char_df$B)
@@ -57,7 +57,7 @@ test_that("If OR is provided and not B, OR should be converted to B", {
 
 test_that("If OR is provided and B exists, OR should be removed", {
   tmp1 <- dplyr::mutate(pval_as_char_df, OR = exp(B))
-  repaired <- repair_stats(tmp1)
+  repaired <- select_correct_columns(tmp1)
   expect_true(!"OR" %in% colnames(repaired))
 })
 

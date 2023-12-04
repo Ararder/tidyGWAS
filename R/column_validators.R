@@ -21,9 +21,11 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 #' }
 #'
 validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FALSE, convert_p, id) {
-  if(is.null(tbl)) return(NULL)
-  if(!missing(id)) cli::cli_h3("6) Validating columns: for {id}")
+
+  # check if 0 rows tbl or NULL
   stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
+  tbl <- check_zero_rows(tbl)
+  if(is.null(tbl)) return(NULL)
 
 
   # check that column validators and implemented, and which ones exist in tbl

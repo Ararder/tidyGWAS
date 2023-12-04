@@ -2,7 +2,7 @@
 % Please edit documentation in R/dbsnp.R
 \name{repair_rsid}
 \alias{repair_rsid}
-\title{Use CHR and POS to get RSID from dbSNP 155}
+\title{Use CHR and POS to get RSID from dbSNP v.155}
 \usage{
 repair_rsid(
   tbl,
@@ -24,7 +24,15 @@ repair_rsid(
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added
 }
 \description{
-This function assumes tidyGWAS column names, see \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}
+\code{\link[=repair_rsid]{repair_rsid()}} and \code{\link[=repair_chr_pos]{repair_chr_pos()}} work similary, but assumes that either
+rsid or chr_pos is missing.
+
+The functions first check which build the input data is in using \code{\link[=infer_build]{infer_build()}}.
+Secondly, it maps each row to dbSNP using either rsid or chr_pos. Rows without a
+match are flagged with \code{no_dbsnp_entry} = TRUE. Subsequently, rows where
+EffectAllele and OtherAllele do not match the alleles in dbSNP are flagged with
+\code{incompat_alleles} = TRUE.
+Lastly, whichever build was missing is added to the data.
 }
 \examples{
 \dontrun{

@@ -4,7 +4,7 @@
 \alias{detect_indels}
 \title{Detect Insertions/Deletions ('indels')}
 \usage{
-detect_indels(tbl, indel_strategy, filepaths)
+detect_indels(tbl, indel_strategy, filepaths, ...)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
@@ -12,6 +12,8 @@ detect_indels(tbl, indel_strategy, filepaths)
 \item{indel_strategy}{Should indels be kept or removed?}
 
 \item{filepaths}{a list of filepaths, created by \code{\link[=setup_pipeline_paths]{setup_pipeline_paths()}}}
+
+\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 }
 \value{
 a tbl

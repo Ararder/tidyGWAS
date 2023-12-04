@@ -17,7 +17,15 @@ repair_chr_pos(tbl, dbsnp_path, add_missing_build = TRUE)
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} with columns \code{CHR}, \code{POS}, \code{POS_37} and \code{CHR_37} added
 }
 \description{
-Get CHR and POS using RSID
+\code{\link[=repair_rsid]{repair_rsid()}} and \code{\link[=repair_chr_pos]{repair_chr_pos()}} work similary, but assumes that either
+rsid or chr_pos is missing.
+
+The functions first check which build the input data is in using \code{\link[=infer_build]{infer_build()}}.
+Secondly, it maps each row to dbSNP using either rsid or chr_pos. Rows without a
+match are flagged with \code{no_dbsnp_entry} = TRUE. Subsequently, rows where
+EffectAllele and OtherAllele do not match the alleles in dbSNP are flagged with
+\code{incompat_alleles} = TRUE.
+Lastly, whichever build was missing is added to the data.
 }
 \examples{
 \dontrun{

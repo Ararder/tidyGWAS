@@ -35,6 +35,21 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
   if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) stop("EffectAllele and OtherAllele are required columns")
 
 
+
+  # handle B/OR -------------------------------------------------------------
+
+  if("OR" %in% colnames(tbl) & !"B" %in% colnames(tbl)) {
+    cli::cli_alert_info("Found OR but not BETA. converting to B using {.code base::log(OR)}")
+    tbl <- dplyr::mutate(tbl, B = log(OR)) |>
+      dplyr::select(-OR)
+  }
+
+  if("OR" %in% colnames(tbl) & "B" %in% colnames(tbl)) {
+    cli::cli_alert_info("found OR and B, removing OR")
+    tbl <- dplyr::select(tbl, -OR)
+  }
+
+
   # handle N ----------------------------------------------------------------
 
   if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
@@ -226,7 +241,7 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 #' @examples \dontrun{
 #' detect_indels(sumstat, TRUE, filepaths = setup_pipeline_paths("testing"))
 #' }
-detect_indels <- function(tbl, indel_strategy, filepaths) {
+detect_indels <- function(tbl, indel_strategy, filepaths,...) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
@@ -237,7 +252,16 @@ detect_indels <- function(tbl, indel_strategy, filepaths) {
   tbl <- flag_indels(tbl)
   indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
   tbl <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
-  if(nrow(indels) == 0) indels <- NULL
+  cli::cli_alert_success("Detected {nrow(indels)} rows as indels")
+
+  indels <- validate_sumstat(
+    tbl = indels,
+    filter_func = make_callback(paste0(filepaths$removed_rows, "validate_indels")),
+    id = "indel_rows",
+    # verbose = verbose,
+    # convert_p = convert_p
+    ...
+  )
 
   if(indel_strategy == "remove" & !is.null(indels)) {
 

@@ -15,6 +15,7 @@ tidyGWAS(
   study_n,
   convert_p = 2.225074e-308,
   indel_strategy = c("keep", "remove"),
+  overwrite = FALSE,
   repair_cols = TRUE,
   logfile = FALSE,
   verbose = FALSE,
@@ -47,6 +48,8 @@ the N column missing. study_n can be used to set the N column.}
 
 \item{indel_strategy}{Should indels be kept or removed?}
 
+\item{overwrite}{Should existing files be overwritten?}
+
 \item{repair_cols}{Should any missing columns be repaired?}
 
 \item{logfile}{Should messages be redirected to a logfile?}
@@ -67,9 +70,7 @@ Briefly, \code{tidyGWAS()} updates RSID if possible using the
 \href{https://ftp.ncbi.nih.gov/snp/latest_release/JSON/}{refsnp-merged} file
 from dbSNP. Each inputed column is then validated and coerced to
 the correct type. Missing CHR/POS or RSID is detected and imputed using
-\code{\link[=repair_rsid]{repair_rsid()}} or \code{\link[=repair_chr_pos]{repair_chr_pos()}}. If both RSID and CHR:POS is present,
-\code{\link[=verify_chr_pos_rsid]{verify_chr_pos_rsid()}} is executed to check that dbSNP CHR:POS:RSID agrees
-with CHR:POS:RSID in \code{tbl}.
+\code{\link[=repair_rsid]{repair_rsid()}} or \code{\link[=repair_chr_pos]{repair_chr_pos()}}.
 
 If statistis such as \code{P}, \code{B} are missing, \code{tidyGWAS()} will attempt to impute
 them if possible using \code{\link[=repair_stats]{repair_stats()}}

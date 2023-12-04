@@ -18,6 +18,7 @@ name <- "testing"
 convert_p <- 0
 verbose <- FALSE
 keep_indels <- TRUE
+overwrite = FALSE
 build <- "NA"
 tbl <- test_sumstat
 outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))

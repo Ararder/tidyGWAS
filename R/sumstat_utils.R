@@ -26,7 +26,6 @@ flag_indels <- function(tbl) {
     indel = dplyr::if_else(indel, indel, EffectAllele %in% indel_allele_codes | OtherAllele %in% indel_allele_codes)
     )
 
-  cli::cli_alert_success("Detected {sum(tbl$indel)} rows as indels")
   tbl
 
 }
@@ -105,7 +104,7 @@ split_rsid_by_regex <- function(tbl) {
 #' `repair_stats()` is a collection of functions that can be used to
 #' infer missing columns in GWAS summary statistics. The functions are based on
 #' functionality found online.
-#' @inheritParams verify_chr_pos_rsid
+#' @inheritParams repair_rsid
 #' @param verbose Should repair_stats print a masthead explaining what it does?
 #'
 #' @return a tibble
@@ -121,8 +120,6 @@ repair_stats <- function(tbl, verbose = FALSE) {
   if(isTRUE(verbose)) {
     cli::cli_h3("Repairing missing statistics columns:")
     cli::cli_ol()
-    cli::cli_li("Transform OR to B if OR exists")
-    cli::cli_li("Remove OR if both OR and B exists")
     cli::cli_li("Impute Z based on B and SE if both B and SE exist and Z is missing")
     cli::cli_li("Impute Z based on P and B if Z and SE is missing")
     cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
@@ -132,16 +129,6 @@ repair_stats <- function(tbl, verbose = FALSE) {
   start_cols <- colnames(tbl)
 
 
-  if("OR" %in% colnames(tbl) & !"B" %in% colnames(tbl)) {
-    cli::cli_alert_info("Found OR but not BETA. converting to B using {.code base::log(OR)}")
-    tbl <- dplyr::mutate(tbl, B = log(OR)) |>
-      dplyr::select(-OR)
-  }
-
-  if("OR" %in% colnames(tbl) & "B" %in% colnames(tbl)) {
-    cli::cli_alert_info("found OR and B, removing OR")
-    tbl <- dplyr::select(tbl, -OR)
-  }
 
   if(all(c("B", "SE") %in% colnames(tbl)) & !"Z" %in% colnames(tbl)) {
     cli::cli_alert_info("Z missing: Calculating Z using the formula:  Z = B / SE")

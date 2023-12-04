@@ -1,17 +1,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 # tidyGWAS ----------------------------------------------------------------
 
 test_that("can read in file from disk", {
@@ -42,12 +31,14 @@ test_that("Testing with CHR and POS", {
     )
   )
 
+
   expect_no_error(
     tidyGWAS(
-      tbl = test_sumstat,
+      tbl = dplyr::select(test_sumstat, -RSID),
       dbsnp_path = dbsnp_files
     )
   )
+
 
 
 })
@@ -67,16 +58,16 @@ test_that("Handles edge cases", {
     tfile <- dplyr::mutate(tfile,  SE = dplyr::if_else(!invalid_rsid & CHR == "6", -50, SE))
 
     # edge case 1 - errors in both without_rsid and main
-    expect_no_error(tidyGWAS(tfile, dbsnp_path = dbsnp_files, name = "edge-cases"))
-    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, name = "edge-cases"))
+    expect_no_error(tidyGWAS(tfile, dbsnp_path = dbsnp_files, name = "edge-cases", overwrite = TRUE))
+    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, name = "edge-cases", overwrite = TRUE))
 
     # test with indels
-    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files))
-    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, keep_indels = FALSE))
+    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, overwrite = TRUE))
+    expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_files, keep_indels = FALSE, overwrite = TRUE))
 
     # handle where all rows are invalid_rsid
     tdf <- dplyr::filter(flag_invalid_rsid(test_sumstat), invalid_rsid)
-    expect_no_error(tidyGWAS(tdf, dbsnp_path = dbsnp_files))
+    expect_no_error(tidyGWAS(tdf, dbsnp_path = dbsnp_files, overwrite = TRUE))
 
 })
 
