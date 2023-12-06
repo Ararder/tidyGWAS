@@ -256,10 +256,9 @@ detect_indels <- function(tbl, indel_strategy, filepaths,...) {
 
   indels <- validate_sumstat(
     tbl = indels,
+    remove_cols = c("EffectAllele", "OtherAllele"),
     filter_func = make_callback(paste0(filepaths$removed_rows, "validate_indels")),
     id = "indel_rows",
-    # verbose = verbose,
-    # convert_p = convert_p
     ...
   )
 
