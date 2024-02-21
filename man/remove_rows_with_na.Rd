@@ -2,7 +2,7 @@
 % Please edit documentation in R/filters.R
 \name{remove_rows_with_na}
 \alias{remove_rows_with_na}
-\title{Remove rows with missing values, and write out the remowed files to disk}
+\title{Remove rows with missing values, and write out the removed files to disk}
 \usage{
 remove_rows_with_na(tbl, filepaths)
 }
@@ -15,7 +15,7 @@ remove_rows_with_na(tbl, filepaths)
 a tbl
 }
 \description{
-Remove rows with missing values, and write out the remowed files to disk
+Remove rows with missing values, and write out the removed files to disk
 }
 \examples{
 \dontrun{

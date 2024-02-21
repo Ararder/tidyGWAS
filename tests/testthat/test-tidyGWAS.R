@@ -4,6 +4,62 @@
 # tidyGWAS ----------------------------------------------------------------
 
 test_that("can read in file from disk", {
+  column_map <- list(
+    CHR = "chrom",
+    POS = "position",
+    RSID = "SNP",
+    EffectAllele = "A1",
+    OtherAllele = "A2"
+  )
+  tbl <- dplyr::rename(
+    tbl,
+    chrom = CHR,
+    position = POS,
+    SNP = RSID,
+    A1 = EffectAllele,
+    A2 = OtherAllele
+  )
+
+  expect_no_error(
+    update_column_names(tbl, column_map)
+  )
+
+
+})
+
+
+test_that("Can parse file from disk with different column names", {
+  column_map <- list(
+    CHR = "chrom",
+    POS = "position",
+    RSID = "SNP",
+    EffectAllele = "A1",
+    OtherAllele = "A2"
+  )
+  tbl <- dplyr::rename(
+    tbl,
+    chrom = CHR,
+    position = POS,
+    SNP = RSID,
+    A1 = EffectAllele,
+    A2 = OtherAllele
+  )
+
+  file <- withr::local_tempfile()
+  arrow::write_csv_arrow(tbl, file)
+
+  expect_no_error(
+    tidyGWAS(
+      tbl = file,
+      dbsnp_path = dbsnp_files,
+      column_map = column_map
+    )
+  )
+
+
+})
+
+test_that("can read in file from disk", {
 
   file <- withr::local_tempfile()
   arrow::write_csv_arrow(test_sumstat, file)
@@ -85,9 +141,8 @@ test_that("setup_pipeline_paths works", {
 test_that("write_finished_tidyGWAS works", {
   cleanup <- function(filepaths) {
     unlink(paste(filepaths$base, "tidyGWAS_hivestyle",sep="/"), recursive = TRUE)
-    unlink(paste(filepaths$base, "cleaned_GRCh38.csv", sep="/"))
-    unlink(paste(filepaths$base, "cleaned_GRCh38.csv.gz", sep="/"))
-    unlink(paste(filepaths$base, "cleaned_GRCh38.parquet", sep="/"))
+    unlink(paste(filepaths$base, "tidyGWAS_cleaned.csv", sep="/"))
+    unlink(paste(filepaths$base, "tidyGWAS_cleaned.parquet", sep="/"))
 
   }
   finished <- tidyGWAS(
@@ -97,11 +152,11 @@ test_that("write_finished_tidyGWAS works", {
   )
   filepaths <- setup_pipeline_paths(tempfile())
   cleanup(filepaths)
-  expect_no_error(write_finished_tidyGWAS(finished, output_format = "hivestyle", outdir = tempdir(), filepaths = filepaths))
+  expect_no_error(write_finished_tidyGWAS(finished, output_format = "hivestyle",  filepaths = filepaths))
   cleanup(filepaths)
-  expect_no_error(write_finished_tidyGWAS(finished, output_format = "csv", outdir = tempdir(), filepaths = filepaths))
+  expect_no_error(write_finished_tidyGWAS(finished, output_format = "csv", filepaths = filepaths))
   cleanup(filepaths)
-  expect_no_error(write_finished_tidyGWAS(finished, output_format = "parquet", outdir = tempdir(), filepaths = filepaths))
+  expect_no_error(write_finished_tidyGWAS(finished, output_format = "parquet", filepaths = filepaths))
 
 
 })

@@ -7,19 +7,9 @@ test_that("validate parse_tbl", {
   # can read csv file
   expect_equal(test_sumstat, tbl)
 
-  # tmp_file_tsv <- withr::local_tempfile(fileext = ".tsv")
-  # can read tsv if delim passed
-  # write.table(x = test_sumstat, tmp_file_tsv, sep = "\t")
-  #
-  # tmp_func <- function(filepath, ...) {
-  #   parse_tbl(filepath, ...)
-  # }
-  # tmp_func(filepath = tmp_file_tsv, delim = "\t")
-  # expect_equal(test_sumstat, tmp_func(filepath = tmp_file_tsv, delim = "\t"))
-  # can parse data.frame from memory
-  expect_equal(tbl, parse_tbl(test_sumstat))
+  expect_equal(tbl, parse_tbl(test_sumstat)$tbl)
   # can handle data.frame
-  expect_equal(tbl, parse_tbl(as.data.frame(test_sumstat)))
+  expect_equal(tbl, parse_tbl(as.data.frame(test_sumstat))$tbl)
   # errors if not passed a filepath or data.frame
   expect_error(parse_tbl("list"))
   #
@@ -41,13 +31,6 @@ test_that("select_correct_columns work", {
   )
 
   # can handle that study_n is not passed
-  tmp_func <- function(tbl, study_n) {
-    select_correct_columns(tbl, study_n = study_n)
-  }
-
-  expect_no_error(
-    tmp_func(test_sumstat)
-  )
   # one column with all NAs should not result in all rows being removed
   tmp <- dplyr::mutate(test_sumstat, EAF = NA_real_)
   expect_true(nrow(select_correct_columns(tmp)) == nrow(test_sumstat))

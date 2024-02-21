@@ -4,16 +4,10 @@
 \alias{select_correct_columns}
 \title{Remove all columns that do not follow tidyGWAS naming}
 \usage{
-select_correct_columns(tbl, study_n, verbose = TRUE)
+select_correct_columns(tbl)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
-
-\item{study_n}{Sometimes N is missing from GWAS summary statistics. It is then
-often much more useful to set a study-wide N for all rows, instead of leaving
-the N column missing. study_n can be used to set the N column.}
-
-\item{verbose}{Explain filters in detail?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with only columns following \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} naming kept

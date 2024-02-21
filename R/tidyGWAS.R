@@ -41,18 +41,17 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #'
 #' @param tbl a `data.frame` or `character()` vector
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
+#' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
+#' @param column_map a named list of column names, to be used to rename columns.
+#' The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.
 #' @param output_format How should the finished cleaned file be saved?
 #'  * "csv" corresponds to [arrow::write_csv_arrow()]
-#'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
+#'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
 #'
-#' @param build Can be used to skip [infer_build()]
+#' @param build If you are sure of what genome build (GRCh37 or GRCH37), can be used to skip [infer_build()]
 #' @param outdir filepath to a folder where data should be stored.
 #' @param convert_p What value should be used for P = 0?
-#' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
-#' @param study_n Sometimes N is missing from GWAS summary statistics. It is then
-#' often much more useful to set a study-wide N for all rows, instead of leaving
-#' the N column missing. study_n can be used to set the N column.
 #' @param indel_strategy Should indels be kept or removed?
 #' @param overwrite Should existing files be overwritten?
 #' @param repair_cols Should any missing columns be repaired?
@@ -72,10 +71,10 @@ tidyGWAS <- function(
     tbl,
     ...,
     dbsnp_path,
-    output_format = c("csv","hivestyle", "parquet"),
+    column_map,
+    output_format = c("csv","parquet", "hivestyle"),
     build = c("NA","37", "38"),
     outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
-    study_n,
     convert_p = 2.225074e-308,
     indel_strategy = c("keep", "remove"),
     overwrite = FALSE,
@@ -89,11 +88,18 @@ tidyGWAS <- function(
   # parse arguments ---------------------------------------------------------
   start_time <- Sys.time()
   tbl <- parse_tbl(tbl, ...)
+  # parse_tbl returns the dataframe and the filename
+  filename <- tbl$filename
+  md5 <- tbl$md5
+  tbl <- tbl$tbl
+
   rows_start <- nrow(tbl)
+
   output_format <- rlang::arg_match(output_format)
   build = rlang::arg_match(build)
   indel_strategy = rlang::arg_match(indel_strategy)
-  filepaths <- setup_pipeline_paths(outdir = outdir,overwrite = overwrite)
+
+  filepaths <- setup_pipeline_paths(outdir = outdir, filename = filename, overwrite = overwrite)
 
   # setup logging -----------------------------------------------------------
   if(isTRUE(logfile)) {
@@ -102,8 +108,8 @@ tidyGWAS <- function(
     withr::local_output_sink(filepaths$logfile)
   }
 
-  # write out the raw sumstats to always be able to find what changes was made to input file
-  arrow::write_parquet(tbl, paste0(filepaths$base , "/raw_sumstats.parquet"))
+  # The inputted sumstats are saved without any edits, to not loose information
+  arrow::write_parquet(tbl,  filepaths$raw_sumstats)
 
   # welcome message ----------------------------------------------------------
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
@@ -113,13 +119,15 @@ tidyGWAS <- function(
 
   # 0) formatting --------------------------------------------------------------
 
-  tbl <- select_correct_columns(tbl, study_n)
+  if(!missing(column_map)) tbl <- update_column_names(tbl, column_map)
+
+  tbl <- select_correct_columns(tbl)
 
 
   # 1) Drop na -----------------------------------------------------------------
 
   cli::cli_h2("1) Scanning for rows with NA")
-  tbl <- remove_rows_with_na(tbl, filepaths)
+  tbl <- remove_rows_with_na(tbl, filepaths = filepaths)
 
 
   # 2) Remove duplicated SNPs --------------------------------------------------
@@ -130,7 +138,7 @@ tidyGWAS <- function(
   # 3) detect indels ----------------------------------------------------------
 
   cli::cli_h2("3) Scanning for indels")
-  tbl <- detect_indels(tbl, indel_strategy, filepaths, verbose = verbose, convert_p = convert_p)
+  tbl <- detect_indels(tbl, indel_strategy = indel_strategy, filepaths = filepaths, verbose = verbose, convert_p = convert_p)
 
   indels <- tbl$indels
   tbl <- tbl$main
@@ -139,7 +147,7 @@ tidyGWAS <- function(
   # 4) update/repair RSID ---------------------------------------------------
 
 
-  # if only RSID exists, several other steps needs to be taken, see rsid_only()
+  # if only RSID exists, several steps needs to be taken, see rsid_only()
   if("RSID" %in% colnames(tbl) & !all(c("CHR", "POS") %in% colnames(tbl))) {
 
     main <- rsid_only(
@@ -159,9 +167,9 @@ tidyGWAS <- function(
 
     main_callback <- make_callback(paste0(filepaths$removed_rows, "main"))
     tbl <- validate_sumstat(tbl, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
-    # repair_rsid will drop the current RSID if it exists
 
     cli::cli_h3("5) Adding RSID based on CHR:POS. Adding dbSNP based QC flags")
+
     main <- repair_rsid(tbl, build = build, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
 
   }
@@ -193,19 +201,42 @@ tidyGWAS <- function(
     create_id() |>
     dplyr::rename(multi_allelic = dup_rsid)
 
-  # make sure all removed rows can be tracked
+  # all removed rows should be able to be tracked
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
 
 
-  # end of pipeline  --------------------------------------------------------
+  # end of pipeline  ---------------------------------------------------------
 
 
 
-  write_finished_tidyGWAS(df = main, output_format = output_format, outdir = outdir, filepaths = filepaths)
+  write_finished_tidyGWAS(df = main, output_format = output_format, filepaths = filepaths)
   fmt <- prettyunits::pretty_dt(Sys.time() - start_time)
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
   cli::cli_alert_info("Total running time: {fmt}")
+
+  metadata <- list(
+    start_time = start_time,
+    end_time = Sys.time(),
+    rows_start = rows_start,
+    rows_end = nrow(main),
+    basename = filename,
+    raw_md5 = md5,
+    output_format = output_format,
+    build = build,
+    outdir = outdir,
+    convert_p = convert_p,
+    indel_strategy = indel_strategy,
+    overwrite = overwrite,
+    logfile = logfile,
+    verbose = verbose,
+    add_missing_build = add_missing_build
+  )
+  cli::cli_inform("Saving metadata from analysis to {.file {filepaths$metadata}}")
+  metadata <- if(missing(column_map)) metadata else c(metadata, column_map)
+  yaml::write_yaml(metadata, filepaths$metadata)
+
+
 
   # let function return the cleaned sumstats
   main
@@ -237,17 +268,19 @@ tidyGWAS <- function(
 parse_tbl <- function(tbl, ...) {
 
   rlang::check_required(tbl)
-  if("character" %in% class(tbl) & length(tbl) != 1) {
-    stop("A filepath has to a character vector of length 1")
-  }
 
-    if("character" %in% class(tbl)) {
 
+  if("character" %in% class(tbl)) {
+    stopifnot("A filepath has to be a character vector of length 1" = "character" %in% class(tbl) & length(tbl) == 1)
+    stopifnot("File does not exist"  = file.exists(tbl))
+    filename <- basename(tbl)
+    md5 <- tools::md5sum(tbl)
     tbl <- arrow::read_delim_arrow(tbl, ...)
 
   } else if("data.frame" %in% class(tbl)) {
-
+    md5 <- NULL
     tbl <- dplyr::tibble(tbl)
+    filename <- "raw"
 
   } else {
 
@@ -256,7 +289,7 @@ parse_tbl <- function(tbl, ...) {
 
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
 
-  tbl
+  list("tbl" = tbl, "filename" = filename, "md5" = md5)
 }
 
 
@@ -270,7 +303,8 @@ parse_tbl <- function(tbl, ...) {
 
 
 identify_removed_rows <- function(finished, filepaths) {
-  start <- arrow::read_parquet(paste0(filepaths$base , "/raw_sumstats.parquet"), select = "rowid")
+
+  start <- arrow::read_parquet(filepaths$raw_sumstats, select = "rowid")
 
   removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
 
@@ -291,7 +325,7 @@ identify_removed_rows <- function(finished, filepaths) {
   if(sum(!removed_rows$rowid %in% removed_rows_with_flags$rowid)) {
     cli::cli_alert_danger(
       "WARNING: Could not track why some rows were removed. This means that some rows were removed
-      that has not been accounted for, possibly unintended rows were removed.")
+      that has not been accounted for. possibly unintended rows were removed.")
   }
 
   breakdown <-
@@ -319,22 +353,24 @@ identify_removed_rows <- function(finished, filepaths) {
 #' Create the folder structure for tidyGWAS
 #'
 #' @inheritParams tidyGWAS
-#'
+#' @param filename filename for the raw sumstats
 #' @return a list of filepaths
 #' @export
 #'
 #' @examples
 #' setup_pipeline_paths(tempfile())
-setup_pipeline_paths <- function(outdir, overwrite=FALSE) {
+setup_pipeline_paths <- function(outdir, filename, overwrite=FALSE) {
 
   # define workdir
   if(overwrite == TRUE) {
     unlink(outdir, recursive = TRUE)
   }
+  if(missing(filename)) filename <- "raw"
   stopifnot("The provided output folder already exists" = !dir.exists(outdir))
   pipeline_info <- paste(outdir,"pipeline_info", sep = "/")
   dir.create(outdir, recursive = TRUE)
   dir.create(pipeline_info, recursive = TRUE)
+  dir.create(paste(outdir,"raw", sep = "/"))
 
 
 
@@ -343,7 +379,8 @@ setup_pipeline_paths <- function(outdir, overwrite=FALSE) {
     "base" = outdir,
     "logfile" = paste0(outdir, "/tidyGWAS_logfile.txt"),
     "cleaned" = paste(outdir, "tidyGWAS_hivestyle", sep = "/"),
-
+    "raw_sumstats" = paste0(outdir, "/raw/", filename, ".parquet"),
+    "metadata" = paste0(outdir, "/metadata.yaml"),
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
     "removed_rows"= paste(pipeline_info, "removed_rows_", sep = "/")
@@ -356,7 +393,7 @@ setup_pipeline_paths <- function(outdir, overwrite=FALSE) {
 }
 
 
-write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
+write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 
   df <- standardize_column_order(df)
 
@@ -366,13 +403,11 @@ write_finished_tidyGWAS <- function(df, output_format, outdir, filepaths) {
 
   } else if(output_format == "parquet") {
 
-    arrow::write_parquet(df, paste(filepaths$base, "cleaned_GRCh38.parquet", sep = "/"))
+    arrow::write_parquet(df, paste(filepaths$base, "tidyGWAS_cleaned.parquet", sep = "/"))
 
   } else if(output_format == "csv") {
 
-    outfile <- paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/")
-    arrow::write_csv_arrow(df, paste(filepaths$base, "cleaned_GRCh38.csv", sep = "/"))
-
+    arrow::write_csv_arrow(df, paste(filepaths$base, "tidyGWAS_cleaned.csv", sep = "/"))
 
   }
 
@@ -601,6 +636,28 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
   main
 
 }
+
+update_column_names <- function(tbl, column_map) {
+  rlang::check_required(tbl)
+  rlang::check_required(column_map)
+
+  stopifnot(
+    "column_map can only contain tidyGWAS columns as named entries. See tidyGWAS_columns() for valid column names." =
+      all(names(column_map) %in% valid_column_names)
+  )
+
+  stopifnot(
+      "All entries in column_map must be present in the input tbl" =
+        all(column_map %in% colnames(tbl))
+      )
+
+  dplyr::rename(tbl, !!!column_map)
+
+
+
+}
+
+
 
 check_zero_rows <- function(tbl){
   if(!is.null(tbl)) {

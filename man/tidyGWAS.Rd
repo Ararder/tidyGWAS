@@ -8,11 +8,11 @@ tidyGWAS(
   tbl,
   ...,
   dbsnp_path,
-  output_format = c("csv", "hivestyle", "parquet"),
+  column_map,
+  output_format = c("csv", "parquet", "hivestyle"),
   build = c("NA", "37", "38"),
   outdir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` = "_",
     `:` = "_"))),
-  study_n,
   convert_p = 2.225074e-308,
   indel_strategy = c("keep", "remove"),
   overwrite = FALSE,
@@ -29,20 +29,19 @@ tidyGWAS(
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
+\item{column_map}{a named list of column names, to be used to rename columns.
+The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.}
+
 \item{output_format}{How should the finished cleaned file be saved?
 \itemize{
 \item "csv" corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
-\item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
 \item 'parquet' corresponds to \code{\link[arrow:write_parquet]{arrow::write_parquet()}}
+\item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
 }}
 
-\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
+\item{build}{If you are sure of what genome build (GRCh37 or GRCH37), can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{outdir}{filepath to a folder where data should be stored.}
-
-\item{study_n}{Sometimes N is missing from GWAS summary statistics. It is then
-often much more useful to set a study-wide N for all rows, instead of leaving
-the N column missing. study_n can be used to set the N column.}
 
 \item{convert_p}{What value should be used for P = 0?}
 

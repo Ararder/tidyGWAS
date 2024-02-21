@@ -1,6 +1,5 @@
 #' Remove all columns that do not follow tidyGWAS naming
 #'
-#' @inheritParams tidyGWAS
 #' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
 #' @return a [dplyr::tibble()], with only columns following [tidyGWAS_columns()] naming kept
 #' @export
@@ -8,7 +7,7 @@
 #' @examples \dontrun{
 #' sumstats <- select_correct_columns(sumstats)
 #' }
-select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
+select_correct_columns <- function(tbl) {
 
   # check input columns
   cli::cli_h3("Checking that columns follow tidyGWAS format")
@@ -19,10 +18,12 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 
   tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
 
-  # check that no columns are ALL na's
+  # In some formats, columns are kept with all NA, to provide a consistent structure
+  # of the file. For tidyGWAS, this is not necessary, and we remove these columns.
   cli::cli_h3("Checking for columns with all NA")
   na_cols <- colnames(tbl)[colSums(is.na(tbl)) == nrow(tbl)]
   tbl <- dplyr::select(tbl, -dplyr::all_of(na_cols))
+
   if(length(na_cols) > 0 ){
   cli::cli_alert_danger("The following columns were removed as they contained only NA's:
                          {.emph {na_cols}}")
@@ -30,7 +31,7 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
     cli::cli_alert_success("Found no columns with all NA")
   }
 
-  # check that obligatory columns exist
+  # To continue, we need at least one of the following sets of columns
   if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) stop("Either CHR and POS or RSID are required columns")
   if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) stop("EffectAllele and OtherAllele are required columns")
 
@@ -54,10 +55,6 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 
   if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
 
-  if(!missing(study_n))  {
-    cli::cli_alert_info("Using N = {study_n} as N")
-    tbl <- dplyr::mutate(tbl, N = {{ study_n }})
-  }
 
   if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
 
@@ -67,7 +64,7 @@ select_correct_columns <- function(tbl, study_n, verbose = TRUE) {
 }
 
 
-#' Remove rows with missing values, and write out the remowed files to disk
+#' Remove rows with missing values, and write out the removed files to disk
 #'
 #' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
 #' @param filepaths a list of filepaths, created by [setup_pipeline_paths()]

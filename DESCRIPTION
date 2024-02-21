@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics with minimal filtering
-Version: 0.7.0
+Version: 0.7.1
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
@@ -22,7 +22,8 @@ Imports:
     rlang,
     tidyr,
     utils,
-    withr
+    withr,
+    yaml
 Suggests: 
     fs,
     googledrive,

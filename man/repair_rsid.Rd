@@ -14,7 +14,7 @@ repair_rsid(
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
-\item{build}{Can be used to skip \code{\link[=infer_build]{infer_build()}}}
+\item{build}{If you are sure of what genome build (GRCh37 or GRCH37), can be used to skip \code{\link[=infer_build]{infer_build()}}}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 
