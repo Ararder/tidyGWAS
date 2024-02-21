@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -249,11 +249,11 @@ files</li>
 <span>  <span class="co"># after a finished execution to that directory</span></span>
 <span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
 <span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/Rtmpks9lMd/tidyGWAS1a2d5beb5fb3/tidyGWAS_logfile.txt</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.7.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2023-12-06 16:19:37.184723, with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/Rtmpks9lMd/tidyGWAS1a2d5beb5fb3</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.7.1</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; Starting at 2024-02-21 10:41:49.679946, with 100000 rows in input data.frame</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -313,7 +313,7 @@ files</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by matching 10000 rows to GRCh37 and GRCh38</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3316 snps matched GRCh38, 9999 for GRCh37, inferring build to be 37</span></span>
+<span><span class="co">#&gt; 3355 snps matched GRCh38, 10000 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -338,16 +338,20 @@ files</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 0 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.6s</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.4s</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Saving metadata from analysis to</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520/metadata.yaml</span></span></span></code></pre></div>
 <p>If we take a look in the output folder we provided, we can see that a
 new folder has been created, we can see the standard files that tidyGWAS
 will output</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "cleaned_GRCh38.parquet"                 </span></span>
+<span><span class="co">#&gt; [1] "metadata.yaml"                          </span></span>
 <span><span class="co">#&gt; [2] "pipeline_info/removed_rows_main.parquet"</span></span>
-<span><span class="co">#&gt; [3] "raw_sumstats.parquet"                   </span></span>
-<span><span class="co">#&gt; [4] "tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<span><span class="co">#&gt; [3] "raw/raw.parquet"                        </span></span>
+<span><span class="co">#&gt; [4] "tidyGWAS_cleaned.parquet"               </span></span>
+<span><span class="co">#&gt; [5] "tidyGWAS_logfile.txt"</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="creating-the-correct-column-names">Creating the correct column names<a class="anchor" aria-label="anchor" href="#creating-the-correct-column-names"></a>

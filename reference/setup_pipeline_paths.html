@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,13 +51,17 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setup_pipeline_paths</span><span class="op">(</span><span class="va">outdir</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">setup_pipeline_paths</span><span class="op">(</span><span class="va">outdir</span>, <span class="va">filename</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>outdir</dt>
 <dd><p>filepath to a folder where data should be stored.</p></dd>
+
+
+<dt>filename</dt>
+<dd><p>filename for the raw sumstats</p></dd>
 
 
 <dt>overwrite</dt>
@@ -75,22 +79,28 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">setup_pipeline_paths</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $logfile</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435/tidyGWAS_logfile.txt"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/tidyGWAS_logfile.txt"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $cleaned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435/tidyGWAS_hivestyle"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/tidyGWAS_hivestyle"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $raw_sumstats</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/raw/raw.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $metadata</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/metadata.yaml"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $updated_rsid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435/pipeline_info/updated_rsid.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/pipeline_info/updated_rsid.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $failed_rsid_parse</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435/pipeline_info/removed_failed_rsid_parse.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/pipeline_info/removed_failed_rsid_parse.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_rows</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpvAXTes/file189711b7c435/pipeline_info/removed_rows_"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/Rtmpek2DAR/file18591c1a706a/pipeline_info/removed_rows_"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,23 +51,13 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">select_correct_columns</span><span class="op">(</span><span class="va">tbl</span>, <span class="va">study_n</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">select_correct_columns</span><span class="op">(</span><span class="va">tbl</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
     <dl><dt>tbl</dt>
 <dd><p>a <code><a href="https://dplyr.tidyverse.org/reference/reexports.html" class="external-link">dplyr::tibble()</a></code> as created by <code><a href="parse_tbl.html">parse_tbl()</a></code></p></dd>
-
-
-<dt>study_n</dt>
-<dd><p>Sometimes N is missing from GWAS summary statistics. It is then
-often much more useful to set a study-wide N for all rows, instead of leaving
-the N column missing. study_n can be used to set the N column.</p></dd>
-
-
-<dt>verbose</dt>
-<dd><p>Explain filters in detail?</p></dd>
 
 </dl></div>
     <div class="section level2">
