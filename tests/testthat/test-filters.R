@@ -56,6 +56,16 @@ test_that("dups are removed", {
 
 
 
+test_that("apply_filters work", {
+
+  tmp <- repair_rsid(tbl, dbsnp_path = dbsnp_path)
+  filepaths <- setup_pipeline_paths(tempfile())
+  expect_no_error(apply_filters(tmp, filepaths))
+
+
+})
+
+
 # test_that("NA rows are removed", {
 #
 #   filepaths <- setup_pipeline_paths(tempfile())

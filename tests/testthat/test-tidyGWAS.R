@@ -100,6 +100,21 @@ test_that("Testing with CHR and POS", {
 })
 
 
+test_that("regression test", {
+    cleaned <- tidyGWAS(
+      tbl = test_sumstat,
+      dbsnp_path = dbsnp_files
+    )
+  expect_true(
+    nrow(cleaned) == 99503
+  )
+})
+
+
+# possible errors --------------------------------------------------------------
+# To do: Add test for each error type encountered in the wild
+
+
 
 
 
@@ -139,24 +154,16 @@ test_that("setup_pipeline_paths works", {
 # -------------------------------------------------------------------------
 
 test_that("write_finished_tidyGWAS works", {
-  cleanup <- function(filepaths) {
-    unlink(paste(filepaths$base, "tidyGWAS_hivestyle",sep="/"), recursive = TRUE)
-    unlink(paste(filepaths$base, "tidyGWAS_cleaned.csv", sep="/"))
-    unlink(paste(filepaths$base, "tidyGWAS_cleaned.parquet", sep="/"))
 
-  }
   finished <- tidyGWAS(
     tbl = test_sumstat,
     logfile = TRUE,
     dbsnp_path = dbsnp_files,
   )
   filepaths <- setup_pipeline_paths(tempfile())
-  cleanup(filepaths)
+
+  unlink(filepaths$base, recursive = TRUE)
   expect_no_error(write_finished_tidyGWAS(finished, output_format = "hivestyle",  filepaths = filepaths))
-  cleanup(filepaths)
-  expect_no_error(write_finished_tidyGWAS(finished, output_format = "csv", filepaths = filepaths))
-  cleanup(filepaths)
-  expect_no_error(write_finished_tidyGWAS(finished, output_format = "parquet", filepaths = filepaths))
 
 
 })

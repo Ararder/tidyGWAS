@@ -21,6 +21,7 @@ keep_indels <- TRUE
 overwrite = FALSE
 build <- "NA"
 tbl <- test_sumstat
+indel_strategy <- "keep"
 outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))
 
 

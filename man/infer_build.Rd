@@ -4,14 +4,14 @@
 \alias{infer_build}
 \title{Infer what genome build a GWAS summary statistics file is on.}
 \usage{
-infer_build(tbl, n_snps = 10000, dbsnp_path)
+infer_build(tbl, dbsnp_path, n_snps = 10000)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
 
-\item{n_snps}{number of snps to check CHR and POS for}
-
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
+\item{n_snps}{number of snps to check CHR and POS for}
 }
 \value{
 either "37" or "38"

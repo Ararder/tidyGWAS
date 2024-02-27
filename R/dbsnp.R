@@ -7,6 +7,11 @@ utils::globalVariables(c(
 # https://www.ncbi.nlm.nih.gov/snp/docs/rs_multi_mapping/
 
 # -------------------------------------------------------------------------
+# This is the workhorse of performing joins between the ~1 billion rows of dbSNP
+# and the inputted summary statistics. default argument for duplications = "smallest_rsid"
+# which first arranges the data.frame on RSID, and keeps the first instance of each duplicate RSID
+
+
 map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), duplications = c("smallest_rsid", "keep"), dbsnp_path) {
 
 
@@ -66,6 +71,7 @@ map_to_dbsnp <- function(tbl, build = c("37", "38"), by = c("rsid", "chr:pos"), 
     dplyr::mutate(RSID = stringr::str_c("rs", RSID)) |>
     # ensure correct types
     dplyr::mutate(CHR = as.character(CHR), POS = as.integer(POS), RSID = as.character(RSID)) |>
+    # against dbSNP weirdness
     dplyr::distinct(CHR, POS, RSID, .keep_all = TRUE)
 
 
@@ -158,7 +164,7 @@ repair_rsid <- function(tbl, build = c("NA", "37", "38"), dbsnp_path, add_missin
 #' sumstat_df <- repair_chr_pos(sumstat)
 #' }
 #'
-repair_chr_pos <- function(tbl, dbsnp_path, add_missing_build=TRUE) {
+repair_chr_pos <- function(tbl, dbsnp_path, add_missing_build = TRUE) {
   tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
   if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
 
@@ -226,7 +232,7 @@ add_missing_build <- function(sumstat, missing_build = c("37", "38"), dbsnp_path
 #' @examples \dontrun{
 #' genome_build <- infer_build(gwas_sumstats)
 #' }
-infer_build <- function(tbl, n_snps = 10000, dbsnp_path) {
+infer_build <- function(tbl, dbsnp_path, n_snps = 10000) {
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(tbl)))
   cli::cli_alert_info("Inferring build by matching {n_snps} rows to GRCh37 and GRCh38")
 

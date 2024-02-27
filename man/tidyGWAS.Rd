@@ -6,8 +6,8 @@
 \usage{
 tidyGWAS(
   tbl,
-  ...,
   dbsnp_path,
+  ...,
   column_map,
   output_format = c("csv", "parquet", "hivestyle"),
   build = c("NA", "37", "38"),
@@ -25,16 +25,16 @@ tidyGWAS(
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
-
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+
+\item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
 \item{column_map}{a named list of column names, to be used to rename columns.
 The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.}
 
 \item{output_format}{How should the finished cleaned file be saved?
 \itemize{
-\item "csv" corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
+\item "'csv' corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
 \item 'parquet' corresponds to \code{\link[arrow:write_parquet]{arrow::write_parquet()}}
 \item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
 }}

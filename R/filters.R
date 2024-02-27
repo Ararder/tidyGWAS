@@ -312,3 +312,50 @@ make_callback <- function(id) {
 
   callback
 }
+
+apply_filters <- function(tbl, filepaths) {
+
+
+  # no dbSNP mapping
+  clean <- dplyr::filter(tbl, !no_dbsnp_entry)
+
+  removed_no_dbsnp <- dplyr::anti_join(tbl, clean, by = "rowid")
+
+  # missing on either build
+  clean2 <- tidyr::drop_na(clean, c("CHR", "POS", "CHR_37", "POS_37", "RSID"))
+  removed_missing_on_either_build <- dplyr::anti_join(clean, clean2, by = "rowid")
+
+  # chr mismatch between builds
+  clean <- dplyr::filter(clean2, CHR_37 == CHR)
+  removed_chr_mismatch <- dplyr::anti_join(clean2, clean, by = "rowid")
+
+
+  # communicate removed rows ------------------------------------------------
+
+  if(nrow(removed_no_dbsnp) > 0) {
+    cli::cli_alert_warning("Removed {nrow(removed_no_dbsnp)} rows with no dbSNP entry")
+    cli::cli_inform("{.file {filepaths$removed_no_dbsnp}}")
+    arrow::write_parquet(removed_no_dbsnp, filepaths$removed_no_dbsnp)
+  }
+
+  if(nrow(removed_missing_on_either_build) > 0) {
+    cli::cli_alert_warning("Removed {nrow(removed_missing_on_either_build)} rows with missing on either build")
+    cli::cli_inform("{.file {filepaths$removed_missing_on_either_build}}")
+    arrow::write_parquet(removed_missing_on_either_build, filepaths$removed_missing_on_either_build)
+  }
+
+  if(nrow(removed_chr_mismatch) > 0) {
+    cli::cli_alert_warning("Removed {nrow(removed_chr_mismatch)} rows with chr mismatch between builds")
+    cli::cli_inform("{.file {filepaths$removed_rows_chr_mismatch}}")
+    arrow::write_parquet(removed_chr_mismatch, filepaths$removed_rows_chr_mismatch)
+  }
+
+
+  # -------------------------------------------------------------------------
+
+
+
+  clean |>
+    dplyr::select(-incompat_alleles, -no_dbsnp_entry)
+
+}

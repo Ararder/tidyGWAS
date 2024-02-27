@@ -43,29 +43,72 @@ dbsnp_files <- paste0(ref_dir, "/dbSNP155")
 ### Provide column names tidyGWAS understands
 
 tidyGWAS does NOT automatically parse common column names, so you need
-to provide it with the correct column names. `tidyGWAS_columns()` is a
-helper function to do this. tidyGWAS uses the following naming:
+to provide it with the correct column names.
 
-Note: If your RSID column is in the format CHR:BP:A1:A2, you can still pass it as RSID.
-Note: If N is missing from your sumstats, you can pass that later in [tidyGWAS()]
-The tidyGWAS column names:
-CHR POS RSID EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z
+If your RSID column is in the format CHR:BP:A1:A2, you can still pass it
+as RSID.
+
+If N is missing, please add it to the input file prior to running
+tidyGWAS.
+
+the tidyGWAS column names:
+
+-   CHR
+
+-   POS
+
+-   RSID
+
+-   EffectAllele
+
+-   OtherAllele
+
+-   EAF
+
+-   B
+
+-   SE
+
+-   P
+
+-   CaseN
+
+-   ControlN
+
+-   N
+
+-   INFO
+
+-   Z
+
+It's very common to have a wide variety of column names used in summary
+statistics. `tidyGWAS()` uses the `column_map` argument to correctly
+parse arguments. Pass a named lists, with the names corresponding to the
+tidyGWAS column and the value to the column name in the file.
+
+You can pass either a filepath or a in-memory data.frame as the first
+argument.
 
 ```{r, eval=FALSE}
-# Read in the sumstats you want to clean
-# sumstats <- readr::read_tsv("path/to_sumstats/gwas.tsv.gz")
-df <- tidyGWAS_columns(
-  tbl = sumstats,
-  CHR = "CHROM",
-  POS = "BP",
-  EffectAllele = "Allele1"
+# creating a example summary statistics file with other column names used than tidyGWAS
+
+
+sumstats <- tidyGWAS::test_file
+
+wrong_names <- dplyr::rename(sumstats, chrom = CHR, A1 = EffectAllele, AlleleFreq = EAF)
+
+colmap <- list(
+  CHR = "chrom",
+  EffectAllele = "A1",
+  EAF = "AlleleFreq"
 )
 
 cleaned <- tidyGWAS(
-  tbl = df, 
+  tbl = wrong_names, 
   # provide the filepath to the refence files you downloaded previously
   # and add dbSNP155
   dbsnp_path = paste0(dbsnp_files, "/dbSNP155"),
+  column_map = colmap,
   # it's useful to write all the messages to a logfile, so messages are saved.
   logfile=TRUE,
   output_format = "csv"
@@ -101,16 +144,19 @@ example_sumstats |>
 
 ```
 
-The only mandatory argument is `tbl`. tidyGWAS accepts either a
-in-memory `base::data.frame()` or a filepath to text file. If you pass a filepath
-to a text file, tidyGWAS will attempt to read it using `arrow::read_tsv_arrow()`.
+The two mandatory argument is `tbl` and `dbsnp_path`. tidyGWAS accepts either a
+in-memory `base::data.frame()` or a filepath to text file. If you pass a
+filepath to a text file, tidyGWAS will attempt to read it using
+`arrow::read_tsv_arrow()`.
 
-It's not uncommon for sumstats to have formats that is not supported by this function,
-in which case i recommend you read in the file using `data.table::fread()` or
-`readr::read_tsv()` first, and then pass the `data.frame` to `tidyGWAS()`.
+It's not uncommon for sumstats to have formats that is not supported by
+this function, in which case i recommend you read in the file using
+`data.table::fread()` or `readr::read_tsv()` first, and then pass the
+`data.frame` to `tidyGWAS()`.
 
-if `dbsnp_path` is not passed, tidyGWAS will skip any functions relating to dbSNP, such as
-repairing CHR or POS, or detecting and providing coordinate on both genome builds.
+if `dbsnp_path` is not passed, tidyGWAS will skip any functions relating
+to dbSNP, such as repairing CHR or POS, or detecting and providing
+coordinate on both genome builds.
 
 ```{r, eval=FALSE}
 # a minimal example, without dbSNP reference files
@@ -119,7 +165,6 @@ cleaned <- tidyGWAS(
   # dbsnp_path = dbsnp_file
 )
 ```
-
 
 ```{r, eval=FALSE}
 # Passing a filepath also works
@@ -139,7 +184,7 @@ cleaned <- tidyGWAS(
 )
 ```
 
-### A more typical workflow 
+### A more typical workflow
 
 Typically, you will call `tidyGWAS()` with a few more arguments than the
 example above. By default `tidyGWAS()` will use `base::tempdir()` to
@@ -157,10 +202,10 @@ Let's take a look at how a more typical call to tidyGWAS would look:
 3.  `output_format` tidyGWAS supports three output formats: 'csv',
     'parquet' or 'hivestyle'
 4.  `outdir` a filepath to a directory where you want to store the
-    output. This folder should not exist before running tidyGWAS. If it does, 
-    tidyGWAS will throw an error to prevent overwriting of files
+    output. This folder should not exist before running tidyGWAS. If it
+    does, tidyGWAS will throw an error to prevent overwriting of files
 
-```{r}
+```{r, eval=FALSE}
 # your own sumstat
 example_file <- tidyGWAS::test_file
 
@@ -187,24 +232,21 @@ cleaned <- tidyGWAS(
 ```
 
 If we take a look in the output folder we provided, we can see that a
-new folder has been created, we can see the standard files that tidyGWAS will output
+new folder has been created, we can see the standard files that tidyGWAS
+will output
 
-```{r}
+```{r, eval=FALSE}
 list.files(gwas_folder, recursive = TRUE)
 ```
-
-
-
-
 
 ## Creating the correct column names
 
 tidyGWAS does not automatically detect column names, but expect the
-`data.frame()` to contain the correct column names.
-`tidyGWAS_columns` is a helper function created to match column name to
-the tidyGWAS format.
+`data.frame()` to contain the correct column names. `tidyGWAS_columns`
+is a helper function created to match column name to the tidyGWAS
+format.
 
-```{r}
+```{r, eval=FALSE}
 # what if we have a file where POS was named bp, and B was named BETA?
 # tidyGWAS will not recognize these as valid column names and would drop them.
 wrong_colnames <- dplyr::rename(example_file, bp = POS, BETA = B)
@@ -212,29 +254,16 @@ head(wrong_colnames)
 
 ```
 
-```{r}
-# we can use tidyGWAS_columns to specify current names:
-correct_names <- tidyGWAS_columns(
-  # first argument is the data.frame
-  tbl = wrong_colnames, 
-  # then any column which is not correctly named:
-  POS = "bp",
-  B = "BETA"
-  )
-head(correct_names)
 
-
-```
 
 # Parallel computation
 
-tidGWAS automatically detects the number of cores, and uses it to parallelize
-the alignment with dbSNP.
-In some cases, for example when running tidyGWAS in a
-HPC cluster, you might need to manually set the number of cores, which
-can be done using the `OMP_NUM_THREADS` variable. This should not be a
-larger number of cores than what you have requested in your HPC job (in
-the example below, the "--cpus-per-task" flag)
+tidGWAS automatically detects the number of cores, and uses it to
+parallelize the alignment with dbSNP. In some cases, for example when
+running tidyGWAS in a HPC cluster, you might need to manually set the
+number of cores, which can be done using the `OMP_NUM_THREADS` variable.
+This should not be a larger number of cores than what you have requested
+in your HPC job (in the example below, the "--cpus-per-task" flag)
 
 ```{bash, eval=FALSE}
 
@@ -276,9 +305,7 @@ of summary statistics.
 2.  40 million rows \< 40gb
 3.  60 million rows \< 75gb
 
-
 # download_ref_data() is not working
-
 
 tidyGWAS uses a version dbSNP 155 converted to the [Apache
 Arrow](https://arrow.apache.org) .parquet files. You can download the

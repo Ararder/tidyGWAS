@@ -40,12 +40,12 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' used to standardise column names, and see the standard format.
 #'
 #' @param tbl a `data.frame` or `character()` vector
-#' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
+#' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
 #' @param column_map a named list of column names, to be used to rename columns.
 #' The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.
 #' @param output_format How should the finished cleaned file be saved?
-#'  * "csv" corresponds to [arrow::write_csv_arrow()]
+#'  * "'csv' corresponds to [arrow::write_csv_arrow()]
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
 #'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
 #'
@@ -69,8 +69,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' }
 tidyGWAS <- function(
     tbl,
-    ...,
     dbsnp_path,
+    ...,
     column_map,
     output_format = c("csv","parquet", "hivestyle"),
     build = c("NA","37", "38"),
@@ -86,20 +86,25 @@ tidyGWAS <- function(
 
 
   # parse arguments ---------------------------------------------------------
+  rlang::check_required(dbsnp_path)
+  output_format <-  rlang::arg_match(output_format)
+  build <-          rlang::arg_match(build)
+  indel_strategy <- rlang::arg_match(indel_strategy)
+
+
+  # starting variables ------------------------------------------------------
   start_time <- Sys.time()
-  tbl <- parse_tbl(tbl, ...)
+  stopifnot(!dir.exists(outdir))
+
   # parse_tbl returns the dataframe and the filename
+  tbl <- parse_tbl(tbl, ...)
   filename <- tbl$filename
   md5 <- tbl$md5
   tbl <- tbl$tbl
 
   rows_start <- nrow(tbl)
-
-  output_format <- rlang::arg_match(output_format)
-  build = rlang::arg_match(build)
-  indel_strategy = rlang::arg_match(indel_strategy)
-
   filepaths <- setup_pipeline_paths(outdir = outdir, filename = filename, overwrite = overwrite)
+
 
   # setup logging -----------------------------------------------------------
   if(isTRUE(logfile)) {
@@ -108,7 +113,7 @@ tidyGWAS <- function(
     withr::local_output_sink(filepaths$logfile)
   }
 
-  # The inputted sumstats are saved without any edits, to not loose information
+  # The sumstats are saved without any edits, to not loose information
   arrow::write_parquet(tbl,  filepaths$raw_sumstats)
 
   # welcome message ----------------------------------------------------------
@@ -117,6 +122,7 @@ tidyGWAS <- function(
   cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
 
 
+  # start of pipeline ----------------------------------------------------------
   # 0) formatting --------------------------------------------------------------
 
   if(!missing(column_map)) tbl <- update_column_names(tbl, column_map)
@@ -158,34 +164,48 @@ tidyGWAS <- function(
       convert_p = convert_p,
       add_missing_build = add_missing_build
     )
+    inferred_build <- NULL
 
 
   # if CHR:POS exists, we use that, regardless of whether RSID exists
   } else {
 
     cli::cli_h3("4a) Validating columns")
-
     main_callback <- make_callback(paste0(filepaths$removed_rows, "main"))
     tbl <- validate_sumstat(tbl, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
 
+
+    # -------------------------------------------------------------------------
+
     cli::cli_h3("5) Adding RSID based on CHR:POS. Adding dbSNP based QC flags")
 
-    main <- repair_rsid(tbl, build = build, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
+    if(build == "NA") {
+      inferred_build <- infer_build(tbl, dbsnp_path = dbsnp_path)
+    } else {
+      inferred_build <- build
+    }
+    main <- repair_rsid(tbl, build = inferred_build, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
 
   }
+
+
+  # apply filters -----------------------------------------------------------
+
+  main <- apply_filters(tbl = main, filepaths = filepaths) |>
+    flag_duplicates(column = "rsid") |>
+    dplyr::rename(multi_allelic = dup_rsid)
 
 
   # merge back indels -------------------------------------------------------
 
-
   if(!is.null(indels)) {
 
-    main <- dplyr::bind_rows(main, indels)
+    main <- dplyr::bind_rows(main, dplyr::mutate(indels, indel = TRUE))
 
   }
 
 
-  # 8) repair missing statistics columns ------------------------------------
+  # 6) repair missing statistics columns ------------------------------------
 
   if(repair_cols) {
 
@@ -194,12 +214,8 @@ tidyGWAS <- function(
 
   }
 
-  # flag indels and multi-allelics
-  main <-
-    flag_duplicates(main, "rsid") |>
-    flag_indels() |>
-    create_id() |>
-    dplyr::rename(multi_allelic = dup_rsid)
+  # add a CHR:POS:REF:ALT column
+  main <- create_id(main)
 
   # all removed rows should be able to be tracked
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
@@ -216,22 +232,28 @@ tidyGWAS <- function(
   cli::cli_alert_info("Total running time: {fmt}")
 
   metadata <- list(
-    start_time = start_time,
-    end_time = Sys.time(),
+    date = as.character(Sys.Date()),
+    tidyGWAS_version = as.character(utils::packageVersion('tidyGWAS')),
     rows_start = rows_start,
     rows_end = nrow(main),
     basename = filename,
     raw_md5 = md5,
+    dbsnp_path = dbsnp_path,
     output_format = output_format,
     build = build,
     outdir = outdir,
     convert_p = convert_p,
     indel_strategy = indel_strategy,
     overwrite = overwrite,
+    repair_cols = repair_cols,
     logfile = logfile,
     verbose = verbose,
-    add_missing_build = add_missing_build
+    add_missing_build = add_missing_build,
+    inferred_build = inferred_build
   )
+
+
+
   cli::cli_inform("Saving metadata from analysis to {.file {filepaths$metadata}}")
   metadata <- if(missing(column_map)) metadata else c(metadata, column_map)
   yaml::write_yaml(metadata, filepaths$metadata)
@@ -304,12 +326,12 @@ parse_tbl <- function(tbl, ...) {
 
 identify_removed_rows <- function(finished, filepaths) {
 
-  start <- arrow::read_parquet(filepaths$raw_sumstats, select = "rowid")
+  start <- arrow::read_parquet(filepaths$raw_sumstats, col_select = "rowid")
 
   removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
 
   # remove the file with all rowids
-  files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), pattern = "*removed_row*", full.names = TRUE)
+  files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), pattern = "*removed_*", full.names = TRUE)
 
 
   removed_rows_with_flags <-
@@ -319,7 +341,7 @@ identify_removed_rows <- function(finished, filepaths) {
     purrr::map(\(x) dplyr::select(x, rowid)) |>
     purrr::list_rbind(names_to = "reason") |>
     dplyr::select(rowid, reason) |>
-    dplyr::mutate(reason = stringr::str_remove(reason, "removed_rows_")) |>
+    dplyr::mutate(reason = stringr::str_remove(reason, "removed_")) |>
     dplyr::mutate(reason = stringr::str_remove(reason, ".parquet"))
 
   if(sum(!removed_rows$rowid %in% removed_rows_with_flags$rowid)) {
@@ -382,8 +404,12 @@ setup_pipeline_paths <- function(outdir, filename, overwrite=FALSE) {
     "raw_sumstats" = paste0(outdir, "/raw/", filename, ".parquet"),
     "metadata" = paste0(outdir, "/metadata.yaml"),
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
+
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
-    "removed_rows"= paste(pipeline_info, "removed_rows_", sep = "/")
+    "removed_rows"= paste(pipeline_info, "removed_", sep = "/"),
+    "removed_no_dbsnp" = paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/"),
+    "removed_rows_chr_mismatch" = paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
+    "removed_missing_on_either_build" = paste(pipeline_info, "removed_missing_on_either_build.parquet", sep = "/")
   )
 
 
@@ -509,7 +535,7 @@ standardize_column_order <- function(tbl) {
   dplyr::select(tbl, dplyr::any_of(
     c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "EAF",
       "Z", "B", "SE", "P", "N", "CaseN", "ControlN", "INFO"
-      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel", "REF" = "ref_allele"))
+      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel", "REF" = "ref_allele")), dplyr::everything()
     )
 
 }
@@ -576,9 +602,7 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
   # update the RSID column
   tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
 
-
   # check for CHR:POS in RSID column ----------------------------------------
-
   tbl <- validate_rsid(tbl, outpath = paste(filepaths$removed_rows, "invalid_chr_pos_rsid.parquet"))
   without_rsid <- tbl$without_rsid
   tbl <- tbl$main
