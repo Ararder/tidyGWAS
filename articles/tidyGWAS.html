@@ -101,28 +101,55 @@
 <h4 id="provide-column-names-tidygwas-understands">Provide column names tidyGWAS understands<a class="anchor" aria-label="anchor" href="#provide-column-names-tidygwas-understands"></a>
 </h4>
 <p>tidyGWAS does NOT automatically parse common column names, so you
-need to provide it with the correct column names.
-<code><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns()</a></code> is a helper function to do this.
-tidyGWAS uses the following naming:</p>
-<p>Note: If your RSID column is in the format CHR:BP:A1:A2, you can
-still pass it as RSID. Note: If N is missing from your sumstats, you can
-pass that later in [tidyGWAS()] The tidyGWAS column names: CHR POS RSID
-EffectAllele OtherAllele EAF B SE P CaseN ControlN N INFO OR Z</p>
+need to provide it with the correct column names.</p>
+<p>If your RSID column is in the format CHR:BP:A1:A2, you can still pass
+it as RSID.</p>
+<p>If N is missing, please add it to the input file prior to running
+tidyGWAS.</p>
+<p>the tidyGWAS column names:</p>
+<ul>
+<li><p>CHR</p></li>
+<li><p>POS</p></li>
+<li><p>RSID</p></li>
+<li><p>EffectAllele</p></li>
+<li><p>OtherAllele</p></li>
+<li><p>EAF</p></li>
+<li><p>B</p></li>
+<li><p>SE</p></li>
+<li><p>P</p></li>
+<li><p>CaseN</p></li>
+<li><p>ControlN</p></li>
+<li><p>N</p></li>
+<li><p>INFO</p></li>
+<li><p>Z</p></li>
+</ul>
+<p>It’s very common to have a wide variety of column names used in
+summary statistics. <code><a href="../reference/tidyGWAS.html">tidyGWAS()</a></code> uses the
+<code>column_map</code> argument to correctly parse arguments. Pass a
+named lists, with the names corresponding to the tidyGWAS column and the
+value to the column name in the file.</p>
+<p>You can pass either a filepath or a in-memory data.frame as the first
+argument.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Read in the sumstats you want to clean</span></span>
-<span><span class="co"># sumstats &lt;- readr::read_tsv("path/to_sumstats/gwas.tsv.gz")</span></span>
-<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns</a></span><span class="op">(</span></span>
-<span>  tbl <span class="op">=</span> <span class="va">sumstats</span>,</span>
-<span>  CHR <span class="op">=</span> <span class="st">"CHROM"</span>,</span>
-<span>  POS <span class="op">=</span> <span class="st">"BP"</span>,</span>
-<span>  EffectAllele <span class="op">=</span> <span class="st">"Allele1"</span></span>
+<code class="sourceCode R"><span><span class="co"># creating a example summary statistics file with other column names used than tidyGWAS</span></span>
+<span></span>
+<span></span>
+<span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span></span>
+<span><span class="va">wrong_names</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span><span class="va">sumstats</span>, chrom <span class="op">=</span> <span class="va">CHR</span>, A1 <span class="op">=</span> <span class="va">EffectAllele</span>, AlleleFreq <span class="op">=</span> <span class="va">EAF</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">colmap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  CHR <span class="op">=</span> <span class="st">"chrom"</span>,</span>
+<span>  EffectAllele <span class="op">=</span> <span class="st">"A1"</span>,</span>
+<span>  EAF <span class="op">=</span> <span class="st">"AlleleFreq"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
-<span>  tbl <span class="op">=</span> <span class="va">df</span>, </span>
+<span>  tbl <span class="op">=</span> <span class="va">wrong_names</span>, </span>
 <span>  <span class="co"># provide the filepath to the refence files you downloaded previously</span></span>
 <span>  <span class="co"># and add dbSNP155</span></span>
 <span>  dbsnp_path <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">dbsnp_files</span>, <span class="st">"/dbSNP155"</span><span class="op">)</span>,</span>
+<span>  column_map <span class="op">=</span> <span class="va">colmap</span>,</span>
 <span>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
 <span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
 <span>  output_format <span class="op">=</span> <span class="st">"csv"</span></span>
@@ -167,10 +194,11 @@ Genomics Consortium <a href="https://www.nature.com/articles/s41586-022-04434-5"
 <span><span class="co">#&gt; 4 0.2556345 0.996 0.807400 53386    77258</span></span>
 <span><span class="co">#&gt; 5 0.3318173 0.971 0.857800 53386    77258</span></span>
 <span><span class="co">#&gt; 6 0.4470432 1.010 0.001594 53386    77258</span></span></code></pre></div>
-<p>The only mandatory argument is <code>tbl</code>. tidyGWAS accepts
-either a in-memory <code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">base::data.frame()</a></code> or a filepath to text
-file. If you pass a filepath to a text file, tidyGWAS will attempt to
-read it using <code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_tsv_arrow()</a></code>.</p>
+<p>The two mandatory argument is <code>tbl</code> and
+<code>dbsnp_path</code>. tidyGWAS accepts either a in-memory
+<code><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">base::data.frame()</a></code> or a filepath to text file. If you pass
+a filepath to a text file, tidyGWAS will attempt to read it using
+<code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_tsv_arrow()</a></code>.</p>
 <p>It’s not uncommon for sumstats to have formats that is not supported
 by this function, in which case i recommend you read in the file using
 <code>data.table::fread()</code> or <code>readr::read_tsv()</code>
@@ -248,110 +276,12 @@ files</li>
 <span>  <span class="co"># by passing the argument outdir, you can tell tidyGWAS to copy over files</span></span>
 <span>  <span class="co"># after a finished execution to that directory</span></span>
 <span>  outdir <span class="op">=</span> <span class="va">gwas_folder</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520/tidyGWAS_logfile.txt</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.7.1</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2024-02-21 10:41:49.679946, with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking that columns follow tidyGWAS format </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> The following columns are used for further steps: <span style="font-style: italic;">CHR</span>, <span style="font-style: italic;">POS</span>, <span style="font-style: italic;">RSID</span>, <span style="font-style: italic;">EffectAllele</span>, <span style="font-style: italic;">OtherAllele</span>, <span style="font-style: italic;">B</span>, <span style="font-style: italic;">SE</span>, <span style="font-style: italic;">EAF</span>, <span style="font-style: italic;">INFO</span>, <span style="font-style: italic;">P</span>, <span style="font-style: italic;">CaseN</span>, <span style="font-style: italic;">ControlN</span>, and <span style="font-style: italic;">rowid</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking for columns with all NA </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no columns with all NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">1) Scanning for rows with NA</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows contained missing values</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">2) Scanning for rows with duplications</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A unique ID is formed by concontenating CHR, POS, EffectAllele, and OtherAllele</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no duplications</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">3) Scanning for indels</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 4a) Validating columns </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-style: italic;">All rows passed validation</span> </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 5) Adding RSID based on CHR:POS. Adding dbSNP based QC flags </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by matching 10000 rows to GRCh37 and GRCh38</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3355 snps matched GRCh38, 10000 for GRCh37, inferring build to be 37</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Z missing: Calculating Z using the formula:  Z = B / SE</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Finished repair_stats:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Added 1 new columns: Z</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Finished tidyGWAS</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 0 rows were removed</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.4s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpwxEbH0/tidyGWAS19ee215e2520/metadata.yaml</span></span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 <p>If we take a look in the output folder we provided, we can see that a
 new folder has been created, we can see the standard files that tidyGWAS
 will output</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "metadata.yaml"                          </span></span>
-<span><span class="co">#&gt; [2] "pipeline_info/removed_rows_main.parquet"</span></span>
-<span><span class="co">#&gt; [3] "raw/raw.parquet"                        </span></span>
-<span><span class="co">#&gt; [4] "tidyGWAS_cleaned.parquet"               </span></span>
-<span><span class="co">#&gt; [5] "tidyGWAS_logfile.txt"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html" class="external-link">list.files</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="creating-the-correct-column-names">Creating the correct column names<a class="anchor" aria-label="anchor" href="#creating-the-correct-column-names"></a>
@@ -364,45 +294,7 @@ column name to the tidyGWAS format.</p>
 <code class="sourceCode R"><span><span class="co"># what if we have a file where POS was named bp, and B was named BETA?</span></span>
 <span><span class="co"># tidyGWAS will not recognize these as valid column names and would drop them.</span></span>
 <span><span class="va">wrong_colnames</span> <span class="op">&lt;-</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/rename.html" class="external-link">rename</a></span><span class="op">(</span><span class="va">example_file</span>, bp <span class="op">=</span> <span class="va">POS</span>, BETA <span class="op">=</span> <span class="va">B</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">wrong_colnames</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   CHR       bp        RSID EffectAllele OtherAllele         BETA     SE</span></span>
-<span><span class="co">#&gt; 1   6 31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
-<span><span class="co">#&gt; 2  16 13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
-<span><span class="co">#&gt; 3   9 85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
-<span><span class="co">#&gt; 4  19 15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
-<span><span class="co">#&gt; 5  18  5948313    rs948293            T           C  0.001698557 0.0092</span></span>
-<span><span class="co">#&gt; 6  13 47224772       rs837            G           A  0.027196792 0.0086</span></span>
-<span><span class="co">#&gt;         EAF  INFO        P CaseN ControlN</span></span>
-<span><span class="co">#&gt; 1 0.9754088 0.936 0.844400 51235    74087</span></span>
-<span><span class="co">#&gt; 2 0.6407741 0.951 0.053150 53386    77258</span></span>
-<span><span class="co">#&gt; 3 0.9160000 0.701 0.899700 53386    77258</span></span>
-<span><span class="co">#&gt; 4 0.2556345 0.996 0.807400 53386    77258</span></span>
-<span><span class="co">#&gt; 5 0.3318173 0.971 0.857800 53386    77258</span></span>
-<span><span class="co">#&gt; 6 0.4470432 1.010 0.001594 53386    77258</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># we can use tidyGWAS_columns to specify current names:</span></span>
-<span><span class="va">correct_names</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS_columns.html">tidyGWAS_columns</a></span><span class="op">(</span></span>
-<span>  <span class="co"># first argument is the data.frame</span></span>
-<span>  tbl <span class="op">=</span> <span class="va">wrong_colnames</span>, </span>
-<span>  <span class="co"># then any column which is not correctly named:</span></span>
-<span>  POS <span class="op">=</span> <span class="st">"bp"</span>,</span>
-<span>  B <span class="op">=</span> <span class="st">"BETA"</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">correct_names</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   CHR      POS        RSID EffectAllele OtherAllele            B     SE</span></span>
-<span><span class="co">#&gt; 1   6 31819813 rs183988210            C           G -0.005696193 0.0292</span></span>
-<span><span class="co">#&gt; 2  16 13991338   rs8044430            T           C -0.017695649 0.0092</span></span>
-<span><span class="co">#&gt; 3   9 85016930 rs111404043            A           T -0.002302649 0.0185</span></span>
-<span><span class="co">#&gt; 4  19 15743403   rs4807961            C           G  0.002397125 0.0099</span></span>
-<span><span class="co">#&gt; 5  18  5948313    rs948293            T           C  0.001698557 0.0092</span></span>
-<span><span class="co">#&gt; 6  13 47224772       rs837            G           A  0.027196792 0.0086</span></span>
-<span><span class="co">#&gt;          P       EAF CaseN ControlN  INFO</span></span>
-<span><span class="co">#&gt; 1 0.844400 0.9754088 51235    74087 0.936</span></span>
-<span><span class="co">#&gt; 2 0.053150 0.6407741 53386    77258 0.951</span></span>
-<span><span class="co">#&gt; 3 0.899700 0.9160000 53386    77258 0.701</span></span>
-<span><span class="co">#&gt; 4 0.807400 0.2556345 53386    77258 0.996</span></span>
-<span><span class="co">#&gt; 5 0.857800 0.3318173 53386    77258 0.971</span></span>
-<span><span class="co">#&gt; 6 0.001594 0.4470432 53386    77258 1.010</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">wrong_colnames</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -415,16 +307,16 @@ number of cores, which can be done using the
 <code>OMP_NUM_THREADS</code> variable. This should not be a larger
 number of cores than what you have requested in your HPC job (in the
 example below, the “–cpus-per-task” flag)</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
@@ -467,7 +359,7 @@ size of summary statistics.</p>
 <p>tidyGWAS uses a version dbSNP 155 converted to the <a href="https://arrow.apache.org" class="external-link">Apache Arrow</a> .parquet files. You can
 download the dbSNP155 reference file from inside R using the
 <code>googledrive</code> package, or by manually navigating to this <a href="https://drive.google.com/file/d/1LmgfmTQaWwJaFpBHcRQIY_kwe5iN7Pj6/view?usp=share_link" class="external-link">file</a></p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># You can download the file from inside R using the googledrive package:</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://googledrive.tidyverse.org" class="external-link">googledrive</a></span><span class="op">)</span></span>
 <span><span class="fu">googledrive</span><span class="fu">::</span><span class="fu">drive_deauth</span><span class="op">(</span><span class="op">)</span></span>
@@ -479,8 +371,8 @@ download the dbSNP155 reference file from inside R using the
 <span></span>
 <span><span class="fu">drive_download</span><span class="op">(</span><span class="va">id</span>, path <span class="op">=</span> <span class="va">filepath_to_store_dir</span><span class="op">)</span></span></code></pre></div>
 <p>The file needs to be untarred</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
