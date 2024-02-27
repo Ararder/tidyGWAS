@@ -157,12 +157,16 @@ remove_duplicates <- function(tbl, filepaths) {
 
   cli::cli_alert_info("A unique ID is formed by concontenating {cols_to_use}")
   if(nrow(removed) > 0) {
-    out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
+
+
     cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
-    cli::cli_li("{.file {out}}")
-    arrow::write_parquet(removed, out)
+    cli::cli_li("{.file {filepaths$removed_duplicates}}")
+    arrow::write_parquet(removed, filepaths$removed_duplicates)
+
   } else {
+
     cli::cli_alert_success("Found no duplications")
+
   }
 
   no_dups
@@ -347,7 +351,7 @@ apply_filters <- function(tbl, filepaths) {
   if(nrow(removed_chr_mismatch) > 0) {
     cli::cli_alert_warning("Removed {nrow(removed_chr_mismatch)} rows with chr mismatch between builds")
     cli::cli_inform("{.file {filepaths$removed_rows_chr_mismatch}}")
-    arrow::write_parquet(removed_chr_mismatch, filepaths$removed_rows_chr_mismatch)
+    arrow::write_parquet(removed_chr_mismatch, filepaths$removed_chr_mismatch)
   }
 
 

@@ -171,7 +171,7 @@ tidyGWAS <- function(
   } else {
 
     cli::cli_h3("4a) Validating columns")
-    main_callback <- make_callback(paste0(filepaths$removed_rows, "main"))
+    main_callback <- make_callback(filepaths$removed_validate_chr_pos)
     tbl <- validate_sumstat(tbl, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
 
 
@@ -406,9 +406,12 @@ setup_pipeline_paths <- function(outdir, filename, overwrite=FALSE) {
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
 
     "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
+    "removed_duplicates" = paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
     "removed_rows"= paste(pipeline_info, "removed_", sep = "/"),
+    "removed_validate_rsid" = paste(pipeline_info, "removed_validate_rsid_path", sep = "/"),
+    "removed_validate_chr_pos" = paste(pipeline_info, "removed_validate_chr_pos_path", sep = "/"),
     "removed_no_dbsnp" = paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/"),
-    "removed_rows_chr_mismatch" = paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
+    "removed_chr_mismatch" = paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
     "removed_missing_on_either_build" = paste(pipeline_info, "removed_missing_on_either_build.parquet", sep = "/")
   )
 
@@ -610,7 +613,7 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
   # now we have to validate all the other columns
   cli::cli_h3("4a) Validating columns with a correct RSID")
 
-  main_callback <- make_callback(paste0(filepaths$removed_rows, "main"))
+  main_callback <- make_callback(filepaths$removed_validate_rsid)
   tbl <- validate_sumstat(tbl, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
 
   # validate all other columns again - but for subset of rows that had CHR:POS in RSID column

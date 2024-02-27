@@ -41,16 +41,16 @@ test_that("select_correct_columns work", {
 
 test_that("dups are removed", {
   filepaths <- setup_pipeline_paths(tempfile())
-  out <- paste(filepaths$removed_rows, "duplicated_rows.parquet")
+
   expect_no_error(remove_duplicates(tbl = test_sumstat, filepaths = filepaths))
-  expect_true(!file.exists(out))
+  expect_true(!file.exists(filepaths$removed_duplicates))
 
   # add some duplications
   tmp <- dplyr::bind_rows(test_sumstat[1:10,], test_sumstat)
   tmp$rowid <- 1:nrow(tmp)
   remove_duplicates(tbl = tmp, filepaths = filepaths)
-  expect_true(file.exists(out))
-  expect_equal(nrow(arrow::read_parquet(out)), 10)
+  expect_true(file.exists(filepaths$removed_duplicates))
+  expect_equal(nrow(arrow::read_parquet(filepaths$removed_duplicates)), 10)
 
 })
 

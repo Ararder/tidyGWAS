@@ -113,6 +113,7 @@ test_that("regression test", {
 
 # possible errors --------------------------------------------------------------
 # To do: Add test for each error type encountered in the wild
+# check that duplcations arising from CHR_POS in RSID is detected
 
 
 
