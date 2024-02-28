@@ -1,4 +1,4 @@
-utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR"))
+utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR", "invalid_Z"))
 impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P", "B", "Z", "N")
 
 
@@ -206,15 +206,17 @@ validate_columns <- function(
 
   } else if(col == "Z") {
 
+
     tbl <- dplyr::mutate(tbl, Z = as.double(Z))
-    maxval <- max(abs(tbl$Z))
+    tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
+    maxval <- max(dplyr::filter(tbl, !invalid_Z)$Z)
 
     if(maxval < 100) {
       cli::cli_alert_info("Found {maxval} as largest absolute Z score, which seems reasonable")
     } else {
       cli::cli_alert_warning("WARNING: Found {maxval} as largest absolute Z score, which seems highy unlikely")
     }
-    tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
+
 
   } else if(col == "P") {
 

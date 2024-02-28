@@ -216,6 +216,13 @@ z_from_p_b <- function(pvalue, beta) {
   sign(beta) * sqrt(stats::qchisq(pvalue,1,lower=FALSE))
 }
 
+n_from_se_eaf <- function(SE, EAF) {
+  # source: https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
+  # convert all estimats to minor allele frequency
+  EAF <- dplyr::if_else(EAF > 0.5, 1-EAF, EAF)
+  round(4 / ((2 * EAF * (1-EAF)) * (SE^2) ))
+}
+
 #' Find all rows which are part of a set of duplicated rows
 #' @description
 #' Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]

@@ -136,3 +136,25 @@ test_that("Z", {
 
 })
 
+
+
+# Can handle missing values in all columns
+
+test_that("validate_columns can handle missing values", {
+
+  tmp <- test_sumstat |>
+    dplyr::mutate(
+      Z = B/SE,
+      dplyr::across(c("B","SE","EAF", "INFO", "P", "CaseN", "ControlN", "Z"), \(x) dplyr::if_else(CHR == 6, NA_real_, x))
+    )
+
+  expect_no_error(validate_columns(tmp, "B"))
+  expect_no_error(validate_columns(tmp, "SE"))
+  expect_no_error(validate_columns(tmp, "EAF"))
+  expect_no_error(validate_columns(tmp, "P"))
+  expect_no_error(validate_columns(tmp, "Z"))
+
+
+
+})
+
