@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,46 +79,46 @@
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">setup_pipeline_paths</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $base</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $logfile</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/tidyGWAS_logfile.txt"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/tidyGWAS_logfile.txt"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $cleaned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/tidyGWAS_hivestyle"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/tidyGWAS_hivestyle"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $raw_sumstats</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/raw/raw.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/raw/raw.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $metadata</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/metadata.yaml"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/metadata.yaml"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $updated_rsid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/updated_rsid.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/updated_rsid.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $failed_rsid_parse</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_failed_rsid_parse.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_failed_rsid_parse.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_duplicates</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_duplicates.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_duplicates.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_rows</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_validate_rsid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_validate_rsid_path"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_validate_rsid_path"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_validate_chr_pos</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_validate_chr_pos_path"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_validate_chr_pos_path"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_no_dbsnp</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_nodbsnp.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_nodbsnp.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_chr_mismatch</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_chr_mismatch.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_chr_mismatch.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $removed_missing_on_either_build</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmpE49E5S/file180917d0b120/pipeline_info/removed_missing_on_either_build.parquet"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "/tmp/RtmprksZKm/file184a479647dc/pipeline_info/removed_missing_on_either_build.parquet"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>
