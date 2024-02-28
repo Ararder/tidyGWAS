@@ -213,11 +213,11 @@ and providing coordinate on both genome builds.</p>
 <span>  tbl <span class="op">=</span> <span class="va">example_sumstats</span> </span>
 <span>  <span class="co"># dbsnp_path = dbsnp_file</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Passing a filepath also works</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cleaned <span class="ot">&lt;-</span> <span class="fu">tidyGWAS</span>(</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">tbl =</span> <span class="st">"/home/all_sumstats/raw_sumstats.txt.gz"</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">dbsnp_path =</span> dbsnp_file</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Passing a filepath also works</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>cleaned <span class="ot">&lt;-</span> <span class="fu">tidyGWAS</span>(</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">tbl =</span> <span class="st">"/home/all_sumstats/raw_sumstats.txt.gz"</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">dbsnp_path =</span> dbsnp_file</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span></code></pre></div>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># if the file is not parsed correctly using arrow::read_tsv_arrow, you can use</span></span>
 <span><span class="co"># data.table::fread() or readr::read_tsv() first, and then pass the data.frame to tidyGWAS  </span></span>
@@ -307,16 +307,16 @@ number of cores, which can be done using the
 <code>OMP_NUM_THREADS</code> variable. This should not be a larger
 number of cores than what you have requested in your HPC job (in the
 example below, the “–cpus-per-task” flag)</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
@@ -371,8 +371,8 @@ download the dbSNP155 reference file from inside R using the
 <span></span>
 <span><span class="fu">drive_download</span><span class="op">(</span><span class="va">id</span>, path <span class="op">=</span> <span class="va">filepath_to_store_dir</span><span class="op">)</span></span></code></pre></div>
 <p>The file needs to be untarred</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="co"># change directory to where the downloaded file is</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xf</span> dbSNP155.tar dbSNP155</span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>
