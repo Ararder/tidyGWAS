@@ -9,6 +9,7 @@ tidyGWAS(
   dbsnp_path,
   ...,
   column_map,
+  sample_size_map,
   output_format = c("csv", "parquet", "hivestyle"),
   build = c("NA", "37", "38"),
   outdir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` = "_",
@@ -29,7 +30,9 @@ tidyGWAS(
 
 \item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
-\item{column_map}{a named list of column names, to be used to rename columns.
+\item{column_map}{a named list of column names, to be used to rename columns.}
+
+\item{sample_size_map}{a named list with names "N" "CaseN" or "ControlN" and corresponding values
 The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.}
 
 \item{output_format}{How should the finished cleaned file be saved?

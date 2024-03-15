@@ -69,6 +69,19 @@ test_that("can read in file from disk", {
 })
 
 
+test_that("rsid_only works", {
+  filepaths <- setup_pipeline_paths(tempfile())
+  expect_no_error(rsid_only(
+    test_sumstat,
+    dbsnp_path = dbsnp_files,
+    filepaths = filepaths,
+    verbose = FALSE,
+    convert_p = 0,
+    add_missing_build = TRUE
+  ))
+
+})
+
 test_that("Testing with CHR and POS", {
 
 

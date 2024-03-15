@@ -43,6 +43,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
 #' @param column_map a named list of column names, to be used to rename columns.
+#' @param sample_size_map a named list with names "N" "CaseN" or "ControlN" and corresponding values
 #' The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.
 #' @param output_format How should the finished cleaned file be saved?
 #'  * "'csv' corresponds to [arrow::write_csv_arrow()]
@@ -72,6 +73,7 @@ tidyGWAS <- function(
     dbsnp_path,
     ...,
     column_map,
+    sample_size_map,
     output_format = c("csv","parquet", "hivestyle"),
     build = c("NA","37", "38"),
     outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
@@ -125,7 +127,7 @@ tidyGWAS <- function(
   # start of pipeline ----------------------------------------------------------
   # 0) formatting --------------------------------------------------------------
 
-  if(!missing(column_map)) tbl <- update_column_names(tbl, column_map)
+  if(!missing(column_map)) tbl <- update_column_names(tbl, column_map, sample_size_map)
 
   tbl <- select_correct_columns(tbl)
 
@@ -256,6 +258,7 @@ tidyGWAS <- function(
 
   cli::cli_inform("Saving metadata from analysis to {.file {filepaths$metadata}}")
   metadata <- if(missing(column_map)) metadata else c(metadata, column_map)
+  metadata <- if(missing(sample_size_map)) metadata else c(metadata, sample_size_map)
   yaml::write_yaml(metadata, filepaths$metadata)
 
 
@@ -405,14 +408,19 @@ setup_pipeline_paths <- function(outdir, filename, overwrite=FALSE) {
     "metadata" = paste0(outdir, "/metadata.yaml"),
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
 
-    "failed_rsid_parse" = paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
-    "removed_duplicates" = paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
-    "removed_rows"= paste(pipeline_info, "removed_", sep = "/"),
-    "removed_validate_rsid" = paste(pipeline_info, "removed_validate_rsid_path", sep = "/"),
-    "removed_validate_chr_pos" = paste(pipeline_info, "removed_validate_chr_pos_path", sep = "/"),
-    "removed_no_dbsnp" = paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/"),
-    "removed_chr_mismatch" = paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
-    "removed_missing_on_either_build" = paste(pipeline_info, "removed_missing_on_either_build.parquet", sep = "/")
+    "removed_rows"=                              paste(pipeline_info, "removed_", sep = "/"),
+    "removed_duplicates" =                       paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
+    "failed_rsid_parse" =                        paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
+    "removed_invalid_chr_pos_in_rsid"  =         paste(pipeline_info, "removed_invalid_chr_pos_rsid.parquet", sep = "/"),
+    "removed_indels" =                           paste(pipeline_info, "removed_indels.parquet", sep = "/"),
+    "removed_validate_rsid" =                    paste(pipeline_info, "removed_validate_rsid_path.parquet", sep = "/"),
+    "removed_validate_rsid_without_rsid" =       paste(pipeline_info, "removed_without_rsid.parquet", sep ="/"),
+    "removed_validate_chr_pos" =                 paste(pipeline_info, "removed_validate_chr_pos_path.parquet", sep = "/"),
+    "removed_validate_indels" =                  paste(pipeline_info, "removed_validate_indels.parquet", sep = "/"),
+    "removed_duplications_chr_pos_in_rsid_col" = paste(pipeline_info, "removed_duplications_chr_pos_in_rsid_col.parquet", sep = "/"),
+    "removed_no_dbsnp" =                         paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/"),
+    "removed_chr_mismatch" =                     paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
+    "removed_missing_on_either_build" =          paste(pipeline_info, "removed_missing_on_either_build.parquet", sep = "/")
   )
 
 
@@ -605,41 +613,44 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
   # update the RSID column
   tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
 
+
   # check for CHR:POS in RSID column ----------------------------------------
-  tbl <- validate_rsid(tbl, outpath = paste(filepaths$removed_rows, "invalid_chr_pos_rsid.parquet"))
+  tbl <- validate_rsid(tbl, outpath = filepaths$removed_invalid_chr_pos_in_rsid)
   without_rsid <- tbl$without_rsid
   tbl <- tbl$main
 
-  # now we have to validate all the other columns
+
+  # validate columns --------------------------------------------------------
   cli::cli_h3("4a) Validating columns with a correct RSID")
 
   main_callback <- make_callback(filepaths$removed_validate_rsid)
   tbl <- validate_sumstat(tbl, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
 
-  # validate all other columns again - but for subset of rows that had CHR:POS in RSID column
+
+  # We have the validate the data.frame we split of, that had CHR:POS in RSID
   cli::cli_h3("4b) Validating columns with CHR:POS in RSID column")
-  without_rsid_callback <- make_callback(paste0(filepaths$removed_rows, "without_rsid"))
+  without_rsid_callback <- make_callback(filepaths$removed_validate_rsid_without_rsid)
   without_rsid <- validate_sumstat(without_rsid, filter_func = main_callback, verbose = verbose, convert_p = convert_p)
 
-  # repair CHR:POS or RSID columns -------------------------------------------
+
   cli::cli_h3("5) Adding CHR and POS based on RSID. Adding dbSNP based QC flags")
+
   main <- repair_chr_pos(tbl, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
   without_rsid <- repair_rsid(without_rsid, dbsnp_path = dbsnp_path, add_missing_build = add_missing_build)
 
   # merge the data.frames together
   main <- dplyr::bind_rows(main, without_rsid)
 
+
+  # check for dups ----------------------------------------------------------
   # It's possible that rows coded as CHR:POS in the RSID column are actually
   # duplications of the other columns, but we cannot detect that until we
   # have CHR:POS:RSID for all variants. So we have to do a check here.
 
-  # save all rowids before remove duplications
+
   before_unique_check <- dplyr::select(main, rowid)
 
-  # This get slightly more complicated because we can't check for duplications
-  # when the CHR:POS is missing, so have to do it for both builds
-
-  # check duplications in rows where GRCh38 is missing
+  # duplication check fails when CHR:POS is missing, so have split by builds
   b38_missing <- dplyr::filter(main, is.na(CHR)) |>
     dplyr::distinct(CHR_37,POS_37,EffectAllele,OtherAllele, .keep_all = TRUE)
 
@@ -655,7 +666,7 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
     "Found {nrow(removed)} rows which are duplicates. These duplicates comes from the subset of
     rows that had CHR:POS in the RSID column. They could not be detected as duplicates before
     their CHR and POS was inferred.")
-    arrow::write_parquet(removed, paste0(filepaths$removed_rows, "duplications_chr_pos_in_rsid_col.parquet"))
+    arrow::write_parquet(removed, filepaths$removed_duplications_chr_pos_in_rsid_col)
   }
 
   # -------------------------------------------------------------------------
@@ -664,24 +675,35 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
 
 }
 
-update_column_names <- function(tbl, column_map) {
+update_column_names <- function(tbl, column_map, add_n) {
   rlang::check_required(tbl)
-  rlang::check_required(column_map)
-
-  stopifnot(
-    "column_map can only contain tidyGWAS columns as named entries. See tidyGWAS_columns() for valid column names." =
-      all(names(column_map) %in% valid_column_names)
-  )
-
-  stopifnot(
-      "All entries in column_map must be present in the input tbl" =
-        all(column_map %in% colnames(tbl))
-      )
-
-  dplyr::rename(tbl, !!!column_map)
 
 
+  if(!missing(column_map)) {
+    stopifnot(
+      "column_map can only contain tidyGWAS columns as named entries. See tidyGWAS_columns() for valid column names." =
+        all(names(column_map) %in% valid_column_names)
+    )
 
+    stopifnot(
+        "All entries in column_map must be present in the input tbl" =
+          all(column_map %in% colnames(tbl))
+        )
+
+    tbl <- dplyr::rename(tbl, !!!column_map)
+  }
+
+  if(!missing(add_n)) {
+
+    stopifnot(
+      "`add_n` can only contain 'N', 'CaseN', 'ControlN'" = all(names(add_n) %in% c("N", "CaseN", "ControlN"))
+    )
+
+    tbl <- dplyr::mutate(tbl, !!!add_n)
+
+  }
+
+  tbl
 }
 
 

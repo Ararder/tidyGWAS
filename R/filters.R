@@ -258,17 +258,17 @@ detect_indels <- function(tbl, indel_strategy, filepaths,...) {
   indels <- validate_sumstat(
     tbl = indels,
     remove_cols = c("EffectAllele", "OtherAllele"),
-    filter_func = make_callback(paste0(filepaths$removed_rows, "validate_indels")),
+    filter_func = make_callback(filepaths$removed_validate_indels),
     id = "indel_rows",
     ...
   )
 
   if(indel_strategy == "remove" & !is.null(indels)) {
 
-    outpath <- paste0(filepaths$removed_rows, "indels_removed.parquet")
-    arrow::write_parquet(indels, outpath)
-    cli::cli_alert_warning("{.code keep_indels = FALSE}. Removed {nrow(indels)} rows as (indels)")
-    cli::cli_inform("{.file {outpath}}")
+
+    arrow::write_parquet(indels, filepaths$removed_indels)
+    cli::cli_alert_warning("{.code keep_indels = FALSE}. Removed {nrow(indels)} rows as indels")
+    cli::cli_inform("{.file {filepaths$removed_indels}}")
     indels <- NULL
   }
 
