@@ -4,14 +4,12 @@
 \alias{setup_pipeline_paths}
 \title{Create the folder structure for tidyGWAS}
 \usage{
-setup_pipeline_paths(outdir, filename, overwrite = FALSE)
+setup_pipeline_paths(outdir, filename)
 }
 \arguments{
-\item{outdir}{filepath to a folder where data should be stored.}
+\item{outdir}{output directory}
 
 \item{filename}{filename for the raw sumstats}
-
-\item{overwrite}{Should existing files be overwritten?}
 }
 \value{
 a list of filepaths

@@ -8,15 +8,16 @@ tidyGWAS(
   tbl,
   dbsnp_path,
   ...,
-  column_map,
-  sample_size_map,
-  output_format = c("csv", "parquet", "hivestyle"),
-  build = c("NA", "37", "38"),
-  outdir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` = "_",
-    `:` = "_"))),
+  column_names,
+  output_format = c("hivestyle", "parquet", "csv"),
+  output_dir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` =
+    "_", `:` = "_"))),
+  CaseN = NULL,
+  ControlN = NULL,
+  N = NULL,
   convert_p = 2.225074e-308,
+  build = c("NA", "37", "38"),
   indel_strategy = c("keep", "remove"),
-  overwrite = FALSE,
   repair_cols = TRUE,
   logfile = FALSE,
   verbose = FALSE,
@@ -30,10 +31,7 @@ tidyGWAS(
 
 \item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
-\item{column_map}{a named list of column names, to be used to rename columns.}
-
-\item{sample_size_map}{a named list with names "N" "CaseN" or "ControlN" and corresponding values
-The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.}
+\item{column_names}{a named list of column names, to be used to rename columns.}
 
 \item{output_format}{How should the finished cleaned file be saved?
 \itemize{
@@ -42,17 +40,21 @@ The names must be tidyGWAS column names, and the values must be the column names
 \item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
 }}
 
-\item{build}{If you are sure of what genome build (GRCh37 or GRCH37), can be used to skip \code{\link[=infer_build]{infer_build()}}}
+\item{output_dir}{filepath to a folder where data should be stored.}
 
-\item{outdir}{filepath to a folder where data should be stored.}
+\item{CaseN}{manually input number of cases}
 
-\item{convert_p}{What value should be used for P = 0?}
+\item{ControlN}{manually input number of controls}
+
+\item{N}{manually input sample size}
+
+\item{convert_p}{What value should be used for when P-value has been rounded to 0?}
+
+\item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
 
 \item{indel_strategy}{Should indels be kept or removed?}
 
-\item{overwrite}{Should existing files be overwritten?}
-
-\item{repair_cols}{Should any missing columns be repaired?}
+\item{repair_cols}{Should any missing statistical columns be repaired if possible?}
 
 \item{logfile}{Should messages be redirected to a logfile?}
 

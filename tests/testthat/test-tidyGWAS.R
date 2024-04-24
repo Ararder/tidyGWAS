@@ -3,7 +3,7 @@
 
 # tidyGWAS ----------------------------------------------------------------
 
-test_that("can read in file from disk", {
+test_that("Can update column names", {
   column_map <- list(
     CHR = "chrom",
     POS = "position",
@@ -21,7 +21,7 @@ test_that("can read in file from disk", {
   )
 
   expect_no_error(
-    update_column_names(tbl, column_map)
+    update_column_names(tbl, column_map, CaseN = NULL, ControlN = NULL, N = NULL)
   )
 
 
@@ -52,7 +52,7 @@ test_that("Can parse file from disk with different column names", {
     tidyGWAS(
       tbl = file,
       dbsnp_path = dbsnp_files,
-      column_map = column_map
+      column_names = column_map
     )
   )
 

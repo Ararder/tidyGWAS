@@ -1,5 +1,5 @@
-utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR", "invalid_Z"))
-impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P", "B", "Z", "N")
+utils::globalVariables(c("P", "p_was_0", "B", "EAF", "N", "missing_ea_oa", "SE", "non_acgt", "Z", "indel", "OR", "invalid_Z", "CaseN", "ControlN"))
+impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P", "B", "Z", "N", "CaseN", "ControlN")
 
 
 
@@ -175,7 +175,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 #'
 validate_columns <- function(
     tbl,
-    col = c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele"),
+    col = c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele", "CaseN", "ControlN"),
     verbose = TRUE,
     convert_p = 2.225074e-308
     ) {
@@ -203,6 +203,14 @@ validate_columns <- function(
   } else if(col == "N"){
 
     tbl <- dplyr::mutate(tbl,N = as.integer(N),invalid_N = dplyr::if_else(N <= 0 | !is.finite(N), TRUE, FALSE))
+
+  } else if(col == "CaseN"){
+
+    tbl <- dplyr::mutate(tbl, CaseN = as.integer(CaseN), invalid_CaseN = dplyr::if_else(CaseN <= 0 | !is.finite(CaseN), TRUE, FALSE))
+
+  } else if(col == "ControlN"){
+
+    tbl <- dplyr::mutate(tbl, ControlN = as.integer(ControlN), invalid_ControlN = dplyr::if_else(ControlN <= 0 | !is.finite(ControlN), TRUE, FALSE))
 
   } else if(col == "Z") {
 
@@ -369,7 +377,7 @@ start_message <- function(col) {
 
 end_message <- function(tbl, col) {
 
-  stopifnot("Cannot print end msg for column that doesnt exist" = glue::glue("invalid_{col}") %in% colnames(tbl))
+  stopifnot("Cannot print end msg for a column that has not been validated" = glue::glue("invalid_{col}") %in% colnames(tbl))
   n_invalid <- sum(tbl[[glue::glue("invalid_{col}")]])
   if(n_invalid > 0) {
     cli::cli_alert_warning("{n_invalid} rows failed {col} validation")

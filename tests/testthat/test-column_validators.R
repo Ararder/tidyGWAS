@@ -59,6 +59,7 @@ test_that("Validate_columns works", {
   expect_no_error(
     for(c in check) tmp <- validate_columns(test_sumstat,col = c, verbose = FALSE)
   )
+  validate_columns(test_sumstat, col = "CaseN")
 
 
 })

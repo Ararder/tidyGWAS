@@ -42,22 +42,22 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param tbl a `data.frame` or `character()` vector
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
-#' @param column_map a named list of column names, to be used to rename columns.
-#' @param sample_size_map a named list with names "N" "CaseN" or "ControlN" and corresponding values
-#' The names must be tidyGWAS column names, and the values must be the column names in the input summary statistics.
+#' @param output_dir filepath to a folder where data should be stored.
 #' @param output_format How should the finished cleaned file be saved?
 #'  * "'csv' corresponds to [arrow::write_csv_arrow()]
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
 #'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
 #'
-#' @param build If you are sure of what genome build (GRCh37 or GRCH37), can be used to skip [infer_build()]
-#' @param outdir filepath to a folder where data should be stored.
-#' @param convert_p What value should be used for P = 0?
-#' @param indel_strategy Should indels be kept or removed?
-#' @param overwrite Should existing files be overwritten?
-#' @param repair_cols Should any missing columns be repaired?
-#' @param add_missing_build Should the build which the sumstats are NOT on also be added in?
 #' @param logfile Should messages be redirected to a logfile?
+#' @param column_names a named list of column names, to be used to rename columns.
+#' @param CaseN manually input number of cases
+#' @param ControlN manually input number of controls
+#' @param N manually input sample size
+#' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
+#' @param convert_p What value should be used for when P-value has been rounded to 0?
+#' @param indel_strategy Should indels be kept or removed?
+#' @param repair_cols Should any missing statistical columns be repaired if possible?
+#' @param add_missing_build Should the build which the sumstats are NOT on also be added in?
 #' @param verbose Explain filters in detail?
 #'
 #' @return a [dplyr::tibble()]
@@ -72,14 +72,15 @@ tidyGWAS <- function(
     tbl,
     dbsnp_path,
     ...,
-    column_map,
-    sample_size_map,
-    output_format = c("csv","parquet", "hivestyle"),
-    build = c("NA","37", "38"),
-    outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
+    column_names,
+    output_format = c("hivestyle","parquet", "csv"),
+    output_dir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
+    CaseN = NULL,
+    ControlN = NULL,
+    N = NULL,
     convert_p = 2.225074e-308,
+    build = c("NA","37", "38"),
     indel_strategy = c("keep", "remove"),
-    overwrite = FALSE,
     repair_cols = TRUE,
     logfile = FALSE,
     verbose = FALSE,
@@ -87,25 +88,38 @@ tidyGWAS <- function(
     ) {
 
 
+
   # parse arguments ---------------------------------------------------------
   rlang::check_required(dbsnp_path)
+  stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
+  stopifnot("The `output_dir` specified already exists" = !dir.exists(output_dir))
+  start_time <- Sys.time()
   output_format <-  rlang::arg_match(output_format)
   build <-          rlang::arg_match(build)
   indel_strategy <- rlang::arg_match(indel_strategy)
 
 
-  # starting variables ------------------------------------------------------
-  start_time <- Sys.time()
-  stopifnot(!dir.exists(outdir))
+  # welcome message ----------------------------------------------------------
+  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
+  cli::cli_inform("Starting at {start_time}")
 
-  # parse_tbl returns the dataframe and the filename
+
+
+
+
+
+  # check input data.frame --------------------------------------------------
+
   tbl <- parse_tbl(tbl, ...)
   filename <- tbl$filename
   md5 <- tbl$md5
+  # has to be last, overwriting tbl here
   tbl <- tbl$tbl
 
   rows_start <- nrow(tbl)
-  filepaths <- setup_pipeline_paths(outdir = outdir, filename = filename, overwrite = overwrite)
+  filepaths <- setup_pipeline_paths(outdir = output_dir, filename = filename)
+  cli::cli_inform("with {rows_start} rows in input data.frame")
+  cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
 
 
   # setup logging -----------------------------------------------------------
@@ -118,16 +132,11 @@ tidyGWAS <- function(
   # The sumstats are saved without any edits, to not loose information
   arrow::write_parquet(tbl,  filepaths$raw_sumstats)
 
-  # welcome message ----------------------------------------------------------
-  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
-  cli::cli_inform("Starting at {start_time}, with {rows_start} rows in input data.frame")
-  cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
-
 
   # start of pipeline ----------------------------------------------------------
   # 0) formatting --------------------------------------------------------------
 
-  if(!missing(column_map)) tbl <- update_column_names(tbl, column_map, sample_size_map)
+  if(!missing(column_names)) tbl <- update_column_names(tbl, column_names, CaseN = CaseN, ControlN=ControlN, N=N)
 
   tbl <- select_correct_columns(tbl)
 
@@ -243,27 +252,27 @@ tidyGWAS <- function(
     dbsnp_path = dbsnp_path,
     output_format = output_format,
     build = build,
-    outdir = outdir,
+    outdir = output_dir,
     convert_p = convert_p,
     indel_strategy = indel_strategy,
-    overwrite = overwrite,
     repair_cols = repair_cols,
     logfile = logfile,
     verbose = verbose,
     add_missing_build = add_missing_build,
-    inferred_build = inferred_build
+    inferred_build = inferred_build,
+    study_ControlN = ControlN,
+    study_N = N,
+    study_CaseN = CaseN
   )
 
 
 
   cli::cli_inform("Saving metadata from analysis to {.file {filepaths$metadata}}")
-  metadata <- if(missing(column_map)) metadata else c(metadata, column_map)
-  metadata <- if(missing(sample_size_map)) metadata else c(metadata, sample_size_map)
+  metadata <- if(missing(column_names)) metadata else c(metadata, column_names)
   yaml::write_yaml(metadata, filepaths$metadata)
 
-
-
   # let function return the cleaned sumstats
+
   main
 
 }
@@ -377,19 +386,16 @@ identify_removed_rows <- function(finished, filepaths) {
 
 #' Create the folder structure for tidyGWAS
 #'
-#' @inheritParams tidyGWAS
+#' @param outdir output directory
 #' @param filename filename for the raw sumstats
 #' @return a list of filepaths
 #' @export
 #'
 #' @examples
 #' setup_pipeline_paths(tempfile())
-setup_pipeline_paths <- function(outdir, filename, overwrite=FALSE) {
+setup_pipeline_paths <- function(outdir, filename) {
 
-  # define workdir
-  if(overwrite == TRUE) {
-    unlink(outdir, recursive = TRUE)
-  }
+
   if(missing(filename)) filename <- "raw"
   stopifnot("The provided output folder already exists" = !dir.exists(outdir))
   pipeline_info <- paste(outdir,"pipeline_info", sep = "/")
@@ -675,15 +681,12 @@ rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missin
 
 }
 
-update_column_names <- function(tbl, column_map, add_n) {
+update_column_names <- function(tbl, column_map, CaseN = NULL, ControlN =NULL, N=NULL) {
   rlang::check_required(tbl)
 
 
   if(!missing(column_map)) {
-    stopifnot(
-      "column_map can only contain tidyGWAS columns as named entries. See tidyGWAS_columns() for valid column names." =
-        all(names(column_map) %in% valid_column_names)
-    )
+
 
     stopifnot(
         "All entries in column_map must be present in the input tbl" =
@@ -693,15 +696,13 @@ update_column_names <- function(tbl, column_map, add_n) {
     tbl <- dplyr::rename(tbl, !!!column_map)
   }
 
-  if(!missing(add_n)) {
+  if(!is.null(CaseN)) tbl <- dplyr::mutate(tbl, CaseN =  {{ CaseN }})
+  if(!is.null(ControlN)) tbl <- dplyr::mutate(tbl, ControlN =  {{ ControlN }})
+  if(!is.null(N)) tbl <- dplyr::mutate(tbl, N = {{ N }})
 
-    stopifnot(
-      "`add_n` can only contain 'N', 'CaseN', 'ControlN'" = all(names(add_n) %in% c("N", "CaseN", "ControlN"))
-    )
 
-    tbl <- dplyr::mutate(tbl, !!!add_n)
 
-  }
+
 
   tbl
 }

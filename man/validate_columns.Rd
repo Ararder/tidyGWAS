@@ -6,7 +6,8 @@
 \usage{
 validate_columns(
   tbl,
-  col = c("B", "SE", "EAF", "N", "Z", "P", "POS", "CHR", "EffectAllele", "OtherAllele"),
+  col = c("B", "SE", "EAF", "N", "Z", "P", "POS", "CHR", "EffectAllele", "OtherAllele",
+    "CaseN", "ControlN"),
   verbose = TRUE,
   convert_p = 2.225074e-308
 )
@@ -18,7 +19,7 @@ validate_columns(
 
 \item{verbose}{Explain filters in detail?}
 
-\item{convert_p}{What value should be used for P = 0?}
+\item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with a column added named as invalid_{col}.

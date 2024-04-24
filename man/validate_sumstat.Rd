@@ -22,7 +22,7 @@ validate_sumstat(
 
 \item{verbose}{Explain filters in detail?}
 
-\item{convert_p}{What value should be used for P = 0?}
+\item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 
 \item{id}{Used to customize messages.}
 }
