@@ -26,7 +26,6 @@ Imports:
     yaml
 Suggests: 
     fs,
-    googledrive,
     knitr,
     readr,
     rmarkdown,

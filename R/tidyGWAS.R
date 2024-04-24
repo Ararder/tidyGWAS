@@ -577,42 +577,7 @@ check_correct_files <- function(dir) {
 
 }
 
-#' Download references files used by tidyGWAS
-#'
-#' @param save_dir directory to save reference files to
-#'
-#' @return NULL
-#' @export
-#'
-#' @examples \dontrun{
-#' download_ref_files("path/to_dir")
-#' }
-download_ref_files <- function(save_dir) {
-  rlang::check_installed("googledrive")
-  # check that save_path is writeable
-  if(!dir.exists(save_dir)) {
-    stop("save_dir does not exist, please provide a filepath to an existing directory")
-  }
 
-  cli::cli_alert_info("Starting download of reference files using {.code googledrive::drive_download()}")
-  save_path <- paste0(save_dir, "/drive_tmp_download.tar")
-  googledrive::drive_deauth()
-  googledrive::drive_download(googledrive::as_id("1aZ_y1gpkW69Gd2hYk1P4r7OeofgG9pwK"), save_path)
-
-
-
-  cli::cli_inform("Reference files downloaded. Attempting to extract files..:")
-  withr::local_dir(save_dir)
-  tar_cmd <- paste0("tar -xvf ", save_path)
-  utils::untar(save_path, exdir = save_dir)
-
-  cli::cli_inform("Checking that downloaded files are correct..:")
-  check_correct_files(paste0(save_dir, "/dbSNP155"))
-
-  cli::cli_alert_success("Use {.path {paste0(save_dir, /dbSNP155)}} as input to {.code tidyGWAS()}")
-
-
-}
 
 rsid_only <- function(tbl, dbsnp_path, filepaths, verbose, convert_p, add_missing_build) {
 
