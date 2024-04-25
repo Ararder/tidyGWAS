@@ -6,7 +6,7 @@ Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
     tidyGWAS employs a version of dbSNP transformed into Apache Arrow parquet
-    files to restore and validate CHR:POS:RSID:A1:A2.
+    files to restore and validate genome wide association summary statistics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

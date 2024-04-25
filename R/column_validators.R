@@ -20,9 +20,9 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 #' validate_sumstat(sumstat, remove_cols = "EffectAllele", convert_p = 0)
 #' }
 #'
-validate_sumstat <- function(tbl, remove_cols= c(""), filter_func,  verbose = FALSE, convert_p, id) {
+validate_sumstat <- function(tbl, remove_cols = c(""), filter_func,  verbose = FALSE, convert_p, id) {
 
-  # check if 0 rows tbl or NULL
+
   stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
   tbl <- check_zero_rows(tbl)
   if(is.null(tbl)) return(NULL)

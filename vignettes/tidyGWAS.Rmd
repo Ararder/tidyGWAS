@@ -27,7 +27,7 @@ remotes::install_github("ararder/tidyGWAS") # install.packages("remotes")
 # Download reference files
 
 tidyGWAS uses reference data from dbSNP, transformed into parquet files.
-They can be downloaded [here](https://zenodo.org).
+They can be downloaded [here](https://zenodo.org/records/11060095).
 
 The file needs to untarred before it can be used.
 
@@ -49,14 +49,12 @@ tidyGWAS has two mandatory arguments:
 An argument that is not mandatory but very useful is `output_dir`.
 tidyGWAS outputs all the files from an execution in a directory, so the
 filepath provided to `output_dir` is the path to where tidyGWAS will
-create the output folder. The folder cannot already exists - otherwise
-tidyGWAS would rewrite the directory. It is recommended that have a
-folder that stores all munged summary statistics. The general pattern of
-`output_dir` will then be:
+create the output folder. The folder cannot exist yet (to prevent
+accidental overwriting of files).
 
-/file/path/to/all/cleaned/\<trait_name\>
-
-where trait_name can be changed depending on input summary statistics.
+In the example below, a new directory called `scz_testfile` will be
+created inside `/home/cleaned_tidyGWAS`. If `output_dir`is not set, tidyGWAS will 
+create a folder inside the R tempdir.
 
 ```{r, eval = FALSE}
 # here we use an in-memory data frame that comes with the tidyGWAS package
@@ -67,6 +65,7 @@ cleaned <- tidyGWAS(
   tbl = sumstats, 
   # provide the filepath to the refence files you downloaded.
   dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
+  output_dir = "/home/cleaned_tidyGWAS/scz_testfile"
   )
 ```
 
@@ -166,7 +165,7 @@ cleaned <- tidyGWAS(
 There's a lot of different field delimiters used in the wild, and
 sometimes you can struggle with inputting the correct delimiter. In such
 cases, it's often much more convenient to use the effective
-[data.table::fread()] or [readr::read_table()] to first read in the
+`data.table::fread()` or `readr::read_table()` to first read in the
 summary statistics into memory before passing it to tidyGWAS.
 
 ```{r, eval=FALSE}
@@ -177,15 +176,6 @@ sumstats <- fread("path/to/sumstats.gz.vcf")
 
 # Here we need to provide the delim argument
 cleaned <- tidyGWAS(
-  tbl = sumstats,
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
-)
-```
-
-### Inputting sample size columns
-
-```{r, eval=FALSE}
-cleaned <- tidyGWAS(
   tbl = tmp_filepath,
   # here we specify the delimiter
   delim = "\t",
@@ -195,6 +185,8 @@ cleaned <- tidyGWAS(
 )
 
 ```
+
+### Inputting sample size columns
 
 It's not uncommon for sample size to also be missing from the summary
 statistics. These can be passed in a similar manner as the column names.
@@ -285,6 +277,9 @@ cleaned <- tidyGWAS(
     "EffectAllele" = "A1",
     "B" = "Effect"
   ),
+  # This is the default argument, but you can change to 'csv' or 'parquet'
+  # to output a csv file or a .parquet file
+  output_format = "hivestyle"
   # sample sizes were missing, so we need to provide it also
   CaseN = 54000,
   ControlN = 73000,
@@ -301,7 +296,7 @@ cleaned <- tidyGWAS(
 
 # The files produced by tidyGWAS
 
-inside the folder provided by `output_dir`, you will have the following
+inside the folder specified in `output_dir`, you will have the following
 files:
 
 1.  `metadata.yaml` a record of arguments passed. Useful for reproducing
