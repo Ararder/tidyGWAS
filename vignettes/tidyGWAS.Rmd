@@ -240,23 +240,22 @@ example_ref_file <-  fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
 colnames(example_sumstats)
 ```
 
-We create a temporary file to store the example sumstats, and change up
-some of the column names to simulate what would typically happen.
+Change up some of the column names to simulate what would typically happen.
 
 ```{r}
 
-tmp_path <- fs::path_temp("example_sumstats.tsv.gz")
 example_sumstats <- example_sumstats |> 
   dplyr::rename(
   CHROM = CHR, BP = POS, A1 = EffectAllele, Effect=B
 ) |> 
 dplyr::select(-CaseN, -ControlN)
 
-write.table(example_sumstats, tmp_path,sep = "\t")
 ```
 
 When we call tidyGWAS, we need to provide it with the correct column
-names. By default, tidyGWAS produces hivestyle parquet files, but if you
+names. 
+
+By default, tidyGWAS produces hivestyle parquet files, but if you
 prefer the classical 'csv' file, you can use `output_format` argument.
 
 ```{r}
@@ -265,9 +264,9 @@ gwas_folder <- tempfile()
 
 cleaned <- tidyGWAS(
   # provide the filepath to my summary statistics, (on disk)
-  tbl = tmp_path, 
+  tbl = example_sumstats, 
   # we need to provide the file delimiter
-  delim = "\t",
+  delim = ",",
   # filepath to the reference files you downloaded previously
   dbsnp_path = example_ref_file,
   # we input the column names of the input file that do not correspond to tidyGWAS
