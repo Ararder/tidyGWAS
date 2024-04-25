@@ -84,7 +84,7 @@
 <h2 id="download-reference-files">Download reference files<a class="anchor" aria-label="anchor" href="#download-reference-files"></a>
 </h2>
 <p>tidyGWAS uses reference data from dbSNP, transformed into parquet
-files. They can be downloaded <a href="https://zenodo.org" class="external-link">here</a>.</p>
+files. They can be downloaded <a href="https://zenodo.org/records/11060095" class="external-link">here</a>.</p>
 <p>The file needs to untarred before it can be used.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># zenodo link</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">wget</span> https://zenodo.org/records/11060095/files/dbSNP155.tar</span>
@@ -104,13 +104,12 @@ file</p></li>
 <code>output_dir</code>. tidyGWAS outputs all the files from an
 execution in a directory, so the filepath provided to
 <code>output_dir</code> is the path to where tidyGWAS will create the
-output folder. The folder cannot already exists - otherwise tidyGWAS
-would rewrite the directory. It is recommended that have a folder that
-stores all munged summary statistics. The general pattern of
-<code>output_dir</code> will then be:</p>
-<p>/file/path/to/all/cleaned/&lt;trait_name&gt;</p>
-<p>where trait_name can be changed depending on input summary
-statistics.</p>
+output folder. The folder cannot exist yet (to prevent accidental
+overwriting of files).</p>
+<p>In the example below, a new directory called
+<code>scz_testfile</code> will be created inside
+<code>/home/cleaned_tidyGWAS</code>. If <code>output_dir</code>is not
+set, tidyGWAS will create a folder inside the R tempdir.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># here we use an in-memory data frame that comes with the tidyGWAS package</span></span>
 <span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
@@ -120,6 +119,7 @@ statistics.</p>
 <span>  tbl <span class="op">=</span> <span class="va">sumstats</span>, </span>
 <span>  <span class="co"># provide the filepath to the refence files you downloaded.</span></span>
 <span>  dbsnp_path <span class="op">=</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"tidyGWAS"</span><span class="op">)</span>, <span class="st">"extdata/dbSNP155"</span><span class="op">)</span>,</span>
+<span>  output_dir <span class="op">=</span> <span class="st">"/home/cleaned_tidyGWAS/scz_testfile"</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="columnar-names">Columnar names<a class="anchor" aria-label="anchor" href="#columnar-names"></a>
@@ -199,8 +199,9 @@ the <code>delim</code> argument to
 <p>There’s a lot of different field delimiters used in the wild, and
 sometimes you can struggle with inputting the correct delimiter. In such
 cases, it’s often much more convenient to use the effective
-[data.table::fread()] or [readr::read_table()] to first read in the
-summary statistics into memory before passing it to tidyGWAS.</p>
+<code>data.table::fread()</code> or <code>readr::read_table()</code> to
+first read in the summary statistics into memory before passing it to
+tidyGWAS.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
 <span></span>
@@ -209,15 +210,6 @@ summary statistics into memory before passing it to tidyGWAS.</p>
 <span></span>
 <span><span class="co"># Here we need to provide the delim argument</span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
-<span>  tbl <span class="op">=</span> <span class="va">sumstats</span>,</span>
-<span>  dbsnp_path <span class="op">=</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"tidyGWAS"</span><span class="op">)</span>, <span class="st">"extdata/dbSNP155"</span><span class="op">)</span>,</span>
-<span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level4">
-<h4 id="inputting-sample-size-columns">Inputting sample size columns<a class="anchor" aria-label="anchor" href="#inputting-sample-size-columns"></a>
-</h4>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
 <span>  tbl <span class="op">=</span> <span class="va">tmp_filepath</span>,</span>
 <span>  <span class="co"># here we specify the delimiter</span></span>
 <span>  delim <span class="op">=</span> <span class="st">"\t"</span>,</span>
@@ -225,6 +217,10 @@ summary statistics into memory before passing it to tidyGWAS.</p>
 <span>  <span class="co"># here we specify the output directory, and use scz2022 as name for the output directory</span></span>
 <span>  outdir <span class="op">=</span> <span class="st">"output_dir/scz2022"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="inputting-sample-size-columns">Inputting sample size columns<a class="anchor" aria-label="anchor" href="#inputting-sample-size-columns"></a>
+</h4>
 <p>It’s not uncommon for sample size to also be missing from the summary
 statistics. These can be passed in a similar manner as the column names.
 tidyGWAS has three arguments that can be used to manually set the sample
@@ -234,7 +230,7 @@ size, if it’s missing from the original file:</p>
 <li><p><code>ControlN</code></p></li>
 <li><p><code>N</code></p></li>
 </ul>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">colmap</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  <span class="st">"CHR"</span> <span class="op">=</span> <span class="st">"chrom"</span>,</span>
 <span>  <span class="st">"EffectAllele"</span> <span class="op">=</span> <span class="st">"A1"</span>,</span>
@@ -261,7 +257,7 @@ Let’s walk through each step more carefully, using some example files
 provided in the tidyGWAS package. We will be using a version of the
 sumstats from the latest GWAS on schizophrenia from the Psychiatric
 Genomics Consortium <a href="https://www.nature.com/articles/s41586-022-04434-5" class="external-link">(PGC3)</a></p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://arvidharder.com/tidyGWAS/">tidyGWAS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fs.r-lib.org" class="external-link">fs</a></span><span class="op">)</span></span>
 <span></span>
@@ -276,7 +272,7 @@ Genomics Consortium <a href="https://www.nature.com/articles/s41586-022-04434-5"
 <span><span class="co">#&gt; [11] "CaseN"        "ControlN"</span></span></code></pre></div>
 <p>We create a temporary file to store the example sumstats, and change
 up some of the column names to simulate what would typically happen.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">tmp_path</span> <span class="op">&lt;-</span> <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/file_temp.html" class="external-link">path_temp</a></span><span class="op">(</span><span class="st">"example_sumstats.tsv.gz"</span><span class="op">)</span></span>
 <span><span class="va">example_sumstats</span> <span class="op">&lt;-</span> <span class="va">example_sumstats</span> <span class="op">|&gt;</span> </span>
@@ -290,39 +286,41 @@ up some of the column names to simulate what would typically happen.</p>
 names. By default, tidyGWAS produces hivestyle parquet files, but if you
 prefer the classical ‘csv’ file, you can use <code>output_format</code>
 argument.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># we setup a directory where we will store our tidyGWAS output</span></span>
-<span><span class="va">gwas_folder</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
-<span>  <span class="co"># provide the filepath to my summary statistics, (on disk)</span></span>
-<span>  tbl <span class="op">=</span> <span class="va">tmp_path</span>, </span>
-<span>  <span class="co"># we need to provide the file delimiter</span></span>
-<span>  delim <span class="op">=</span> <span class="st">"\t"</span>,</span>
-<span>  <span class="co"># filepath to the reference files you downloaded previously</span></span>
-<span>  dbsnp_path <span class="op">=</span> <span class="va">example_ref_file</span>,</span>
-<span>  <span class="co"># we input the column names of the input file that do not correspond to tidyGWAS</span></span>
-<span>  column_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="st">"CHR"</span> <span class="op">=</span> <span class="st">"CHROM"</span>,</span>
-<span>    <span class="st">"POS"</span> <span class="op">=</span> <span class="st">"BP"</span>,</span>
-<span>    <span class="st">"EffectAllele"</span> <span class="op">=</span> <span class="st">"A1"</span>,</span>
-<span>    <span class="st">"B"</span> <span class="op">=</span> <span class="st">"Effect"</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  <span class="co"># sample sizes were missing, so we need to provide it also</span></span>
-<span>  CaseN <span class="op">=</span> <span class="fl">54000</span>,</span>
-<span>  ControlN <span class="op">=</span> <span class="fl">73000</span>,</span>
-<span>  <span class="co"># output_format can be adjusted. </span></span>
-<span>  <span class="co"># ouput_format = "csv"</span></span>
-<span>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
-<span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
-<span>  <span class="co"># i want the output folder to be named after which GWAS it was. </span></span>
-<span>  outdir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">gwas_folder</span>, <span class="st">"/scz_pgc3"</span><span class="op">)</span>,</span>
-<span>  <span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># we setup a directory where we will store our tidyGWAS output</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>gwas_folder <span class="ot">&lt;-</span> <span class="fu">tempfile</span>()</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>cleaned <span class="ot">&lt;-</span> <span class="fu">tidyGWAS</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="co"># provide the filepath to my summary statistics, (on disk)</span></span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">tbl =</span> tmp_path, </span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="co"># we need to provide the file delimiter</span></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">delim =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="co"># filepath to the reference files you downloaded previously</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">dbsnp_path =</span> example_ref_file,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="co"># we input the column names of the input file that do not correspond to tidyGWAS</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="at">column_names =</span> <span class="fu">list</span>(</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>    <span class="st">"CHR"</span> <span class="ot">=</span> <span class="st">"CHROM"</span>,</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>    <span class="st">"POS"</span> <span class="ot">=</span> <span class="st">"BP"</span>,</span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>    <span class="st">"EffectAllele"</span> <span class="ot">=</span> <span class="st">"A1"</span>,</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>    <span class="st">"B"</span> <span class="ot">=</span> <span class="st">"Effect"</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>  ),</span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  <span class="co"># This is the default argument, but you can change to 'csv' or 'parquet'</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>  <span class="co"># to output a csv file or a .parquet file</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>  <span class="at">output_format =</span> <span class="st">"hivestyle"</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  <span class="co"># sample sizes were missing, so we need to provide it also</span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>  <span class="at">CaseN =</span> <span class="dv">54000</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>  <span class="at">ControlN =</span> <span class="dv">73000</span>,</span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  <span class="co"># output_format can be adjusted. </span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>  <span class="co"># ouput_format = "csv"</span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>  <span class="co"># it's useful to write all the messages to a logfile, so messages are saved.</span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a>  <span class="at">logfile=</span><span class="cn">TRUE</span>,</span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a>  <span class="co"># i want the output folder to be named after which GWAS it was. </span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a>  <span class="at">outdir =</span> <span class="fu">paste0</span>(gwas_folder, <span class="st">"/scz_pgc3"</span>),</span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a>  )</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-files-produced-by-tidygwas">The files produced by tidyGWAS<a class="anchor" aria-label="anchor" href="#the-files-produced-by-tidygwas"></a>
 </h2>
-<p>inside the folder provided by <code>output_dir</code>, you will have
+<p>inside the folder specified in <code>output_dir</code>, you will have
 the following files:</p>
 <ol style="list-style-type: decimal">
 <li>
@@ -353,16 +351,16 @@ number of cores, which can be done using the
 <code>OMP_NUM_THREADS</code> variable. This should not be a larger
 number of cores than what you have requested in your HPC job (in the
 example below, the “–cpus-per-task” flag)</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a></span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a></span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#SBATCH --mem=60gb</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#SBATCH --time=24:0:00</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#SBATCH --cpus-per-task 8</span></span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a><span class="bu">export</span> <span class="va">OMP_NUM_THREADS</span><span class="op">=</span>8</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="va">outdir</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span></span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a><span class="va">gwas</span><span class="op">=</span><span class="va">$outdir</span>/my_gwas.tsv.gz</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a><span class="va">dbsnp_files</span><span class="op">=</span><span class="st">"dbSNP155"</span></span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">"tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)"</span> <span class="va">$gwas</span> <span class="va">$dbsnp_files</span> <span class="va">$outdir</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="computational-cost">Computational cost<a class="anchor" aria-label="anchor" href="#computational-cost"></a>
