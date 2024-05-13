@@ -33,8 +33,10 @@ The file needs to untarred before it can be used.
 
 ```{bash, eval = FALSE}
 # zenodo link
-wget https://zenodo.org/records/11060095/files/dbSNP155.tar
+wget -O dbSNP155.tar https://zenodo.org/records/11060095/files/dbSNP155.tar
 tar -xvf dbSNP155.tar
+# remove the tarred dir
+rm dbSNP155.tar
 ```
 
 # Quick start
