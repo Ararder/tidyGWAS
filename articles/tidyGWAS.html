@@ -87,8 +87,10 @@
 files. They can be downloaded <a href="https://zenodo.org/records/11060095" class="external-link">here</a>.</p>
 <p>The file needs to untarred before it can be used.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># zenodo link</span></span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">wget</span> https://zenodo.org/records/11060095/files/dbSNP155.tar</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> dbSNP155.tar</span></code></pre></div>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">wget</span> <span class="at">-O</span> dbSNP155.tar https://zenodo.org/records/11060095/files/dbSNP155.tar</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> dbSNP155.tar</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># remove the tarred dir</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">rm</span> dbSNP155.tar</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start">Quick start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
@@ -317,11 +319,11 @@ argument.</p>
 <span>  <span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.8.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2024-04-25 14:09:31.051008</span></span>
+<span><span class="co">#&gt; Starting at 2024-05-13 07:27:27.5552</span></span>
 <span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpQvp54X/file19612cc537d/scz_pgc3</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpQvp54X/file19612cc537d/scz_pgc3/tidyGWAS_logfile.txt</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/tidyGWAS_logfile.txt</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -384,10 +386,10 @@ argument.</p>
 <span><span class="co">#&gt; 3437 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 11 rows with no dbSNP entry</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpQvp54X/file19612cc537d/scz_pgc3/pipeline_info/removed_nodbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/pipeline_info/removed_nodbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 486 rows with missing on either build</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpQvp54X/file19612cc537d/scz_pgc3/pipeline_info/removed_missing_on_either_build.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/pipeline_info/removed_missing_on_either_build.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -416,10 +418,10 @@ argument.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 497 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.6s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.4s</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Saving metadata from analysis to</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpQvp54X/file19612cc537d/scz_pgc3/metadata.yaml</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/metadata.yaml</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-files-produced-by-tidygwas">The files produced by tidyGWAS<a class="anchor" aria-label="anchor" href="#the-files-produced-by-tidygwas"></a>
@@ -446,7 +448,7 @@ statistics in a hivestyle partitioned format with .parquet files.</li>
 </ol>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recurse <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpQvp54X/file19612cc537d</span></span>
+<span><span class="co">#&gt; /tmp/RtmpVoDdEl/file19ff4b2b4b57</span></span>
 <span><span class="co">#&gt; └── scz_pgc3</span></span>
 <span><span class="co">#&gt;     ├── metadata.yaml</span></span>
 <span><span class="co">#&gt;     ├── pipeline_info</span></span>
@@ -463,7 +465,7 @@ speed up other downstream applications such as meta-analysis, LD
 querying and other analyses.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">gwas_folder</span>,<span class="st">"scz_pgc3"</span>, <span class="st">"tidyGWAS_hivestyle"</span><span class="op">)</span>, recurse <span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpQvp54X/file19612cc537d/scz_pgc3/tidyGWAS_hivestyle</span></span>
+<span><span class="co">#&gt; /tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/tidyGWAS_hivestyle</span></span>
 <span><span class="co">#&gt; ├── CHR=1</span></span>
 <span><span class="co">#&gt; │   └── part-0.parquet</span></span>
 <span><span class="co">#&gt; ├── CHR=10</span></span>
