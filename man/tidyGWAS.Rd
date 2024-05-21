@@ -15,9 +15,9 @@ tidyGWAS(
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
-  convert_p = 2.225074e-308,
   build = c("NA", "37", "38"),
   indel_strategy = c("keep", "remove"),
+  convert_p = 2.225074e-308,
   repair_cols = TRUE,
   logfile = FALSE,
   verbose = FALSE,
@@ -40,7 +40,7 @@ tidyGWAS(
 \item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
 }}
 
-\item{output_dir}{filepath to a folder where data should be stored.}
+\item{output_dir}{filepath to a folder where data should be stored. The folder should not yet exist.}
 
 \item{CaseN}{manually input number of cases}
 
@@ -48,11 +48,11 @@ tidyGWAS(
 
 \item{N}{manually input sample size}
 
-\item{convert_p}{What value should be used for when P-value has been rounded to 0?}
-
 \item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
 
 \item{indel_strategy}{Should indels be kept or removed?}
+
+\item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 
 \item{repair_cols}{Should any missing statistical columns be repaired if possible?}
 

@@ -42,7 +42,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param tbl a `data.frame` or `character()` vector
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
-#' @param output_dir filepath to a folder where data should be stored.
+#' @param output_dir filepath to a folder where data should be stored. The folder should not yet exist.
 #' @param output_format How should the finished cleaned file be saved?
 #'  * "'csv' corresponds to [arrow::write_csv_arrow()]
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
@@ -78,9 +78,9 @@ tidyGWAS <- function(
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
-    convert_p = 2.225074e-308,
     build = c("NA","37", "38"),
     indel_strategy = c("keep", "remove"),
+    convert_p = 2.225074e-308,
     repair_cols = TRUE,
     logfile = FALSE,
     verbose = FALSE,
@@ -90,9 +90,19 @@ tidyGWAS <- function(
 
 
   # parse arguments ---------------------------------------------------------
+  rlang::check_required(tbl)
   rlang::check_required(dbsnp_path)
+  if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
+  if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
+  if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
+  stopifnot(rlang::is_scalar_double(convert_p))
+  stopifnot(rlang::is_bool(repair_cols))
+  stopifnot(rlang::is_bool(logfile))
+  stopifnot(rlang::is_bool(verbose))
+  stopifnot(rlang::is_bool(add_missing_build))
   stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
   stopifnot("The `output_dir` specified already exists" = !dir.exists(output_dir))
+  stopifnot("the filepath for dbSNP does not exist" = file.exists(dbsnp_path))
   start_time <- Sys.time()
   output_format <-  rlang::arg_match(output_format)
   build <-          rlang::arg_match(build)
@@ -118,9 +128,6 @@ tidyGWAS <- function(
 
   rows_start <- nrow(tbl)
   filepaths <- setup_pipeline_paths(outdir = output_dir, filename = filename)
-  cli::cli_inform("with {rows_start} rows in input data.frame")
-  cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
-
 
   # setup logging -----------------------------------------------------------
   if(isTRUE(logfile)) {
@@ -128,6 +135,8 @@ tidyGWAS <- function(
     withr::local_message_sink(filepaths$logfile)
     withr::local_output_sink(filepaths$logfile)
   }
+  cli::cli_inform("with {rows_start} rows in input data.frame")
+  cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
 
   # The sumstats are saved without any edits, to not loose information
   arrow::write_parquet(tbl,  filepaths$raw_sumstats)
@@ -175,6 +184,8 @@ tidyGWAS <- function(
       convert_p = convert_p,
       add_missing_build = add_missing_build
     )
+    # if only RSID is present, there is not a notion of 'inferred_build',
+    # since RSID is supposed to be build agnostic
     inferred_build <- NULL
 
 
@@ -310,6 +321,13 @@ parse_tbl <- function(tbl, ...) {
     filename <- basename(tbl)
     md5 <- tools::md5sum(tbl)
     tbl <- arrow::read_delim_arrow(tbl, ...)
+
+    ncols <- length(colnames(tbl))
+    if(ncols <= 3) {
+      stop(glue::glue("Only {ncols} columns in the file. At least 3 columns are required.
+                      Most likely you forgot to use the `delim` argument to specify the delimiter."))
+    }
+
 
   } else if("data.frame" %in% class(tbl)) {
     md5 <- NULL
