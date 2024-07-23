@@ -7,7 +7,7 @@
 detect_indels(tbl, indel_strategy, filepaths, ...)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{indel_strategy}{Should indels be kept or removed?}
 

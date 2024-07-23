@@ -7,10 +7,10 @@
 select_correct_columns(tbl)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 }
 \value{
-a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with only columns following \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} naming kept
+a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
 Remove all columns that do not follow tidyGWAS naming

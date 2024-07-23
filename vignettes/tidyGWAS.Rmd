@@ -230,7 +230,7 @@ in the tidyGWAS package. We will be using a version of the sumstats from
 the latest GWAS on schizophrenia from the Psychiatric Genomics
 Consortium [(PGC3)](https://www.nature.com/articles/s41586-022-04434-5)
 
-```{r}
+```{r, eval =FALSE}
 library(tidyGWAS)
 library(fs)
 
@@ -244,7 +244,7 @@ colnames(example_sumstats)
 
 Change up some of the column names to simulate what would typically happen.
 
-```{r}
+```{r, eval=FALSE}
 
 example_sumstats <- example_sumstats |> 
   dplyr::rename(
@@ -260,7 +260,7 @@ names.
 By default, tidyGWAS produces hivestyle parquet files, but if you
 prefer the classical 'csv' file, you can use `output_format` argument.
 
-```{r}
+```{r, eval=FALSE}
 # we setup a directory where we will store our tidyGWAS output
 gwas_folder <- tempfile()
 
@@ -312,7 +312,7 @@ files:
 5.  `tidyGWAS_logfile.txt` If you used `logfile=TRUE`, the log is saved
     here
 
-```{r}
+```{r, eval=FALSE}
 dir_tree(gwas_folder, recurse = 1)
 ```
 
@@ -325,7 +325,7 @@ motivation for this. In essence, this format will significantly speed up
 other downstream applications such as meta-analysis, LD querying and
 other analyses.
 
-```{r}
+```{r, eval=FALSE}
 dir_tree(fs::path(gwas_folder,"scz_pgc3", "tidyGWAS_hivestyle"), recurse =2)
 
 # This is the equivalent of readr::read_tsv() or data.table::fread() for 
@@ -362,7 +362,7 @@ in the input columns.
 8.  The remaining columns are the tidyGWAS nomenclature for standard
     GWAS columns
 
-```{r}
+```{r, eval=FALSE}
 df <- arrow::open_dataset(fs::path(gwas_folder,"scz_pgc3", "tidyGWAS_hivestyle")) |> 
   dplyr::collect()
 

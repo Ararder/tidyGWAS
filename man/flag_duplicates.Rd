@@ -10,7 +10,7 @@ flag_duplicates(
 )
 }
 \arguments{
-\item{tbl}{a tibble with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{column}{Which columns should be used to form a unique ID?}
 }

@@ -1,56 +1,50 @@
 
 
-
 # setup_local_dbsnp -------------------------------------------------------
-local_dbsnp <- function() {
-  first <- dplyr::select(test_file, CHR, POS, RSID)
-  second <- dplyr::select(pval_as_char_df, CHR, POS, RSID)
-  second$CHR <- as.character(second$CHR)
+dbsnp_path <- "~/Downloads/dbSNP155_v2/" # on my local macbook
+first <- dplyr::select(test_sumstat, CHR, POS, RSID) |>
+  dplyr::tibble() |>
+  dplyr::mutate(CHR = as.character(CHR))
 
-  data <- dplyr::bind_rows(first, second) |>
-    dplyr::distinct() |>
-    dplyr::tibble()
+second <- dplyr::select(pval_as_char_df, CHR, POS, RSID)
+second$CHR <- as.character(second$CHR)
 
-  grch37_rsid <- map_to_dbsnp(tbl = data, build = 37, by = "rsid")
-  grch37_chr_pos <- map_to_dbsnp(tbl = data, build = 37, by = "chr:pos")
+data <- dplyr::bind_rows(first, second) |>
+  dplyr::distinct() |>
+  dplyr::tibble()
 
-  final <- dplyr::bind_rows(grch37_chr_pos,grch37_rsid) |>
-    dplyr::distinct() |>
-    dplyr::mutate(RSID = as.integer(stringr::str_sub(RSID, start = 3)))
+grch37_rsid <- map_to_dbsnp(tbl = data, by = "rsid", dbsnp_path = dbsnp_path)
+grch37_chr_pos <- map_to_dbsnp(tbl = data, build = "37", by = "chr:pos",dbsnp_path)
 
-
-  final$CHR <- as.character(final$CHR)
-  arrow::write_dataset(dplyr::group_by(final, CHR), test_path("fixtures/dbSNP/GRCh37"), compression = "gzip")
-
-
-  grch38_rsid <- map_to_dbsnp(tbl = data, build = 38, by = "rsid")
-  grch38_chr_pos <- map_to_dbsnp(tbl = data, build = 38, by = "chr:pos")
+final <- dplyr::bind_rows(grch37_chr_pos,grch37_rsid) |>
+  dplyr::distinct() |>
+  dplyr::mutate(RSID = as.integer(stringr::str_sub(RSID, start = 3)))
 
 
-  final <- dplyr::bind_rows(grch38_rsid,grch38_chr_pos) |>
-    dplyr::distinct() |>
-    dplyr::mutate(RSID = as.integer(stringr::str_sub(RSID, start = 3)))
-  final$CHR <- as.character(final$CHR)
-  arrow::write_dataset(dplyr::group_by(final, CHR), test_path("fixtures/dbSNP/GRCh38"), compression = "gzip")
+arrow::write_dataset(dplyr::group_by(final, CHR), test_path("fixtures/dbSNP"))
 
 
-}
 
-create_refsnp_merged <- function() {
 
-  load(test_path("data/test_sumstat.rds"))
-  load(test_path("data/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 
-  temp <- dplyr::bind_rows(
-    dplyr::select(test_file, RSID),
-    dplyr::select(pval_as_char_df, RSID)
-  ) |>
-    dplyr::mutate(rowid = 1:127715) |>
-    flag_rsid_history()
+# make the dummy refsnp-merged ---------------------------------------------
 
-  dir.create(test_path("fixtures/dbSNP155/refsnp-merged/"))
-  dplyr::filter(temp, !is.na(old_RSID)) |>
-    dplyr::select(old_RSID, RSID) |>
-    arrow::write_parquet(test_path("fixtures/dbSNP155/refsnp-merged/part-0.parquet"))
-}
+
+
+
+load(test_path("data/test_sumstat.rds"))
+load(test_path("data/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
+
+temp <- dplyr::bind_rows(
+  dplyr::select(test_file, RSID),
+  dplyr::select(pval_as_char_df, RSID)
+) |>
+  dplyr::mutate(rowid = 1:127715) |>
+  flag_rsid_history()
+
+dir.create(test_path("fixtures/dbSNP155/refsnp-merged/"))
+dplyr::filter(temp, !is.na(old_RSID)) |>
+  dplyr::select(old_RSID, RSID) |>
+  arrow::write_parquet(test_path("fixtures/dbSNP155/refsnp-merged/part-0.parquet"))
+
 

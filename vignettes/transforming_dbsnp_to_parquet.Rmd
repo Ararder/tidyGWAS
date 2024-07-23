@@ -70,6 +70,81 @@ write_dataset(dplyr::group_by(dt, CHR), outpath)
 
 ```
 
+# Pruning duplicates
+```{r, eval = FALSE}
+remove_dups <- function(kk) {
+    start <- nrow(kk)
+
+    step1 <- distinct(kk, .keep_all=TRUE)
+    n_step1 <- nrow(step1)
+    cli::cli_alert("removed {start-n_step1} rows as pure duplicates")
+
+
+    step2 <- mutate(step1, dup_rsid = duplicated(step1[,"RSID"]) | duplicated(step1[,"RSID"], fromLast = TRUE)) |> 
+        filter(!dup_rsid)
+    step2$dup_rsid <- NULL
+    n_step2 <- nrow(step2)
+    cli::cli_alert("removed {n_step1-n_step2} rows with duplicated RSIDs") 
+
+    step3 <- distinct(arrange(step2, RSID), CHR, POS, .keep_all=TRUE)
+    n_step3 <- nrow(step3)
+    cli::cli_alert("removed {n_step2 - n_step3} rows with duplicated CHR-POS") 
+    cli::cli_alert_warning("removed a total of {start - n_step3} rows")
+    step3
+  
+
+}
+
+clean_dbsnp <- function(chr) {
+    tictoc::tic(glue::glue("time to clean {chr}"))
+    df1 <- arrow::open_dataset("~/ki-pgi-storage/Data/downstreamGWAS/reference/dbSNP155/GRCh37") |> 
+        filter(CHR == chr) |> 
+        dplyr::collect()
+
+    df1 <- remove_dups(df1)
+    n_df1 <- nrow(df1)
+
+
+
+    df2 <- arrow::open_dataset("~/ki-pgi-storage/Data/downstreamGWAS/reference/dbSNP155/GRCh38") |> 
+        filter(CHR == chr) |> 
+        dplyr::collect()
+
+    df2 <- remove_dups(df2)
+    n_df2 <- nrow(df2)
+
+    
+    ###################### MERGE ######################
+    out <- inner_join(df1, df2, by = "RSID", suffix = c("_37", "_38"))
+    
+    cli::cli_alert("removed {n_df2 - nrow(out)} rows from GRCh38, and {n_df1 - nrow(out)} from GRCH37 after merging across genome builds")
+
+    final <- filter(out, CHR_37 == CHR_38) |> 
+        rename(CHR = CHR_38)
+    
+    cli::cli_alert("removed {nrow(out) - nrow(final)} rows with different chromosome numbers across genonme builds")
+    
+    final |> 
+        select(-CHR_37) |> 
+        relocate(CHR, POS_38, POS_37, RSID, REF_38, REF_37, ALT_38, ALT_37) |> 
+        group_by(CHR) |> 
+        arrow::write_dataset("dbSNP155_v2")
+
+    tictoc::toc()
+}
+
+
+
+tr <- c(1:22, "X", "Y", "MT")
+withr::local_message_sink("logfile.txt")
+for(x in tr) {
+    clean_dbsnp(x)
+}
+
+
+
+```
+
 
 ## Transforming refsnp-merged to parquet
 

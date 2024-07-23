@@ -7,25 +7,25 @@ test_that("validate RSIDs does not error", {
   filepaths <- setup_pipeline_paths(tempfile())
   # setup cases
   # 1) no invalid rsids
-  expect_no_error(validate_rsid(pval_as_char_df,filepaths$failed_rsid_parse, verbose = FALSE))
+  expect_no_error(validate_rsid(pval_as_char_df,filepaths$failed_rsid_parse))
 
   # 2) some invalid rsids, but chr and POS exists
-  expect_no_error(validate_rsid(test_sumstat, filepaths$failed_rsid_parse, verbose = FALSE))
+  expect_no_error(validate_rsid(test_sumstat, filepaths$failed_rsid_parse))
 
 
   # some invalid rsids, no CHR or POS
 
-  expect_no_error(validate_rsid(dplyr::select(test_sumstat, -CHR, -POS), filepaths$failed_rsid_parse, verbose = FALSE))
+  expect_no_error(validate_rsid(dplyr::select(test_sumstat, -CHR, -POS), filepaths$failed_rsid_parse))
 
   # some invalid rsids, no CHR or POS, some failed
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
   tmp <- dplyr::mutate(tmp, RSID = dplyr::if_else(B > 0, ".", RSID))
-  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse, verbose = FALSE))
+  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse))
 
   # all invalid
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
   tmp <- dplyr::mutate(tmp, RSID = ".")
-  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse, verbose = FALSE))
+  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse))
 
 
 
@@ -57,7 +57,7 @@ test_that("Validate_columns works", {
   test_sumstat <- dplyr::mutate(test_sumstat, P = dplyr::if_else(CHR == 6, -3, P))
 
   expect_no_error(
-    for(c in check) tmp <- validate_columns(test_sumstat,col = c, verbose = FALSE)
+    for(c in check) tmp <- validate_columns(test_sumstat,col = c)
   )
   validate_columns(test_sumstat, col = "CaseN")
 
@@ -69,7 +69,7 @@ test_that("validate sumstat", {
 
   pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
 
-  expect_message(tmp <- validate_sumstat(pval_as_char_df, verbose = FALSE, convert_p = 0))
+  expect_message(tmp <- validate_sumstat(pval_as_char_df, convert_p = 0))
 
 })
 
@@ -84,8 +84,6 @@ test_that("validate_columns catches issues", {
     validate_columns(dplyr::mutate(test_sumstat, B = exp(B)), "B"),
     regexp = "*indicating that B has been mislabelled*"
   )
-
-  expect_message(validate_columns(pval_as_char_df, "P"))
 
 })
 

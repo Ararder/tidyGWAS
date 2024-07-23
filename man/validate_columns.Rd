@@ -8,16 +8,13 @@ validate_columns(
   tbl,
   col = c("B", "SE", "EAF", "N", "Z", "P", "POS", "CHR", "EffectAllele", "OtherAllele",
     "CaseN", "ControlN"),
-  verbose = TRUE,
   convert_p = 2.225074e-308
 )
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{col}{Which column to check values in?}
-
-\item{verbose}{Explain filters in detail?}
 
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 }
@@ -35,7 +32,6 @@ flag for the specified column.
 gwas_file <- validate_columns(
  tbl = gwas_file,
  col = "B",
- verbose = FALSE,
  # if you want to keep 0 pvalues as 0.
  convert_p = 0
 )

@@ -4,23 +4,14 @@
 \alias{validate_sumstat}
 \title{Validate statistics columns in a GWAS summary statistics file}
 \usage{
-validate_sumstat(
-  tbl,
-  remove_cols = c(""),
-  filter_func,
-  verbose = FALSE,
-  convert_p,
-  id
-)
+validate_sumstat(tbl, remove_cols = c(""), filter_func, convert_p, id)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{remove_cols}{Columns that should not be validated}
 
 \item{filter_func}{handles reporting and writing removed files to disk}
-
-\item{verbose}{Explain filters in detail?}
 
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 

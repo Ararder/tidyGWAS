@@ -4,12 +4,10 @@
 \alias{validate_rsid}
 \title{Validate format of the RSID column in a GWAS summary statistics file}
 \usage{
-validate_rsid(tbl, verbose = FALSE, outpath)
+validate_rsid(tbl, outpath)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
-
-\item{verbose}{Explain filters in detail?}
+\item{tbl}{a \code{data.frame} or \code{character()} vector}
 
 \item{outpath}{Filepath: Where to write rows with invalid RSID?}
 }

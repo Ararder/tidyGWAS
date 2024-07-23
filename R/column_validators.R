@@ -7,7 +7,7 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 
 #' Validate statistics columns in a GWAS summary statistics file
 #'
-#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @param tbl a [dplyr::tibble()]
 #' @param remove_cols Columns that should not be validated
 #' @param filter_func handles reporting and writing removed files to disk
 #' @inheritParams tidyGWAS
@@ -20,12 +20,16 @@ impl_validators <- c("CHR", "POS", "EffectAllele", "OtherAllele","EAF", "SE", "P
 #' validate_sumstat(sumstat, remove_cols = "EffectAllele", convert_p = 0)
 #' }
 #'
-validate_sumstat <- function(tbl, remove_cols = c(""), filter_func,  verbose = FALSE, convert_p, id) {
+validate_sumstat <- function(tbl, remove_cols = c(""), filter_func, convert_p, id) {
 
 
   stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
-  tbl <- check_zero_rows(tbl)
-  if(is.null(tbl)) return(NULL)
+
+  if(!is.null(tbl)) {
+    if(nrow(tbl) == 0) {
+      tbl <- NULL
+    }
+  }
 
 
   # check that column validators and implemented, and which ones exist in tbl
@@ -33,7 +37,7 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func,  verbose = F
   cols_in_sumstat <- colnames(tbl)[colnames(tbl) %in% impl_validators]
 
   for(colname in cols_in_sumstat) {
-    tbl <- validate_columns(tbl = tbl, col = colname, verbose = verbose, convert_p = convert_p)
+    tbl <- validate_columns(tbl = tbl, col = colname, convert_p = convert_p)
   }
 
   # use filter func if passed
@@ -47,10 +51,20 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func,  verbose = F
 
 }
 
+validate_sumstat2 <- function(tbl, remove_cols = c(""), filter_func, convert_p, id) {
+
+  stopifnot("remove_cols can only be a character vector" = is.character(remove_cols))
+
+  if(!is.null(tbl)) {
+    if(nrow(tbl) == 0) {
+      tbl <- NULL
+    }
+  }
+
+}
 
 #' Validate format of the RSID column in a GWAS summary statistics file
 #'
-#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
 #' @inheritParams tidyGWAS
 #' @param outpath Filepath: Where to write rows with invalid RSID?
 #'
@@ -60,9 +74,9 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func,  verbose = F
 #' @examples \dontrun{
 #' validate_rsid(sumstat, "~/invalid_rsid.parquet")
 #' }
-validate_rsid <- function(tbl, verbose = FALSE, outpath) {
+validate_rsid <- function(tbl, outpath) {
 
-  if(verbose) start_message("RSID")
+
   tbl$RSID <- as.character(tbl$RSID)
   tbl <- flag_invalid_rsid(tbl)
   invalid_rsid_format <- dplyr::filter(tbl, invalid_rsid)
@@ -153,7 +167,7 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 #'
 #'
 #'
-#' @param tbl a [dplyr::tibble()] as created by [parse_tbl()]
+#' @param tbl a [dplyr::tibble()]
 #' @param col Which column to check values in?
 #' @inheritParams tidyGWAS
 #'
@@ -166,7 +180,6 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 #' gwas_file <- validate_columns(
 #'  tbl = gwas_file,
 #'  col = "B",
-#'  verbose = FALSE,
 #'  # if you want to keep 0 pvalues as 0.
 #'  convert_p = 0
 #' )
@@ -176,11 +189,9 @@ validate_rsid <- function(tbl, verbose = FALSE, outpath) {
 validate_columns <- function(
     tbl,
     col = c("B", "SE", "EAF", "N", "Z", "P","POS","CHR", "EffectAllele", "OtherAllele", "CaseN", "ControlN"),
-    verbose = TRUE,
     convert_p = 2.225074e-308
     ) {
   col = rlang::arg_match(col)
-  if(verbose) start_message(col)
 
   if(col == "B") {
 
@@ -283,98 +294,6 @@ validate_columns <- function(
 
 
 
-start_message <- function(col) {
-  if(col == "P") {
-
-    cli::cli_h3("Validating the P column:")
-    cli::cli_ol()
-    cli::cli_li("Coerce to double {.code base::as.double()}")
-    cli::cli_li("If P == 0, P is converted to {.arg convert_p}")
-    cli::cli_li("checks for NA, NaN or Inf")
-    cli::cli_li("checks that P is within the range: P >= 0 & P > 1")
-  }
-
- if(col == "B") {
-   cli::cli_h3("Validating the B column:")
-   cli::cli_ol()
-   cli::cli_li("Will coerce to double: base::as.double()")
-   cli::cli_li("Check for mislabelled OR by looking at median value")
-   cli::cli_li("checks for NA, NaN or Inf")
-   cli::cli_li("Print median value")
- }
-
-  if(col == "SE") {
-    cli::cli_h3("Validating the SE column:")
-    cli::cli_ol()
-    cli::cli_li("Will coerce to double: base::as.double()")
-    cli::cli_li("Check for SE <= 0")
-    cli::cli_li("Checks for NA, NaN or Inf")
-  }
-
-  if(col == "EAF") {
-    cli::cli_h3("Validating the EAF column:")
-    cli::cli_ol()
-    cli::cli_li("Will coerce to double: base::as.double()")
-    cli::cli_li("Check for EAF <= 0 & EAF >= 1")
-    cli::cli_li("Checks for NA, NaN or Inf")
-  }
-  if(col == "N") {
-    cli::cli_h3("Validating the N column:")
-    cli::cli_ol()
-    cli::cli_li("Will coerce to integer: base::as.integer()")
-    cli::cli_li("Check for N <= 0")
-    cli::cli_li("Checks for NA, NaN or Inf")
-  }
-  if(col == "Z") {
-    cli::cli_h3("Validating the Z column:")
-    cli::cli_ol()
-    cli::cli_li("Will coerce to double: base::as.integer()")
-    cli::cli_li("Check for max(abs(z) >= 100")
-    cli::cli_li("Checks for NA, NaN or Inf")
-  }
-  if(col == "RSID") {
-    cli::cli_h3("Validating the RSID column:")
-    cli::cli_ul()
-    cli::cli_li("Checking that RSID follows rs format: [rR][sS][1-10]")
-    cli::cli_li("If rows fail rs format, look for CHR:POS or CHR:POS:REF:ALT format")
-  }
-
-  if(col == "EffectAllele" | col == "OtherAllele") {
-    cli::cli_h3("Validating {col}")
-    cli::cli_ol()
-    cli::cli_li("Will error if not type = character")
-    cli::cli_li("{col} converted to uppercase")
-    cli::cli_li("Check for values that are not A,C,G or T")
-    cli::cli_li("Check for NA")
-
-  }
-
-  if(col == "CHR") {
-    cli::cli_h3("Validating CHR")
-    cli::cli_ol()
-    cli::cli_li("CHR coerced to character {.code base::as.character()}")
-    cli::cli_li("converted to uppercase {.code stringr::str_to_upper()}")
-    cli::cli_li("'CHR' removed (handles UCSC style CHR format)")
-    cli::cli_li("Check for values outside 1:22, X, Y")
-    cli::cli_li("Check for NA")
-
-  }
-
-  if(col == "POS") {
-    cli::cli_h3("Validating POS")
-    cli::cli_ol()
-    cli::cli_li("POS coerced to integer {.code base::as.integer()}")
-    cli::cli_li("Checks for NA, NaN, Inf")
-    cli::cli_li("Checks for POS <= 0")
-    cli::cli_li("Check for POS >= 10^9")
-
-
-  }
-
-
-
-}
-
 end_message <- function(tbl, col) {
 
   stopifnot("Cannot print end msg for a column that has not been validated" = glue::glue("invalid_{col}") %in% colnames(tbl))
@@ -382,8 +301,115 @@ end_message <- function(tbl, col) {
   if(n_invalid > 0) {
     cli::cli_alert_warning("{n_invalid} rows failed {col} validation")
   } else {
-    # cli::cli_alert_success("All rows pass {col} validation")
 
   }
+
+}
+
+
+validate_chr <- function(tbl) {
+  valid_chr <- c(1:22, "X", "Y", "MT", "XY")
+  dplyr::mutate(tbl,
+                CHR = as.character(CHR),
+                CHR = stringr::str_to_upper(CHR),
+                # can sometimes be chr22, or ch22
+                CHR = stringr::str_remove(CHR, "CHR"),
+                CHR = stringr::str_remove(CHR, "CH"),
+                # can now handle
+                CHR = dplyr::if_else(CHR == "XY", "XY", CHR),
+                CHR = dplyr::if_else(CHR == "23", "X", CHR),
+                CHR = dplyr::if_else(CHR == "M", "MT", CHR),
+                invalid_CHR = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
+  )
+}
+
+validate_alleles <- function(tbl) {
+  stopifnot(all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
+  stopifnot("EffectAllele and OtherAllele are not character columns, indicating mislabelling of columns" = is.character("EffectAllele") & is.character("OtherAllele"))
+  possible_alleles <- c("A", "C","G","T")
+
+  tbl <- dplyr::mutate(tbl, {{ col }} := stringr::str_to_upper(.data[[col]]))
+  existing_alleles <- unique(tbl[[col]])
+  if(!all(existing_alleles %in% possible_alleles)) cli::cli_alert_danger("Found non ACGT alleles in {col}: {existing_alleles}")
+  new_col <- glue::glue("invalid_{col}")
+  dplyr::mutate(tbl, {{ new_col }} := dplyr::if_else(!.data[[col]] %in% possible_alleles, TRUE, FALSE))
+}
+
+validate_pos <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    POS = as.integer(POS),
+    invalid_POS = dplyr::if_else(POS <= 0 | !is.finite(POS) | POS >= 10^9, TRUE, FALSE)
+  )
+}
+
+
+
+validate_b <- function(tbl) {
+  tbl$B <- as.double(tbl$B)
+  median <- round(median(tbl$B, na.rm = TRUE), 5)
+  if(dplyr::between(median, left = 0.9, right = 1.1)) cli::cli_alert_danger("WARNING: The median value of B is {median}, indicating that B has been mislabelled and contains odds-ratios")
+  if(abs(median) > 0.1)  cli::cli_alert_danger("WARNING: The median value of B is {median}, which seems high")
+  if(abs(median) <= 0.1)  cli::cli_alert_info("The median value of B is {median}, which seems reasonable")
+  dplyr::mutate(tbl, invalid_B = dplyr::if_else(!is.finite(B), TRUE, FALSE))
+}
+
+validate_p <- function(tbl) {
+  dplyr::mutate(
+    .data = tbl,
+    P = as.double(P), p_was_0 = dplyr::if_else(P == 0, "Yes", "No"),
+    P = dplyr::if_else(p_was_0 == "Yes", convert_p, P),
+    invalid_P = dplyr::if_else(!is.finite(P) | P > 1 | P < 0, TRUE, FALSE)
+  ) |>
+    dplyr::select(-p_was_0)
+
+}
+
+validate_z <- function(tbl) {
+
+
+  tbl <- dplyr::mutate(tbl, Z = as.double(Z))
+  tbl <- dplyr::mutate(tbl, invalid_Z = dplyr::if_else(!is.finite(Z), TRUE, FALSE))
+  maxval <- max(dplyr::filter(tbl, !invalid_Z)$Z)
+
+  if(maxval < 100) {
+    cli::cli_alert_info("Found {maxval} as largest absolute Z score, which seems reasonable")
+  } else {
+    cli::cli_alert_warning("WARNING: Found {maxval} as largest absolute Z score, which seems highy unlikely")
+  }
+
+  tbl
+}
+
+
+validate_se <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    SE = as.double(SE),
+    invalid_SE = dplyr::if_else(SE <= 0 | !is.finite(SE), TRUE, FALSE)
+  )
+}
+validate_eaf <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    EAF = as.double(EAF),
+    invalid_EAF = dplyr::if_else(EAF <= 0 | EAF >= 1 | !is.finite(EAF), TRUE, FALSE)
+  )
+}
+
+validate_n <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    N = as.integer(N),
+    invalid_N = dplyr::if_else(N <= 0 | !is.finite(N), TRUE, FALSE)
+  )
+}
+
+validate_casen <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    CaseN = as.integer(CaseN),
+    invalid_CaseN = dplyr::if_else(CaseN <= 0 | !is.finite(CaseN), TRUE, FALSE)
+  )
 
 }

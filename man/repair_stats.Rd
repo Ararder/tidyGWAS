@@ -4,12 +4,10 @@
 \alias{repair_stats}
 \title{Repair statistics column in a GWAS summary statistics tibble}
 \usage{
-repair_stats(tbl, verbose = FALSE)
+repair_stats(tbl)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
-
-\item{verbose}{Should repair_stats print a masthead explaining what it does?}
+\item{tbl}{a \code{data.frame} or \code{character()} vector}
 }
 \value{
 a tibble

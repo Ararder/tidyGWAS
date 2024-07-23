@@ -7,7 +7,7 @@
 infer_build(tbl, dbsnp_path, n_snps = 10000)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, formated with \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}}}
+\item{tbl}{a \code{data.frame} or \code{character()} vector}
 
 \item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
 

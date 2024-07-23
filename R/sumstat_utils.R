@@ -1,6 +1,4 @@
-utils::globalVariables(c(
-  "new_RSID", "old_RSID", "retracted","reactivated", ":=", "RSID.y"
-))
+utils::globalVariables(c("new_RSID", "old_RSID"))
 
 #' Detect "indels" in GWAS summary statistics
 #'
@@ -104,8 +102,7 @@ split_rsid_by_regex <- function(tbl) {
 #' `repair_stats()` is a collection of functions that can be used to
 #' infer missing columns in GWAS summary statistics. The functions are based on
 #' functionality found online.
-#' @inheritParams repair_rsid
-#' @param verbose Should repair_stats print a masthead explaining what it does?
+#' @inheritParams tidyGWAS
 #'
 #' @return a tibble
 #' @export
@@ -113,18 +110,18 @@ split_rsid_by_regex <- function(tbl) {
 #' @examples \dontrun{
 #' updated <- repair_stats(my_gwas)
 #' }
-repair_stats <- function(tbl, verbose = FALSE) {
+repair_stats <- function(tbl) {
   # reparation of Z from B and P is from LDSC \href{https://github.com/bulik/ldsc/blob/aa33296abac9569a6422ee6ba7eb4b902422cc74/munge_sumstats.py#L363}{LDSC's munge_sumstats.py}
   # Reparation of B and SE from Z, P and EAF is from \href{https://www.biostars.org/p/319584/}
 
-  if(isTRUE(verbose)) {
-    cli::cli_h3("Repairing missing statistics columns:")
-    cli::cli_ol()
-    cli::cli_li("Impute Z based on B and SE if both B and SE exist and Z is missing")
-    cli::cli_li("Impute Z based on P and B if Z and SE is missing")
-    cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
-    cli::cli_h3("Starting reparations:")
-  }
+  # if(isTRUE(verbose)) {
+  #   cli::cli_h3("Repairing missing statistics columns:")
+  #   cli::cli_ol()
+  #   cli::cli_li("Impute Z based on B and SE if both B and SE exist and Z is missing")
+  #   cli::cli_li("Impute Z based on P and B if Z and SE is missing")
+  #   cli::cli_li("Impute B and SE if both are missing, and Z, EAF and N is present")
+  #   cli::cli_h3("Starting reparations:")
+  # }
 
   start_cols <- colnames(tbl)
 
@@ -234,7 +231,7 @@ n_from_se_eaf <- function(SE, EAF) {
 #' last duplicate row, making it easy to work with all rows that are part of a
 #' duplication
 #'
-#' @param tbl a tibble with [tidyGWAS_columns()]
+#' @param tbl a [dplyr::tibble()]
 #' @param column Which columns should be used to form a unique ID?
 #'
 #' @return a tibble with new columns dup_{column}

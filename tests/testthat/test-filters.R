@@ -1,17 +1,20 @@
 # parse_tbl
 test_that("validate parse_tbl", {
   tmp_file <- withr::local_tempfile(fileext = ".csv")
-
+  test_sumstat <- dplyr::tibble(test_sumstat)
   tbl <- arrow::write_csv_arrow(test_sumstat, tmp_file)
 
   # can read csv file
   expect_equal(test_sumstat, tbl)
 
   expect_equal(tbl, parse_tbl(test_sumstat)$tbl)
+
   # can handle data.frame
   expect_equal(tbl, parse_tbl(as.data.frame(test_sumstat))$tbl)
+
   # errors if not passed a filepath or data.frame
   expect_error(parse_tbl("list"))
+
   #
   expect_error(parse_tbl())
 
@@ -56,28 +59,6 @@ test_that("dups are removed", {
 
 
 
-test_that("apply_filters work", {
-
-  tmp <- repair_rsid(tbl, dbsnp_path = dbsnp_path)
-  filepaths <- setup_pipeline_paths(tempfile())
-  expect_no_error(apply_filters(tmp, filepaths))
-
-
-})
-
-
-# test_that("NA rows are removed", {
-#
-#   filepaths <- setup_pipeline_paths(tempfile())
-#
-#   tmp_s <- dplyr::select(test_sumstat, -RSID) |>
-#     dplyr::mutate(CHR = dplyr::if_else(CHR == '6', NA_character_, CHR))
-#
-#   remove_rows_with_na(test_sumstat, filepaths)
-#
-#
-# })
-
 
 test_that("NA rows are removed", {
 
@@ -96,8 +77,8 @@ test_that("indels are removed", {
   filepaths <- setup_pipeline_paths(tempfile())
 
 
-  expect_no_error(detect_indels(pval_as_char_df, FALSE, filepaths, verbose=FALSE, convert_p = 0))
-  expect_no_error(detect_indels(pval_as_char_df, TRUE, filepaths, verbose=FALSE, convert_p = 0))
+  expect_no_error(detect_indels(pval_as_char_df, FALSE, filepaths, convert_p = 0))
+  expect_no_error(detect_indels(pval_as_char_df, TRUE, filepaths, convert_p = 0))
 
   #
 

@@ -16,12 +16,11 @@ tidyGWAS(
   ControlN = NULL,
   N = NULL,
   build = c("NA", "37", "38"),
+  default_build = c("37", "38"),
   indel_strategy = c("keep", "remove"),
   convert_p = 2.225074e-308,
   repair_cols = TRUE,
-  logfile = FALSE,
-  verbose = FALSE,
-  add_missing_build = TRUE
+  logfile = FALSE
 )
 }
 \arguments{
@@ -50,6 +49,10 @@ tidyGWAS(
 
 \item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
 
+\item{default_build}{If only RSID exists, the build cannot be inferred. Nonetheless,
+tidyGWAS applies a filter on incompatible alleles with GRCh37/38. In such a case,
+tidyGWAS needs to decide on which reference genome to compare alleles with.}
+
 \item{indel_strategy}{Should indels be kept or removed?}
 
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
@@ -57,10 +60,6 @@ tidyGWAS(
 \item{repair_cols}{Should any missing statistical columns be repaired if possible?}
 
 \item{logfile}{Should messages be redirected to a logfile?}
-
-\item{verbose}{Explain filters in detail?}
-
-\item{add_missing_build}{Should the build which the sumstats are NOT on also be added in?}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}
@@ -73,8 +72,7 @@ standardised to GRCh38, with coordinates on GRCh37 added in as well.
 Briefly, \code{tidyGWAS()} updates RSID if possible using the
 \href{https://ftp.ncbi.nih.gov/snp/latest_release/JSON/}{refsnp-merged} file
 from dbSNP. Each inputed column is then validated and coerced to
-the correct type. Missing CHR/POS or RSID is detected and imputed using
-\code{\link[=repair_rsid]{repair_rsid()}} or \code{\link[=repair_chr_pos]{repair_chr_pos()}}.
+the correct type.
 
 If statistis such as \code{P}, \code{B} are missing, \code{tidyGWAS()} will attempt to impute
 them if possible using \code{\link[=repair_stats]{repair_stats()}}
@@ -82,8 +80,7 @@ them if possible using \code{\link[=repair_stats]{repair_stats()}}
 Standard column names are assumed, BEFORE inputting into the function. This is
 a deliberate decision, as automatic parsing of some important column names
 can be ambigious For example, in some sumstats, A1 referes to effect allele,
-while other formats use A1 as non-effect allele. \code{\link[=tidyGWAS_columns]{tidyGWAS_columns()}} can be
-used to standardise column names, and see the standard format.
+while other formats use A1 as non-effect allele.
 }
 \examples{
 \dontrun{

@@ -7,7 +7,7 @@
 remove_duplicates(tbl, filepaths)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}} as created by \code{\link[=parse_tbl]{parse_tbl()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{filepaths}{a list of filepaths, created by \code{\link[=setup_pipeline_paths]{setup_pipeline_paths()}}}
 }
