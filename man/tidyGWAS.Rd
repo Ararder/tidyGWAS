@@ -30,7 +30,8 @@ tidyGWAS(
 
 \item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
-\item{column_names}{a named list of column names, to be used to rename columns.}
+\item{column_names}{a named list of column names:
+\code{list("RSID" = SNP, POS = "BP")}}
 
 \item{output_format}{How should the finished cleaned file be saved?
 \itemize{
@@ -78,8 +79,8 @@ If statistis such as \code{P}, \code{B} are missing, \code{tidyGWAS()} will atte
 them if possible using \code{\link[=repair_stats]{repair_stats()}}
 
 Standard column names are assumed, BEFORE inputting into the function. This is
-a deliberate decision, as automatic parsing of some important column names
-can be ambigious For example, in some sumstats, A1 referes to effect allele,
+a deliberate decision as automatic parsing of some important column names
+can be ambiguous For example, in some sumstats, A1 referes to effect allele,
 while other formats use A1 as non-effect allele.
 }
 \examples{

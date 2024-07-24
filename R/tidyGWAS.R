@@ -33,8 +33,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' them if possible using [repair_stats()]
 #'
 #' Standard column names are assumed, BEFORE inputting into the function. This is
-#' a deliberate decision, as automatic parsing of some important column names
-#' can be ambigious For example, in some sumstats, A1 referes to effect allele,
+#' a deliberate decision as automatic parsing of some important column names
+#' can be ambiguous For example, in some sumstats, A1 referes to effect allele,
 #' while other formats use A1 as non-effect allele.
 #'
 #' @param tbl a `data.frame` or `character()` vector
@@ -47,7 +47,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
 #'
 #' @param logfile Should messages be redirected to a logfile?
-#' @param column_names a named list of column names, to be used to rename columns.
+#' @param column_names a named list of column names:
+#' `list("RSID" = SNP, POS = "BP")`
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
@@ -99,7 +100,6 @@ tidyGWAS <- function(
   stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
   stopifnot("The `output_dir` specified already exists" = !dir.exists(output_dir))
   stopifnot("the filepath for dbSNP does not exist" = file.exists(dbsnp_path))
-  start_time <- Sys.time()
   output_format <-  rlang::arg_match(output_format)
   build <-          rlang::arg_match(build)
   default_build <- rlang::arg_match(default_build)
@@ -107,12 +107,9 @@ tidyGWAS <- function(
 
 
   # welcome message ----------------------------------------------------------
+  start_time <- Sys.time()
   cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
   cli::cli_inform("Starting at {start_time}")
-
-
-
-
 
 
   # check input data.frame --------------------------------------------------

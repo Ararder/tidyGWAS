@@ -20,7 +20,10 @@ infer_build <- function(tbl, dbsnp_path, n_snps = 10000) {
   stopifnot("Need 'CHR' and 'POS' in tbl" = all(c("CHR", "POS") %in% colnames(tbl)))
   cli::cli_alert_info("Inferring build by matching {n_snps} rows to GRCh37 and GRCh38")
 
-  subset <- dplyr::slice_sample(tbl, n = {{ n_snps }})
+  # try with only CHR 21 (smallest chrom, so much faster)
+  subset <- dplyr::slice_sample(dplyr::filter(tbl, CHR == "21"), n = {{ n_snps }})
+  if(nrow(subset) != n_snps) subset <- dplyr::slice_sample(tbl, n = {{ n_snps }})
+
   b38 <- map_to_dbsnp(tbl = subset, build = "38", dbsnp_path = dbsnp_path)
   b37 <- map_to_dbsnp(tbl = subset, build = "37", dbsnp_path = dbsnp_path)
 
