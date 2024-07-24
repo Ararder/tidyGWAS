@@ -5,57 +5,47 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="description" content="tidyGWAS">
 <title>tidyGWAS • tidyGWAS</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
-<!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js" integrity="sha512-7O5pXpc0oCRrxk8RUfDYFgn0nO1t+jLuIOQdOMRp4APB7uZ4vSjspzp5y6YDtDs4VzUSTbWzBFZ/LKJhnyFOKw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="tidyGWAS">
-<meta property="og:description" content="tidyGWAS">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
-<script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-<![endif]-->
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="tidyGWAS">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
-    
 
-    <nav class="navbar fixed-top navbar-light navbar-expand-lg bg-light" data-bs-theme="light"><div class="container">
-    
+
+    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
 
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="active nav-item">
-  <a class="nav-link" href="../articles/tidyGWAS.html">Get started</a>
-</li>
-<li class="nav-item">
-  <a class="nav-link" href="../reference/index.html">Reference</a>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/tidyGWAS.html">Get started</a></li>
+<li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
-  <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
-  <div class="dropdown-menu" aria-labelledby="dropdown-articles">
-    <a class="dropdown-item" href="../articles/transforming_dbsnp_to_parquet.html">get-to-know-dbsnp</a>
-  </div>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="../articles/transforming_dbsnp_to_parquet.html">get-to-know-dbsnp</a></li>
+  </ul>
 </li>
       </ul>
-<form class="form-inline my-2 my-lg-0" role="search">
-        <input type="search" class="form-control me-sm-2" aria-label="Toggle navigation" name="search-input" data-search-index="../search.json" id="search-input" placeholder="Search for" autocomplete="off">
-</form>
-
-      <ul class="navbar-nav"></ul>
+<ul class="navbar-nav">
+<li class="nav-item"><form class="form-inline" role="search">
+ <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
+</form></li>
+      </ul>
 </div>
 
-    
+
   </div>
 </nav><div class="container template-article">
 
@@ -64,10 +54,11 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="" class="logo" alt=""><h1>tidyGWAS</h1>
+
+      <h1>tidyGWAS</h1>
             
       
-      
+
       <div class="d-none name"><code>tidyGWAS.Rmd</code></div>
     </div>
 
@@ -114,7 +105,7 @@ overwriting of files).</p>
 set, tidyGWAS will create a folder inside the R tempdir.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># here we use an in-memory data frame that comes with the tidyGWAS package</span></span>
-<span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va">test_file</span></span>
 <span><span class="va">output_dir</span> <span class="op">&lt;-</span> <span class="st">"path/to/tidyGWAS_files/&lt;trait_name&gt;"</span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
 <span>  <span class="co"># Here we input the summary statistics as a data.frame already in R memory</span></span>
@@ -142,7 +133,7 @@ the column name in the summary statistics file you want to clean.</p>
 <span>  <span class="st">"EffectAllele"</span> <span class="op">=</span> <span class="st">"A1"</span>,</span>
 <span>  <span class="st">"EAF"</span> <span class="op">=</span> <span class="st">"AlleleFreq"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span><span class="va">sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va">test_file</span></span>
 <span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
 <span>  tbl <span class="op">=</span> <span class="va">sumstats</span>, </span>
@@ -189,7 +180,7 @@ the <code>delim</code> argument to
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://readr.tidyverse.org" class="external-link">readr</a></span><span class="op">)</span></span>
 <span><span class="va">tmp_filepath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co"># write a tsv file to disk</span></span>
-<span><span class="fu">write_tsv</span><span class="op">(</span><span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span>, <span class="va">tmp_filepath</span><span class="op">)</span></span>
+<span><span class="fu">write_tsv</span><span class="op">(</span><span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va">test_file</span>, <span class="va">tmp_filepath</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Here we need to provide the delim argument</span></span>
 <span><span class="va">cleaned</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/tidyGWAS.html">tidyGWAS</a></span><span class="op">(</span></span>
@@ -263,15 +254,12 @@ Genomics Consortium <a href="https://www.nature.com/articles/s41586-022-04434-5"
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://arvidharder.com/tidyGWAS/">tidyGWAS</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://fs.r-lib.org" class="external-link">fs</a></span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">example_sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va"><a href="../reference/test_file.html">test_file</a></span></span>
+<span><span class="va">example_sumstats</span> <span class="op">&lt;-</span> <span class="fu">tidyGWAS</span><span class="fu">::</span><span class="va">test_file</span></span>
 <span><span class="co"># here we use the example files provided in the tidyGWAS package</span></span>
 <span><span class="va">example_ref_file</span> <span class="op">&lt;-</span>  <span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path_package.html" class="external-link">path_package</a></span><span class="op">(</span><span class="st">"tidyGWAS"</span><span class="op">)</span>, <span class="st">"extdata/dbSNP155"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#The columns have been renamed to follow the tidyGWAS format:</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">example_sumstats</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "CHR"          "POS"          "RSID"         "EffectAllele" "OtherAllele" </span></span>
-<span><span class="co">#&gt;  [6] "B"            "SE"           "EAF"          "INFO"         "P"           </span></span>
-<span><span class="co">#&gt; [11] "CaseN"        "ControlN"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">example_sumstats</span><span class="op">)</span></span></code></pre></div>
 <p>Change up some of the column names to simulate what would typically
 happen.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -316,112 +304,7 @@ argument.</p>
 <span>  logfile<span class="op">=</span><span class="cn">TRUE</span>,</span>
 <span>  <span class="co"># i want the output folder to be named after which GWAS it was. </span></span>
 <span>  output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="va">gwas_folder</span>, <span class="st">"/scz_pgc3"</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.8.0</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2024-05-13 07:27:27.5552</span></span>
-<span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Output is redirected to logfile: <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/tidyGWAS_logfile.txt</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking that columns follow tidyGWAS format </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> The following columns are used for further steps: <span style="font-style: italic;">CHR</span>, <span style="font-style: italic;">POS</span>, <span style="font-style: italic;">RSID</span>, <span style="font-style: italic;">EffectAllele</span>, <span style="font-style: italic;">OtherAllele</span>, <span style="font-style: italic;">B</span>, <span style="font-style: italic;">SE</span>, <span style="font-style: italic;">EAF</span>, <span style="font-style: italic;">INFO</span>, <span style="font-style: italic;">P</span>, <span style="font-style: italic;">rowid</span>, <span style="font-style: italic;">CaseN</span>, and <span style="font-style: italic;">ControlN</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Checking for columns with all NA </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no columns with all NA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">1) Scanning for rows with NA</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> No rows contained missing values</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">2) Scanning for rows with duplications</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A unique ID is formed by concontenating CHR, POS, EffectAllele, and OtherAllele</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Found no duplications</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">3) Scanning for indels</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 1. EffectAllele or OtherAllele, character length &gt; 1: A vs AA</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 2. EffectAllele or OtherAllele coded as 'D', 'I', or 'R'</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Detected 0 rows as indels</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 4a) Validating columns </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> The median value of B is -0.0012, which seems reasonable</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-style: italic;">All rows passed validation</span> </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── 5) Adding RSID based on CHR:POS. Adding dbSNP based QC flags </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Inferring build by matching 10000 rows to GRCh37 and GRCh38</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; 3437 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 11 rows with no dbSNP entry</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/pipeline_info/removed_nodbsnp.parquet</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 486 rows with missing on either build</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/pipeline_info/removed_missing_on_either_build.parquet</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Z missing: Calculating Z using the formula:  Z = B / SE</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Finished repair_stats:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Added 1 new columns: Z</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; ── Listing final breakdown of removed rows:  </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; missing_on_either_build: 486</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; nodbsnp: 11</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Finished tidyGWAS</span> <span style="color: #00BBBB;">───────────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 497 rows were removed</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.4s</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/metadata.yaml</span></span></span></code></pre></div>
+<span>  <span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="the-files-produced-by-tidygwas">The files produced by tidyGWAS<a class="anchor" aria-label="anchor" href="#the-files-produced-by-tidygwas"></a>
@@ -447,14 +330,7 @@ statistics in a hivestyle partitioned format with .parquet files.</li>
 <code>logfile=TRUE</code>, the log is saved here</li>
 </ol>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recurse <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpVoDdEl/file19ff4b2b4b57</span></span>
-<span><span class="co">#&gt; └── scz_pgc3</span></span>
-<span><span class="co">#&gt;     ├── metadata.yaml</span></span>
-<span><span class="co">#&gt;     ├── pipeline_info</span></span>
-<span><span class="co">#&gt;     ├── raw</span></span>
-<span><span class="co">#&gt;     ├── tidyGWAS_hivestyle</span></span>
-<span><span class="co">#&gt;     └── tidyGWAS_logfile.txt</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">gwas_folder</span>, recurse <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 <div class="section level4">
 <h4 id="hivestyle-partitioning-format">Hivestyle partitioning format<a class="anchor" aria-label="anchor" href="#hivestyle-partitioning-format"></a>
 </h4>
@@ -465,51 +341,6 @@ speed up other downstream applications such as meta-analysis, LD
 querying and other analyses.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/path.html" class="external-link">path</a></span><span class="op">(</span><span class="va">gwas_folder</span>,<span class="st">"scz_pgc3"</span>, <span class="st">"tidyGWAS_hivestyle"</span><span class="op">)</span>, recurse <span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpVoDdEl/file19ff4b2b4b57/scz_pgc3/tidyGWAS_hivestyle</span></span>
-<span><span class="co">#&gt; ├── CHR=1</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=10</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=11</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=12</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=13</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=14</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=15</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=16</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=17</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=18</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=19</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=2</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=20</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=21</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=22</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=3</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=4</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=5</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=6</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=7</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; ├── CHR=8</span></span>
-<span><span class="co">#&gt; │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt; └── CHR=9</span></span>
-<span><span class="co">#&gt;     └── part-0.parquet</span></span>
 <span></span>
 <span><span class="co"># This is the equivalent of readr::read_tsv() or data.table::fread() for </span></span>
 <span><span class="co"># the hivestyle format.</span></span></code></pre></div>
@@ -561,12 +392,7 @@ GWAS columns</li>
 <span>  <span class="co"># note: when working interactively, remember to select a subset of columns. This will result in much quicker IO.</span></span>
 <span>  <span class="co"># dplyr::select(-dplyr::any_of(c("CHR_37", "POS_37","rowid", "multi_allelic", "indel", "REF")))</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "POS"           "RSID"          "EffectAllele"  "OtherAllele"  </span></span>
-<span><span class="co">#&gt;  [5] "EAF"           "Z"             "B"             "SE"           </span></span>
-<span><span class="co">#&gt;  [9] "P"             "N"             "CaseN"         "ControlN"     </span></span>
-<span><span class="co">#&gt; [13] "INFO"          "CHR_37"        "POS_37"        "rowid"        </span></span>
-<span><span class="co">#&gt; [17] "multi_allelic" "REF"           "ID"            "CHR"</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="parallel-computation">Parallel computation<a class="anchor" aria-label="anchor" href="#parallel-computation"></a>
@@ -605,7 +431,7 @@ size of summary statistics.</p>
 <div class="section level2">
 <h2 id="section"></h2>
 </div>
-  </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 
@@ -616,15 +442,15 @@ size of summary statistics.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
 </div>
 
     </footer>
 </div>
 
-  
 
-  
+
+
 
   </body>
 </html>
