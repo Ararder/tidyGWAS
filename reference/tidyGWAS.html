@@ -9,8 +9,8 @@ the correct type.
 If statistis such as P, B are missing, tidyGWAS() will attempt to impute
 them if possible using repair_stats()
 Standard column names are assumed, BEFORE inputting into the function. This is
-a deliberate decision, as automatic parsing of some important column names
-can be ambigious For example, in some sumstats, A1 referes to effect allele,
+a deliberate decision as automatic parsing of some important column names
+can be ambiguous For example, in some sumstats, A1 referes to effect allele,
 while other formats use A1 as non-effect allele."><meta property="og:description" content="tidyGWAS() performs a set of validations on input colummns, repairs missing
 columns, and can add missing CHR/POS or RSID. In addition, CHR and POS is
 standardised to GRCh38, with coordinates on GRCh37 added in as well.
@@ -21,8 +21,8 @@ the correct type.
 If statistis such as P, B are missing, tidyGWAS() will attempt to impute
 them if possible using repair_stats()
 Standard column names are assumed, BEFORE inputting into the function. This is
-a deliberate decision, as automatic parsing of some important column names
-can be ambigious For example, in some sumstats, A1 referes to effect allele,
+a deliberate decision as automatic parsing of some important column names
+can be ambiguous For example, in some sumstats, A1 referes to effect allele,
 while other formats use A1 as non-effect allele."></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -31,7 +31,7 @@ while other formats use A1 as non-effect allele."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,6 +45,7 @@ while other formats use A1 as non-effect allele."></head><body>
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/transforming_dbsnp_to_parquet.html">get-to-know-dbsnp</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -71,8 +72,8 @@ the correct type.</p>
 <p>If statistis such as <code>P</code>, <code>B</code> are missing, <code>tidyGWAS()</code> will attempt to impute
 them if possible using <code><a href="repair_stats.html">repair_stats()</a></code></p>
 <p>Standard column names are assumed, BEFORE inputting into the function. This is
-a deliberate decision, as automatic parsing of some important column names
-can be ambigious For example, in some sumstats, A1 referes to effect allele,
+a deliberate decision as automatic parsing of some important column names
+can be ambiguous For example, in some sumstats, A1 referes to effect allele,
 while other formats use A1 as non-effect allele.</p>
     </div>
 
@@ -115,7 +116,8 @@ while other formats use A1 as non-effect allele.</p>
 
 
 <dt id="arg-column-names">column_names<a class="anchor" aria-label="anchor" href="#arg-column-names"></a></dt>
-<dd><p>a named list of column names, to be used to rename columns.</p></dd>
+<dd><p>a named list of column names:
+<code>list("RSID" = SNP, POS = "BP")</code></p></dd>
 
 
 <dt id="arg-output-format">output_format<a class="anchor" aria-label="anchor" href="#arg-output-format"></a></dt>
