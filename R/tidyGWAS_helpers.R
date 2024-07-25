@@ -33,11 +33,13 @@ parse_tbl <- function(tbl, ...) {
 
 identify_removed_rows <- function(finished, filepaths) {
 
+  # read in file before any munging was done
   start <- arrow::read_parquet(filepaths$raw_sumstats, col_select = "rowid")
 
+  # find all removed rows
   removed_rows <- dplyr::anti_join(start, finished, by = "rowid")
 
-  # remove the file with all rowids
+  # get filepaths for all removed files
   files_in_dir <- list.files(paste0(filepaths$base, "/pipeline_info/"), pattern = "*removed_*", full.names = TRUE)
 
 
@@ -62,6 +64,8 @@ identify_removed_rows <- function(finished, filepaths) {
     dplyr::semi_join(removed_rows, by = "rowid") |>
     dplyr::count(reason)
 
+
+
   vec <- c(breakdown$n)
   names(vec) <- breakdown$reason
   cli::cli_h3("Listing final breakdown of removed rows: ")
@@ -71,6 +75,35 @@ identify_removed_rows <- function(finished, filepaths) {
 
 
 }
+
+explain_removed_rows <- function(filepaths) {
+  possible_reasons <- stringr::str_subset(filepaths, "removed") |>
+    base::basename() |>
+    stringr::str_remove("removed_") |>
+    stringr::str_remove(".parquet")
+
+  if(reason == "missing_alleles") {
+    cli::cli_inform("Missing values in `EffectAllele` or `OtherAllele`")
+  } else if(reason == "indels") {
+    cli::cli_inform("`indel_strategy='keep'` was not set resulting in indels being removed.")
+  } else if(reason == "validate_indels") {
+    cli::cli_inform("Failed column validation, within the subset of rows detected as indels")
+  } else if(reason == "missing_critical") {
+    cli::cli_inform("Missing values in either `CHR` or `POS`, or `RSID`")
+  } else if(reason == "duplicates") {
+    cli::cli_inform("Identified as duplicated rows")
+  } else if(reason == "invalid_rsid") {
+    cli::cli_inform("Failed validation of RSID, and CHR and POS were not in the summary statistics")
+  } else if(reason == "validate_rsid_path") {
+    cli::cli_inform("Failed column validation, only RSID detected")
+  } else if(reason == "without_rsid") {
+
+  }
+
+}
+
+
+
 
 write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 
@@ -211,18 +244,7 @@ make_callback <- function(id) {
 }
 
 
-#' Update rsIDs from dbSNP that have been merged into other RSIDs
-#'
-#' @inheritParams remove_rows_with_na
-#' @param dbsnp_path filepath to dbSNP155 directory
-#'
-#' @return a tbl
-#' @export
-#'
-#' @examples \dontrun{
-#' update_rsid(sumstat, filepaths = setup_pipeline_paths("testing"), dbsnp_path = "~/dbSNP155")
-#' }
-update_rsid <- function(tbl, filepaths, dbsnp_path) {
+update_rsid <- function(tbl, filepath, dbsnp_path) {
 
 
   # detect merged rsIDs -----------------------------------------------------
@@ -250,8 +272,8 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
   if(updated_rows > 0) {
 
     cli::cli_alert_success("{updated_rows} rows with updated RSID")
-    cli::cli_li("{.file {filepaths$updated_rsid}}")
-    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
+    cli::cli_li("{.file {filepath}}")
+    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepath)
 
   } else {
 
@@ -263,15 +285,7 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 
 }
 
-#' Remove all columns that do not follow tidyGWAS naming
-#'
-#' @param tbl a [dplyr::tibble()]
-#' @return a [dplyr::tibble()]
-#' @export
-#'
-#' @examples \dontrun{
-#' sumstats <- select_correct_columns(sumstats)
-#' }
+
 select_correct_columns <- function(tbl) {
 
   # check input columns

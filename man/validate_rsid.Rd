@@ -4,12 +4,12 @@
 \alias{validate_rsid}
 \title{Validate format of the RSID column in a GWAS summary statistics file}
 \usage{
-validate_rsid(tbl, outpath)
+validate_rsid(tbl, filepath)
 }
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{outpath}{filepath to write out removed rows}
+\item{filepath}{filepath to write out removed rows}
 }
 \value{
 a tbl

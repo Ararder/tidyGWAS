@@ -139,30 +139,41 @@ tidyGWAS <- function(
   # start of pipeline ----------------------------------------------------------
   # 0) formatting --------------------------------------------------------------
 
+
   if(!missing(column_names)) tbl <- update_column_names(tbl, column_names, CaseN = CaseN, ControlN=ControlN, N=N)
 
   tbl <- select_correct_columns(tbl)
 
 
-  # 1) Drop na -----------------------------------------------------------------
+  # 1) detect indels ----------------------------------------------------------
+  cli::cli_h2("1) Scanning for indels")
 
-  cli::cli_h2("1) Scanning for rows with NA")
-  tbl <- remove_rows_with_na(tbl, filepaths = filepaths)
-
-
-  # 2) Remove duplicated SNPs --------------------------------------------------
-
-  cli::cli_h2("2) Scanning for rows with duplications")
-  tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
-
-  # 3) detect indels ----------------------------------------------------------
-
-  cli::cli_h2("3) Scanning for indels")
+  tbl <- remove_rows_with_na(tbl, c("EffectAllele", "OtherAllele"), filepaths$removed_missing_alleles)
   tbl <- detect_indels(tbl, indel_strategy = indel_strategy, filepaths = filepaths, convert_p = convert_p)
 
   indels <- tbl$indels
   if(nrow(indels) == 0) indels <- NULL
   tbl <- tbl$main
+
+
+  # 2 Drop na -----------------------------------------------------------------
+  if(all(c("RSID", "CHR", "POS") %in% colnames(tbl))) {
+    tbl$RSID <- NULL
+    columns <- c("CHR", "POS")
+  } else if("RSID" %in% colnames(tbl) & !all(c("CHR", "POS") %in% colnames(tbl))) {
+    columns <- c("RSID")
+  } else {
+    columns <- c("CHR", "POS")
+  }
+
+  cli::cli_h2("2) Scanning for rows with NA in critical columns")
+  tbl <- remove_rows_with_na(tbl, columns, filepath = filepaths$removed_missing_critical)
+
+
+  # 3) Remove duplicated SNPs --------------------------------------------------
+
+  cli::cli_h2("3) Scanning for rows with duplications")
+  tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
 
 
 
@@ -197,10 +208,10 @@ tidyGWAS <- function(
     tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
 
     # update the RSID column
-    tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
+    tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepath = filepaths$updated_rsid)
 
     # check for CHR:POS in RSID column ----------------------------------------
-    tbl <- validate_rsid(tbl, outpath = filepaths$removed_invalid_chr_pos_in_rsid)
+    tbl <- validate_rsid(tbl, filepath = filepaths$removed_invalid_rsid)
     without_rsid <- tbl$without_rsid
     tbl <- tbl$main
 
@@ -335,18 +346,6 @@ tidyGWAS <- function(
 
 
 
-
-
-
-#' Create the folder structure for tidyGWAS
-#'
-#' @param outdir output directory
-#' @param filename filename for the raw sumstats
-#' @return a list of filepaths
-#' @export
-#'
-#' @examples
-#' setup_pipeline_paths(tempfile())
 setup_pipeline_paths <- function(outdir, filename) {
 
 
@@ -368,16 +367,20 @@ setup_pipeline_paths <- function(outdir, filename) {
     "metadata" = paste0(outdir, "/metadata.yaml"),
     "updated_rsid"= paste(pipeline_info, "updated_rsid.parquet", sep = "/"),
 
-    "removed_rows"=                              paste(pipeline_info, "removed_", sep = "/"),
-    "removed_duplicates" =                       paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
-    "failed_rsid_parse" =                        paste(pipeline_info, "removed_failed_rsid_parse.parquet", sep = "/"),
-    "removed_invalid_chr_pos_in_rsid"  =         paste(pipeline_info, "removed_invalid_chr_pos_rsid.parquet", sep = "/"),
+    "removed_missing_alleles" =                  paste(pipeline_info, "removed_missing_alleles.parquet", sep = "/"),
     "removed_indels" =                           paste(pipeline_info, "removed_indels.parquet", sep = "/"),
+    "removed_validate_indels" =                  paste(pipeline_info, "removed_validate_indels.parquet", sep = "/"),
+
+    "removed_missing_critical" =                 paste(pipeline_info, "removed_missing_critical.parquet", sep = "/"),
+    "removed_duplicates" =                       paste(pipeline_info, "removed_duplicates.parquet", sep = "/"),
+
+    "removed_invalid_rsid" =                     paste(pipeline_info, "removed_invalid_rsid.parquet", sep = "/"),
     "removed_validate_rsid" =                    paste(pipeline_info, "removed_validate_rsid_path.parquet", sep = "/"),
     "removed_validate_rsid_without_rsid" =       paste(pipeline_info, "removed_without_rsid.parquet", sep ="/"),
-    "removed_validate_chr_pos" =                 paste(pipeline_info, "removed_validate_chr_pos_path.parquet", sep = "/"),
-    "removed_validate_indels" =                  paste(pipeline_info, "removed_validate_indels.parquet", sep = "/"),
     "removed_duplications_chr_pos_in_rsid_col" = paste(pipeline_info, "removed_duplications_chr_pos_in_rsid_col.parquet", sep = "/"),
+
+    "removed_validate_chr_pos" =                 paste(pipeline_info, "removed_validate_chr_pos_path.parquet", sep = "/"),
+
     "removed_no_dbsnp" =                         paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/")
   )
 

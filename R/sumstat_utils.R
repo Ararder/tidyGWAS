@@ -1,5 +1,60 @@
 utils::globalVariables(c("new_RSID", "old_RSID"))
 
+#' Find all rows which are part of a set of duplicated rows
+#' @description
+#' Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]
+#' identify rows which are duplications. It is often useful to see ALL rows
+#' which are part of the duplication set, and not just the second row.
+#'
+#' creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
+#' Specifically, flags both rows in a duplication pair, and not just first or
+#' last duplicate row, making it easy to work with all rows that are part of a
+#' duplication
+#'
+#' @param tbl a [dplyr::tibble()]
+#' @param column Which columns should be used to form a unique ID?
+#'
+#' @return a tibble with new columns dup_{column}
+#' @export
+#'
+#' @examples \dontrun{
+#'
+#' # will tag multi-allelics as duplications
+#' flag_duplicates(tbl, column = "rsid")
+#' flag_duplicates(tbl, column = "chr_pos")
+#' # if you are interested in rows that are variant duplications
+#' flag_duplicates(tbl, column = "rsid_ref_alt")
+#' flag_duplicates(tbl, column = "chr_pos_ref_alt")
+#'
+#' }
+flag_duplicates <- function(tbl, column = c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt")) {
+  column = rlang::arg_match(column)
+  new_name <- glue::glue("dup_{column}")
+
+  if(column == "rsid") {
+
+    columns <- c("RSID")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
+  } else if(column == "chr_pos") {
+
+    columns <- c("CHR", "POS")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
+  } else if(column == "chr_pos_ref_alt") {
+
+    columns <- c("CHR", "POS", "EffectAllele", "OtherAllele")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
+  } else if(column == 'rsid_ref_alt') {
+
+    columns <- c("RSID", "EffectAllele", "OtherAllele")
+    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
+
+
+  }
+}
+
 #' Detect "indels" in GWAS summary statistics
 #'
 #' @param tbl a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele`
@@ -101,6 +156,16 @@ split_rsid_by_regex <- function(tbl) {
 
 
 
+#' Strand flip alleles
+#'
+#' @param tbl a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele`
+#'
+#' @return a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele` flipped
+#' @export
+#'
+#' @examples \dontrun{
+#' tbl <- strand_flip(tbl)
+#' }
 strand_flip <- function(tbl) {
   stopifnot("Requires columns EffectAllele & OtherAllele" =
               all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))
@@ -123,60 +188,5 @@ strand_flip <- function(tbl) {
   )
 }
 
-
-#' Find all rows which are part of a set of duplicated rows
-#' @description
-#' Many duplication tools such as [base::duplicated()] or [dplyr::distinct()]
-#' identify rows which are duplications. It is often useful to see ALL rows
-#' which are part of the duplication set, and not just the second row.
-#'
-#' creates new column: `dup_rsid` or `dup_chr_pos`, a T/F flag.
-#' Specifically, flags both rows in a duplication pair, and not just first or
-#' last duplicate row, making it easy to work with all rows that are part of a
-#' duplication
-#'
-#' @param tbl a [dplyr::tibble()]
-#' @param column Which columns should be used to form a unique ID?
-#'
-#' @return a tibble with new columns dup_{column}
-#' @export
-#'
-#' @examples \dontrun{
-#'
-#' # will tag multi-allelics as duplications
-#' flag_duplicates(tbl, column = "rsid")
-#' flag_duplicates(tbl, column = "chr_pos")
-#' # if you are interested in rows that are variant duplications
-#' flag_duplicates(tbl, column = "rsid_ref_alt")
-#' flag_duplicates(tbl, column = "chr_pos_ref_alt")
-#'
-#' }
-flag_duplicates <- function(tbl, column = c("rsid", "chr_pos", "chr_pos_ref_alt", "rsid_ref_alt")) {
-  column = rlang::arg_match(column)
-  new_name <- glue::glue("dup_{column}")
-
-  if(column == "rsid") {
-
-    columns <- c("RSID")
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
-
-  } else if(column == "chr_pos") {
-
-    columns <- c("CHR", "POS")
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
-
-  } else if(column == "chr_pos_ref_alt") {
-
-    columns <- c("CHR", "POS", "EffectAllele", "OtherAllele")
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
-
-  } else if(column == 'rsid_ref_alt') {
-
-    columns <- c("RSID", "EffectAllele", "OtherAllele")
-    dplyr::mutate(tbl, {{ new_name }} := (duplicated(tbl[,columns]) | duplicated(tbl[,columns], fromLast = TRUE)))
-
-
-  }
-}
 
 

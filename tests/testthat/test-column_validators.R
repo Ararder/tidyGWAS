@@ -12,17 +12,17 @@ test_that("validate RSIDs does not error", {
 
   # some invalid rsids, no CHR or POS
 
-  expect_no_error(validate_rsid(dplyr::select(test_sumstat, -CHR, -POS), filepaths$failed_rsid_parse))
+  expect_no_error(validate_rsid(dplyr::select(test_sumstat, -CHR, -POS), filepaths$removed_invalid_rsid))
 
   # some invalid rsids, no CHR or POS, some failed
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
   tmp <- dplyr::mutate(tmp, RSID = dplyr::if_else(B > 0, ".", RSID))
-  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse))
+  expect_no_error(validate_rsid(tmp, filepaths$removed_invalid_rsid))
 
   # all invalid
   tmp <- dplyr::select(test_sumstat, -CHR, -POS)
   tmp <- dplyr::mutate(tmp, RSID = ".")
-  expect_no_error(validate_rsid(tmp, filepaths$failed_rsid_parse))
+  expect_no_error(validate_rsid(tmp, filepaths$removed_invalid_rsid))
 
 
 

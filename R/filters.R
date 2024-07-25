@@ -1,51 +1,21 @@
-#' Remove rows with missing values, and write out the removed files to disk
-#'
-#' @param tbl a [dplyr::tibble()]
-#' @param filepaths a list of filepaths, created by [setup_pipeline_paths()]
-#'
-#' @return a tbl
-#' @export
-#'
-#' @examples \dontrun{
-#' df <- remove_rows_with_na(sumstat, setup_pipeline_paths("testing"))
-#' }
-remove_rows_with_na <- function(tbl, filepaths) {
-
-
-  # remove missing values from obligatory columns ---------------------------
-
-
-  if(all(c("CHR", "POS") %in% colnames(tbl) & !"RSID" %in% colnames(tbl))) {
-
-    tmp <- tidyr::drop_na(tbl, c("CHR", "POS", "EffectAllele", "OtherAllele"))
-
-  } else if("RSID" %in% colnames(tbl) & !all(c("CHR", "POS") %in% colnames(tbl))) {
-
-    tmp <- tidyr::drop_na(tbl, c("RSID", "EffectAllele", "OtherAllele"))
-
-  } else if(all(c("CHR", "POS") %in% colnames(tbl) & "RSID" %in% colnames(tbl))) {
-    # if we have all three, recode missing RSID to "." and it will be
-    # updated if possible later
-    tmp <- dplyr::mutate(tbl, RSID = dplyr::if_else(is.na(RSID), ".", RSID))
-
-  }
+remove_rows_with_na <- function(tbl, columns, filepath) {
 
 
 
-  # identify removed rows ---------------------------------------------------
+  tmp <- tidyr::drop_na(tbl, dplyr::all_of(columns))
   na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid") |>
     dplyr::select(rowid)
 
   if(nrow(na_rows) > 0) {
 
-    outfile <- paste0(filepaths$removed, "missing_values.parquet")
-    cli::cli_alert_danger("Found {nrow(na_rows)} rows with missing values. These are removed: ")
-    cli::cli_inform("{.file {outfile}}")
-    arrow::write_parquet(na_rows, outfile)
+
+    cli::cli_alert_danger("Found {nrow(na_rows)} rows with missing values in {columns}. These are removed: ")
+    cli::cli_inform("{.file {filepath}}")
+    arrow::write_parquet(na_rows, filepath)
 
   } else {
 
-    cli::cli_alert_success("No rows contained missing values")
+    cli::cli_alert_success("No rows contained missing values in {columns}")
 
   }
 
@@ -56,18 +26,7 @@ remove_rows_with_na <- function(tbl, filepaths) {
 
 
 
-#' Remove duplicated rows from a summary statistics file
-#'
-#' @param tbl a [dplyr::tibble()], with columns in `tidyGWAS()`
-#' @param columns a character vector of columns passed to `dplyr::distinct()`
-#' @param filepath a filepath to write out the removed rows
-#'
-#' @return a [dplyr::tibble()] with duplicates removed
-#' @export
-#'
-#' @examples \dontrun{
-#' remove_duplicates(tbl, c("CHR", "POS",), "duplicated_rows.tsv")
-#' }
+
 
 remove_duplicates <- function(tbl, columns = NULL, filepath) {
 
@@ -96,7 +55,7 @@ remove_duplicates <- function(tbl, columns = NULL, filepath) {
   removed <- dplyr::anti_join(tbl, no_dups, by = "rowid")
 
   # logging
-  cli::cli_alert_info("Lookins for duplications with columns: {columns}")
+  cli::cli_alert_info("Looking for duplications with columns: {columns}")
   if(nrow(removed) > 0) {
 
     cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
@@ -119,22 +78,7 @@ remove_duplicates <- function(tbl, columns = NULL, filepath) {
 
 
 
-#' Detect Insertions/Deletions ('indels')
-#' @description
-#' Indels are detected by examining `EffectAllele` and `OtherAllele`
-#'
-#'
-#' @param tbl a [dplyr::tibble()]
-#' @inheritParams tidyGWAS
-#' @inheritParams remove_rows_with_na
-#'
-#' @return a tbl
-#' @export
-#'
-#' @examples \dontrun{
-#' detect_indels(sumstat, TRUE, filepaths = setup_pipeline_paths("testing"))
-#' }
-detect_indels <- function(tbl, indel_strategy, filepaths, ...) {
+detect_indels <- function(tbl, indel_strategy, filepaths, convert_p) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
@@ -144,7 +88,7 @@ detect_indels <- function(tbl, indel_strategy, filepaths, ...) {
 
   tbl <- flag_indels(tbl)
   indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
-  tbl <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
+  tbl2 <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
   cli::cli_alert_success("Detected {nrow(indels)} rows as indels")
 
   if(nrow(indels) > 0) {
@@ -153,7 +97,7 @@ detect_indels <- function(tbl, indel_strategy, filepaths, ...) {
       tbl = indels,
       remove_cols = c("EffectAllele", "OtherAllele"),
       filter_func = make_callback(filepaths$removed_validate_indels),
-      ...
+      convert_p = convert_p
     )
   }
 

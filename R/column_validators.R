@@ -54,7 +54,7 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func, convert_p) {
 #' Validate format of the RSID column in a GWAS summary statistics file
 #'
 #' @inheritParams tidyGWAS
-#' @param outpath filepath to write out removed rows
+#' @param filepath filepath to write out removed rows
 #'
 #' @return a tbl
 #' @export
@@ -62,7 +62,7 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func, convert_p) {
 #' @examples \dontrun{
 #' validate_rsid(sumstat, "~/invalid_rsid.parquet")
 #' }
-validate_rsid <- function(tbl, outpath) {
+validate_rsid <- function(tbl, filepath) {
 
   check_columns(c("RSID", "EffectAllele", "OtherAllele"), tbl)
   if(any(c("CHR", "POS") %in% colnames(tbl))) {
@@ -114,8 +114,8 @@ validate_rsid <- function(tbl, outpath) {
   if(nrow(failed) > 0 ) {
 
     cli::cli_alert_danger("{nrow(failed)} rows had invalid RSID that could not be parsed and are removed.")
-    cli::cli_inform("{.file {outpath}}")
-    arrow::write_parquet(failed, outpath)
+    cli::cli_inform("{.file {filepath}}")
+    arrow::write_parquet(failed, filepath)
 
   }
 

@@ -21,7 +21,7 @@ test_that("NA rows are removed", {
   filepaths <- setup_pipeline_paths(tempfile())
 
   test_sumstat$RSID <- dplyr::if_else(test_sumstat$CHR == "6", NA_character_, test_sumstat$RSID)
-  expect_no_error(remove_rows_with_na(test_sumstat, filepaths))
+  expect_no_error(remove_rows_with_na(test_sumstat, columns = "CHR", filepath = filepaths$removed_missing_critical))
 
 
 })
