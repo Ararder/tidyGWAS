@@ -19,86 +19,145 @@ knitr::opts_chunk$set(
 
 # Installation
 
+tidyGWAS is not yet on CRAN. To install, you need to use
+`devtools::install_github()` or `remotes::install_github()`
+
 ```{r, eval = FALSE}
-devtools::install_github("ararder/tidyGWAS") # install.packages("devtools")
-remotes::install_github("ararder/tidyGWAS") # install.packages("remotes")
+devtools::install_github("ararder/tidyGWAS")
+remotes::install_github("ararder/tidyGWAS")
 ```
 
-# Download reference files
-
-tidyGWAS uses reference data from dbSNP, transformed into parquet files.
-They can be downloaded [here](https://zenodo.org/records/11060095).
-
-The file needs to untarred before it can be used.
+Secondly, you will need to download the reference data. tidyGWAS uses a
+slightly edited version of dbSNP v155, that is available
+[here](https://zenodo.org/records/12805493).
 
 ```{bash, eval = FALSE}
-# zenodo link
-wget -O dbSNP155.tar https://zenodo.org/records/11060095/files/dbSNP155.tar
-tar -xvf dbSNP155.tar
-# remove the tarred dir
-rm dbSNP155.tar
+wget https://zenodo.org/records/12805493/files/dbSNP155_v0.9.tar
+tar -xvf dbSNP155_v0.9.tar
+
 ```
+
 
 # Quick start
 
-tidyGWAS has two mandatory arguments:
+This is what a typical call to `tidyGWAS()` will look like. Continue reading for a more detailed explanation of each argument.
 
--   `tbl`: An in-memory `data.frame` or a file path to the summary
-    statistics
 
--   `dbsnp_path`: A file path to the dbSNP reference file
+```{r, eval=FALSE}
+# we setup a directory where we will store all summary statistics cleaned by tidyGWAS
+gwas_folder <- tempfile()
+# create a new folder inside, based on the name of the GWAS
+outdir <- paste0(gwas_folder, "gwasName")
 
-An argument that is not mandatory but very useful is `output_dir`.
-tidyGWAS outputs all the files from an execution in a directory, so the
-filepath provided to `output_dir` is the path to where tidyGWAS will
-create the output folder. The folder cannot exist yet (to prevent
-accidental overwriting of files).
-
-In the example below, a new directory called `scz_testfile` will be
-created inside `/home/cleaned_tidyGWAS`. If `output_dir`is not set,
-tidyGWAS will create a folder inside the R tempdir.
-
-```{r, eval = FALSE}
-# here we use an in-memory data frame that comes with the tidyGWAS package
-sumstats <- tidyGWAS::test_file
-output_dir <- "path/to/tidyGWAS_files/<trait_name>"
 cleaned <- tidyGWAS(
-  # Here we input the summary statistics as a data.frame already in R memory
-  tbl = sumstats, 
-  # provide the filepath to the refence files you downloaded.
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
-  output_dir = "/home/cleaned_tidyGWAS/scz_testfile"
+  tbl = "/filepath/to/sumstats", 
+  # we read in a tab-separated file, so provide tab as delimiter
+  delim = "\t",
+  dbsnp_path = dsnp_path,
+  # 
+  column_names = list(
+    "CHR" = "CHROM",
+    "POS" = "BP",
+    "EffectAllele" = "A1",
+    "B" = "Effect"
+  ),
+  # Number of samples are missing, so manually impute
+  CaseN = 54000,
+  ControlN = 73000,
+  logfile=TRUE,
+  output_dir = outdir
   )
 ```
 
-### Columnar names
 
-In the vast majority of cases, the column names in the input summary
-statistics will be different from the nomenclature that tidyGWAS uses.
-For that case we use the `column_names` argument, which takes a `list`
-as input.
+# Walk-through tutorial
+Here a longer tutorial starts, walking through the different arguments of `tidyGWAS()`.
 
-The list names correspond to tidyGWAS nomenclature, and the values to
-the column name in the summary statistics file you want to clean.
+To run tidyGWAS on your summary statistics of choice, provide
+a in-memory `dplyr::tibble()` or a filepath. In this example, a filepath
+to a gzipped tsv file is passed. tidyGWAS uses
+`arrow::read_delim_arrow()` to read in files. Since we are using a tsv
+file, we provide the argument `delim` with `"\t"`.
+
+```{r}
+library(tidyGWAS)
+# we use the dummy version of dbSNP that comes with the package
+dbsnp_path <- system.file("extdata/dbSNP155", package = "tidyGWAS")
+# a dummy sumstats with 100 000 rows
+# gwas <- system.file("extdata", package="tidyGWAS") |> paste0("/sumstats.tsv.gz")
+gwas <- system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS")
+# store the results in a temporary directory
+out <- tempfile()
+
+tidyGWAS(
+  tbl = gwas,
+  delim = "\t",
+  dbsnp_path = dbsnp_path,
+  output_dir = out
+)
+```
+
+That's a lot of files!
+
+1.  Removed rows are stored in `pipeline/removed_*`
+2.  `metadata.yaml` contains metadata about the execution
+3.  `raw` contains the summary statistics ***before*** any munging was
+    done. Useful to reproduce, or to identify why rows were removed.
+4.  `tidyGWAS_hivestyle` contains the cleaned summary statistics, in
+    something called a [hivestyle
+    partition](https://arrow.apache.org/docs/r/articles/dataset.html),
+    by default. The motivation for this is detailed further
+    [down](#hivestyle-partitioning) in the vignette. If you just want a
+    standard csv file, use `output_format="csv"`
+
+```{r}
+fs::dir_tree(out)
+```
+
+### Setting column names
+
+Almost certainly, the summary statistics you want to clean will not have
+the same column name that the example file had.
+
+```{r}
+sumstats <- read.table(gwas, header=T) |> dplyr::tibble()
+head(sumstats)
+```
+
+```{r}
+colnames(sumstats)
+```
+
+`tidyGWAS()` will not guess which columns are which, and therefore
+requires either the correct column names to exist before cleaning, or a
+mapping between tidyGWAS column names and the column names in the input
+file. This is done using the `column_names` argument, which takes a
+named list, where the names are the tidyGWAS columns and the values the
+corresponding column in the input file.
 
 ```{r, eval = FALSE}
-# First we create a list
-# list names = tidyGWAS names
-# list values = input names
-
-col_names <- list(
-  "CHR" = "chrom",
-  "EffectAllele" = "A1",
-  "EAF" = "AlleleFreq"
+# what if the names were all wrong?
+sumstats_with_wrong_names <- dplyr::rename(
+  sumstats, 
+  CHROM = CHR, 
+  BP = POS,
+  ID = RSID,
+  A1 = EffectAllele, 
+  A2 = OtherAllele,
+  EFFECT = B
 )
-sumstats <- tidyGWAS::test_file
 
-cleaned <- tidyGWAS(
-  tbl = sumstats, 
-  # provide the filepath to the refence files you downloaded
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
-  
-  column_names = col_names
+tidyGWAS(
+  tbl = sumstats_with_wrong_names, 
+  dbsnp_path = dbsnp_path,
+  column_names = list(
+    CHR = "CHROM",
+    POS = "BP",
+    RSID = "ID",
+    EffectAllele = "A1",
+    OtherAllele = "A2",
+    B = "EFFECT"
+  )
   )
 
 ```
@@ -135,10 +194,37 @@ tidyGWAS uses the following column names:
 
 -   Z
 
-Note:
+**Note**:
 
 If your RSID column is in the format CHR:BP:A1:A2, you can still pass it
 as an RSID column.
+
+### Inputting sample size columns
+
+Often, the sample size column is missing from the summary statistics,
+and you provide it manually. tidyGWAS has three arguments that can be
+used to manually set the sample size, if it's missing from the original
+file:
+
+-   `CaseN`
+
+-   `ControlN`
+
+-   `N`
+
+```{r, eval = FALSE}
+
+cleaned <- tidyGWAS(
+  tbl = sumstats, 
+  dbsnp_path = dbsnp_path,
+  # CaseN, ControlN and N can all be used to set sample size
+  CaseN = 400,
+  ControlN = 800,
+  N = 1200
+  )
+
+
+```
 
 ### Reading files directly from disk
 
@@ -146,21 +232,16 @@ If you pass a filepath to tidyGWAS, it will attempt to read in the file
 with `arrow::read_delim_arrow()`
 
 The default delimiter is white space, so to read in comma-separated
-files or tab-separated files, you can use `...` to provide the `delim`
-argument to `arrow::read_delim_arrow()`.
+files or tab-separated files, you can provide the `delim` argument to
+`arrow::read_delim_arrow()` through `...`
 
 ```{r, eval=FALSE}
-library(readr)
-tmp_filepath <- tempfile()
-# write a tsv file to disk
-write_tsv(tidyGWAS::test_file, tmp_filepath)
 
-# Here we need to provide the delim argument
 cleaned <- tidyGWAS(
-  tbl = tmp_filepath,
-  # here we specify the delimiter
-  delim = "\t",
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
+  tbl = "filepath/to/gwas/ondisk.csv",
+  # here we specify the delimiter to for csv files
+  delim = ",",
+  dbsnp_path = dbsnp_path,
 )
 ```
 
@@ -171,152 +252,22 @@ cases, it's often much more convenient to use the effective
 summary statistics into memory before passing it to tidyGWAS.
 
 ```{r, eval=FALSE}
-library(data.table)
+# use readr
+sumstats <- readr::read_table("path/to/sumstats.gz.vcf")
+# or data.table
+sumstats <- data.table::fread("path/to/sumstats.gz.vcf")
 
-# write a tsv file to disk
-sumstats <- fread("path/to/sumstats.gz.vcf")
+output <- "my_gwas_dir"
 
-# Here we need to provide the delim argument
 cleaned <- tidyGWAS(
-  tbl = tmp_filepath,
-  # here we specify the delimiter
-  delim = "\t",
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
-  # here we specify the output directory, and use scz2022 as name for the output directory
-  outdir = "output_dir/scz2022"
+  tbl = sumstats,
+  dbsnp_path = dbsnp_path,
+  outdir = output
 )
 
 ```
 
-### Inputting sample size columns
-
-It's not uncommon for sample size to also be missing from the summary
-statistics. These can be passed in a similar manner as the column names.
-tidyGWAS has three arguments that can be used to manually set the sample
-size, if it's missing from the original file:
-
--   `CaseN`
-
--   `ControlN`
-
--   `N`
-
-```{r, eval = FALSE}
-colmap <- list(
-  "CHR" = "chrom",
-  "EffectAllele" = "A1",
-  "EAF" = "AlleleFreq"
-)
-
-
-cleaned <- tidyGWAS(
-  tbl = wrong_names, 
-  dbsnp_path = fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155"),
-  column_names = colmap,
-  # now we add the sample_size arguments
-  CaseN = 400, # we can set 
-  ControlN = 800,
-  N = 1200
-  )
-
-
-```
-
-# A typical tidyGWAS call
-
-In most cases, more than the three first arguments will be used. Let's
-walk through each step more carefully, using some example files provided
-in the tidyGWAS package. We will be using a version of the sumstats from
-the latest GWAS on schizophrenia from the Psychiatric Genomics
-Consortium [(PGC3)](https://www.nature.com/articles/s41586-022-04434-5)
-
-```{r, eval =FALSE}
-library(tidyGWAS)
-library(fs)
-
-example_sumstats <- tidyGWAS::test_file
-# here we use the example files provided in the tidyGWAS package
-example_ref_file <-  fs::path(fs::path_package("tidyGWAS"), "extdata/dbSNP155")
-
-#The columns have been renamed to follow the tidyGWAS format:
-colnames(example_sumstats)
-```
-
-Change up some of the column names to simulate what would typically happen.
-
-```{r, eval=FALSE}
-
-example_sumstats <- example_sumstats |> 
-  dplyr::rename(
-  CHROM = CHR, BP = POS, A1 = EffectAllele, Effect=B
-) |> 
-dplyr::select(-CaseN, -ControlN)
-
-```
-
-When we call tidyGWAS, we need to provide it with the correct column
-names. 
-
-By default, tidyGWAS produces hivestyle parquet files, but if you
-prefer the classical 'csv' file, you can use `output_format` argument.
-
-```{r, eval=FALSE}
-# we setup a directory where we will store our tidyGWAS output
-gwas_folder <- tempfile()
-
-cleaned <- tidyGWAS(
-  # provide the filepath to my summary statistics, (on disk)
-  tbl = example_sumstats, 
-  # we need to provide the file delimiter
-  delim = ",",
-  # filepath to the reference files you downloaded previously
-  dbsnp_path = example_ref_file,
-  # we input the column names of the input file that do not correspond to tidyGWAS
-  column_names = list(
-    "CHR" = "CHROM",
-    "POS" = "BP",
-    "EffectAllele" = "A1",
-    "B" = "Effect"
-  ),
-  # This is the default argument, but you can change to 'csv' or 'parquet'
-  # to output a csv file or a .parquet file
-  output_format = "hivestyle",
-  # sample sizes were missing, so we need to provide it also
-  CaseN = 54000,
-  ControlN = 73000,
-  # output_format can be adjusted. 
-  # ouput_format = "csv"
-  # it's useful to write all the messages to a logfile, so messages are saved.
-  logfile=TRUE,
-  # i want the output folder to be named after which GWAS it was. 
-  output_dir = paste0(gwas_folder, "/scz_pgc3")
-  )
-
-
-```
-
-# The files produced by tidyGWAS
-
-In the folder specified in `output_dir`, you will have the following
-files:
-
-1.  `metadata.yaml` a record of arguments passed. Useful for reproducing
-    results.
-2.  `pipeline_info/*` will contain a set of files corresponding to
-    removed rows.
-3.  `raw/*` prior to any cleaning, the raw summary statistics are saved
-    without edits.
-4.  `tidyGWAS_hivestyle` If you used the default output_format, this
-    folder will exist and contain the cleaned summary statistics in a
-    hivestyle partitioned format with .parquet files.
-5.  `tidyGWAS_logfile.txt` If you used `logfile=TRUE`, the log is saved
-    here
-
-```{r, eval=FALSE}
-dir_tree(gwas_folder, recurse = 1)
-```
-
-### Hivestyle partitioning format
+# Hivestyle-partitioning {#hivestyle-partitioning}
 
 The default output format is a hivestyle format using .parquet files.
 See for example
@@ -340,43 +291,35 @@ The partitioned .parquet files can easily be read into memory using
 `tidyGWAS()` will add a set of columns, some depending on what existed
 in the input columns.
 
-1.  If possible, statistics columns such as `B, P, SE, Z` will be added
-    if missing and if it is possible to impute them.
-2.  `POS, CHR` correspond to GRCh38 while `POS_37, CHR_37` correspond to
-    GRCh37. Both will always exist, regardless of initial build, unless
-    `add_missing_build = FALSE`.
-3.  `multi_allelic` is a TRUE/FALSE column that flag rows that were
+### Variant identity
+
+1.  `CHR` Chromosome. The same across both builds
+
+2.  `POS_38`, `POS_37` genomic position on GRCh38 and GRCh37
+
+3.  `RSID` variant ID from dbSNP
+
+4.  `REF_37`, `REF_38` is the reference genome allele on GRCh38 and
+    GRCh37
+
+5.  `multi_allelic` is a TRUE/FALSE column that flag rows that were
     multi-allelic IN the summary statistics NOT whether there are
-    multiple alleles in dbSNP. (TRUE corresponds to multi_allelic).
-4.  `rowid` maps each row back to the inputted summary statistics, so
-    that any row can be mapped back to it's original values.
-5.  `REF` is the reference genome allele *on whichever build the summary
-    statistics where initially on*.
-6.  `ID` is a concatenation of CHR:POS:EffectAllele:OtherAllele, where
-    EffectAllele will always correspond to `REF`. OBS!! B or EAF has NOT
-    been flipped, so to use the ID correctly you would first need to
-    flip B and EAF.
-7.  `indel` is a TRUE/FALSE columns that flags insertions or deletions.
-    TRUE for rows which are indels. Will be missing unlesss indels are
-    detected.
-8.  The remaining columns are the tidyGWAS nomenclature for standard
-    GWAS columns
+    multiple alleles in dbSNP. (TRUE corresponds to multi allelic).
 
-```{r, eval=FALSE}
-df <- arrow::open_dataset(fs::path(gwas_folder,"scz_pgc3", "tidyGWAS_hivestyle")) |> 
-  dplyr::collect()
+6.  `rowid` maps each row back to the inputted summary statistics the
+    file in `raw`, so that any row can be mapped back to it's original
+    values.
 
-df <- arrow::open_dataset(fs::path(gwas_folder,"scz_pgc3", "tidyGWAS_hivestyle")) |> 
-  # note: when working interactively, remember to select a subset of columns. This will result in much quicker IO.
-  # dplyr::select(-dplyr::any_of(c("CHR_37", "POS_37","rowid", "multi_allelic", "indel", "REF")))
-  dplyr::collect()
-colnames(df)
-```
+### Statistics columns
+
+statistics columns such as `B, P, SE, Z` will be added if missing and if
+it is possible to impute them using existing columns.
+
+
 
 # Parallel computation
 
-tidyGWAS automatically detects the number of cores, and uses it to
-parallelize the alignment with dbSNP. In some cases, for example when
+tidyGWAS automatically detects the number of cores. In some cases, for example when
 running tidyGWAS in a HPC cluster, you might need to manually set the
 number of cores, which can be done using the `OMP_NUM_THREADS` variable.
 This should not be a larger number of cores than what you have requested
@@ -396,10 +339,10 @@ Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandA
 
 ```
 
-# Computational cost
+# Computational cost and memory usage
 
 Memory use and time scales with the size of the summary statistics. From
-running tidyGWAS experimentally, here's an estimation:
+running tidyGWAS, here's an estimation:
 
 The memory usage will likely be the main constraint with increasing size
 of summary statistics.
@@ -408,4 +351,4 @@ of summary statistics.
 2.  40 million rows \~40gb
 3.  60 million rows \~75gb
 
-# 
+

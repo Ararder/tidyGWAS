@@ -153,7 +153,7 @@ tidyGWAS <- function(
   # 2) Remove duplicated SNPs --------------------------------------------------
 
   cli::cli_h2("2) Scanning for rows with duplications")
-  tbl <- remove_duplicates(tbl, filepaths = filepaths)
+  tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
 
   # 3) detect indels ----------------------------------------------------------
 
@@ -165,43 +165,79 @@ tidyGWAS <- function(
   tbl <- tbl$main
 
 
-  # 4) update/repair RSID ---------------------------------------------------
 
+  # MAP TO DBSNP ------------------------------------------------------------
+  # -------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+  chr_pos_available <- all(c("CHR", "POS") %in% colnames(tbl))
+  if(chr_pos_available) {
 
-  # if only RSID exists, several steps needs to be taken, see rsid_only()
-  if("RSID" %in% colnames(tbl) & !all(c("CHR", "POS") %in% colnames(tbl))) {
-
-    main <- rsid_only(
-      tbl,
-      dbsnp_path = dbsnp_path,
-      filepaths = filepaths,
-      convert_p = convert_p
-    )
-    # if only RSID is present, there is not a notion of 'inferred_build',
-    # since RSID is supposed to be build agnostic
-    inferred_build <- default_build
-
-
-  # if CHR:POS exists, we use that, regardless of whether RSID exists
-  } else {
-
-    cli::cli_h3("4a) Validating columns")
+    # IF CHR and POS exists, we use that regardless of whether RSID is present
+    # -------------------------------------------------------------------------
+    cli::cli_h3("4) Validating columns")
     main_callback <- make_callback(filepaths$removed_validate_chr_pos)
     tbl <- validate_sumstat(tbl, filter_func = main_callback, convert_p = convert_p)
 
-
-    # -------------------------------------------------------------------------
-
     cli::cli_h3("5) Adding RSID based on CHR:POS. Adding dbSNP based QC flags")
-
     if(build == "NA") {
       inferred_build <- infer_build(tbl, dbsnp_path = dbsnp_path)
     } else {
       inferred_build <- build
     }
+
+    # -------------------------------------------------------------------------
     main <- repair_ids(tbl, build = inferred_build, dbsnp_path = dbsnp_path)
 
+  } else {
+
+    # no notion of build, as no CHR:POS
+    inferred_build <- default_build
+
+    # drop edge case of only CHR or only POS available
+    tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
+
+    # update the RSID column
+    tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
+
+    # check for CHR:POS in RSID column ----------------------------------------
+    tbl <- validate_rsid(tbl, outpath = filepaths$removed_invalid_chr_pos_in_rsid)
+    without_rsid <- tbl$without_rsid
+    tbl <- tbl$main
+
+    # validate columns --------------------------------------------------------
+
+    cli::cli_h3("4a) Validating columns with a valid RSID")
+    main_callback <- make_callback(filepaths$removed_validate_rsid)
+    tbl <- validate_sumstat(tbl, filter_func = main_callback, convert_p = convert_p)
+
+    cli::cli_h3("4b) Validating columns with CHR:POS in RSID column")
+    without_rsid_callback <- make_callback(filepaths$removed_validate_rsid_without_rsid)
+    without_rsid <- validate_sumstat(without_rsid, filter_func = main_callback, convert_p = convert_p)
+
+    cli::cli_h3("5) Adding CHR and POS based on RSID. Adding dbSNP based QC flags")
+    main <- repair_ids(tbl, dbsnp_path = dbsnp_path, repair = "pos")
+    without_rsid <- repair_ids(without_rsid, dbsnp_path = dbsnp_path, repair = "rsid")
+    main <- dplyr::bind_rows(main, without_rsid)
+
+
+    # -------------------------------------------------------------------------
+    # possible that rows coded as CHR:POS in the RSID column are actually
+    # duplications of the other columns, but we cannot detect that until now
+
+    main <- remove_duplicates(
+      main,
+      columns = c("CHR" ,"POS_38", "EffectAllele","OtherAllele"),
+      filepath = filepaths$removed_duplications_chr_pos_in_rsid_col
+    )
+
+
   }
+
+
+  # DBSNP MAPPING DONE ------------------------------------------------------
+  # -------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+
 
 
   # apply filters -----------------------------------------------------------
@@ -210,13 +246,16 @@ tidyGWAS <- function(
   n_before <- nrow(main)
   main <- dplyr::filter(main, !no_dbsnp_entry & !incompat_alleles) |>
     dplyr::select(-dplyr::all_of(c("no_dbsnp_entry", "incompat_alleles")))
-  removed_no_dbsnp <- dplyr::anti_join(tbl, main, by = "rowid")
 
+  removed_no_dbsnp <- dplyr::anti_join(tbl, main, by = "rowid")
   if(nrow(removed_no_dbsnp) > 0) {
+
     cli::cli_alert_warning("Removed {nrow(removed_no_dbsnp)} rows with no dbSNP entry or with incompat alleles")
     cli::cli_inform("{.file {filepaths$removed_no_dbsnp}}")
     arrow::write_parquet(removed_no_dbsnp, filepaths$removed_no_dbsnp)
+
   }
+
   main <-
     flag_duplicates(main, column = "rsid") |>
     dplyr::rename(multi_allelic = dup_rsid)
@@ -248,6 +287,9 @@ tidyGWAS <- function(
 
 
   # end of pipeline  ---------------------------------------------------------
+  # -------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
+
 
 
 
@@ -286,7 +328,6 @@ tidyGWAS <- function(
   yaml::write_yaml(metadata, filepaths$metadata)
 
   # let function return the cleaned sumstats
-
   main
 
 }
@@ -337,82 +378,8 @@ setup_pipeline_paths <- function(outdir, filename) {
     "removed_validate_chr_pos" =                 paste(pipeline_info, "removed_validate_chr_pos_path.parquet", sep = "/"),
     "removed_validate_indels" =                  paste(pipeline_info, "removed_validate_indels.parquet", sep = "/"),
     "removed_duplications_chr_pos_in_rsid_col" = paste(pipeline_info, "removed_duplications_chr_pos_in_rsid_col.parquet", sep = "/"),
-    "removed_no_dbsnp" =                         paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/"),
-    "removed_chr_mismatch" =                     paste(pipeline_info, "removed_chr_mismatch.parquet", sep = "/"),
-    "removed_missing_on_either_build" =          paste(pipeline_info, "removed_missing_on_either_build.parquet", sep = "/")
+    "removed_no_dbsnp" =                         paste(pipeline_info, "removed_nodbsnp.parquet", sep = "/")
   )
 
 
 }
-
-
-
-
-rsid_only <- function(tbl, dbsnp_path, filepaths, convert_p) {
-
-  # update the RSID column
-  tbl <- update_rsid(tbl, dbsnp_path = dbsnp_path, filepaths = filepaths)
-
-
-  # check for CHR:POS in RSID column ----------------------------------------
-  tbl <- validate_rsid(tbl, outpath = filepaths$removed_invalid_chr_pos_in_rsid)
-  without_rsid <- tbl$without_rsid
-  tbl <- tbl$main
-
-
-  # validate columns --------------------------------------------------------
-  cli::cli_h3("4a) Validating columns with a correct RSID")
-
-  main_callback <- make_callback(filepaths$removed_validate_rsid)
-  tbl <- validate_sumstat(tbl, filter_func = main_callback, convert_p = convert_p)
-
-
-  cli::cli_h3("4b) Validating columns with CHR:POS in RSID column")
-  without_rsid_callback <- make_callback(filepaths$removed_validate_rsid_without_rsid)
-  without_rsid <- validate_sumstat(without_rsid, filter_func = main_callback, convert_p = convert_p)
-
-
-  cli::cli_h3("5) Adding CHR and POS based on RSID. Adding dbSNP based QC flags")
-
-  main <- repair_ids(tbl, dbsnp_path = dbsnp_path, repair = "pos")
-  without_rsid <- repair_ids(without_rsid, dbsnp_path = dbsnp_path, repair = "rsid")
-
-  # merge the data.frames together
-  main <- dplyr::bind_rows(main, without_rsid)
-
-
-  # check for dups ----------------------------------------------------------
-  # It's possible that rows coded as CHR:POS in the RSID column are actually
-  # duplications of the other columns, but we cannot detect that until we
-  # have CHR:POS:RSID for all variants. So we have to do a check here.
-
-
-  before_unique_check <- dplyr::select(main, rowid)
-
-  # duplication check fails when CHR:POS is missing, so have split by builds
-  b38_missing <- dplyr::filter(main, is.na(CHR)) |>
-    dplyr::distinct(CHR,POS_37,EffectAllele,OtherAllele, .keep_all = TRUE)
-
-  main <- dplyr::filter(main, !is.na(CHR)) |>
-    dplyr::distinct(CHR ,POS_38,EffectAllele,OtherAllele, .keep_all = TRUE) |>
-    dplyr::bind_rows(b38_missing)
-
-
-  removed <- dplyr::anti_join(before_unique_check, main, by = "rowid")
-
-  if(nrow(removed) > 0) {
-    cli::cli_alert_info(
-    "Found {nrow(removed)} rows which are duplicates. These duplicates comes from the subset of
-    rows that had CHR:POS in the RSID column. They could not be detected as duplicates before
-    their CHR and POS was inferred.")
-    arrow::write_parquet(removed, filepaths$removed_duplications_chr_pos_in_rsid_col)
-  }
-
-  # -------------------------------------------------------------------------
-
-  main
-
-}
-
-
-

@@ -94,26 +94,38 @@ write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 }
 
 
-standardize_column_order <- function(tbl) {
-  dplyr::select(tbl, dplyr::any_of(
-    c(
-      "CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "EAF",
-      "Z", "B", "SE", "P", "N", "CaseN", "ControlN", "INFO"
-      ,"CHR_37", "POS_37", "rowid", "multi_allelic", "indel",
-      "REF" = "ref_allele")), dplyr::everything()
-  )
+standardize_column_order <- function(tbl) {c
+  char_cols <- c("CHR", "EffectAllele", "OtherAllele")
+  integer_cols <- c("N", "CaseN", "ControlN", "POS_37", "POS_38", "rowid")
+  double <- c("B", "P", "EAF", "Z", "SE", "INFO")
+  logical <- c("multi_allelic", "indel")
+
+  first <- c("CHR", "POS_38", "POS_37", "RSID", "EffectAllele", "OtherAllele")
+  second <- c("B", "P","EAF","Z",  "SE", "N", "CaseN", "ControlN", "INFO", "indel")
+  end <- c("rowid", "multi_allelic", "REF_37", "REF_38")
+
+
+ dplyr::select(
+   tbl,
+   dplyr::all_of(first),
+   dplyr::any_of(second),
+   dplyr::all_of(end),
+   dplyr::everything()
+ ) |>
+   dplyr::mutate(
+     dplyr::across(dplyr::any_of(char_cols), ~as.character(.)),
+     dplyr::across(dplyr::any_of(integer_cols), ~as.integer(.)),
+     dplyr::across(dplyr::any_of(double), ~as.double(.)),
+     dplyr::across(dplyr::any_of(logical), ~as.logical(.))
+   )
 
 }
 
 update_column_names <- function(tbl, column_map, CaseN = NULL, ControlN =NULL, N=NULL) {
-  rlang::check_required(tbl)
 
 
   if(!missing(column_map)) {
-    stopifnot(
-      "All entries in column_map must be present in the input tbl" =
-        all(column_map %in% colnames(tbl))
-    )
+    check_columns(column_map, tbl)
     tbl <- dplyr::rename(tbl, !!!column_map)
   }
 
@@ -127,6 +139,21 @@ update_column_names <- function(tbl, column_map, CaseN = NULL, ControlN =NULL, N
 }
 
 
+check_columns <- function(columns, df) {
+  missing <- columns[!columns %in% colnames(df)]
+  name_missing <- names(columns[!columns %in% colnames(df)])
+  if(!rlang::is_empty(missing)) {
+    cli::cli_abort(
+      "Provided column name are missing from data.frame:
+      {.arg {missing}} = {.arg {name_missing}}.
+      {.arg {missing}} is not in {colnames(df)}
+      "
+    )
+  }
+}
+
+
+
 create_id <- function(tbl, build = c("37", "38")) {
   build <- rlang::arg_match(build)
   ref_name <- paste0("REF_", build)
@@ -134,12 +161,178 @@ create_id <- function(tbl, build = c("37", "38")) {
     dplyr::mutate(
       ref_allele = .data[[ref_name]],
       POS = .data[[paste0("POS_", build)]]
-    ) |> 
+    ) |>
     dplyr::mutate(
       alt_allele = dplyr::if_else(ref_allele == EffectAllele, OtherAllele, EffectAllele),
       ID = stringr::str_c(CHR, POS, ref_allele, alt_allele, sep = ":")
     ) |>
     dplyr::select(-"alt_allele", -"ref_allele", -"POS")
+
+}
+
+make_callback <- function(id) {
+
+
+  outpath <- paste0(id, ".parquet")
+
+  callback <- function(tbl) {
+    # split into filter flags
+    flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
+    # if ncol == 1, only rowid exists - no flags to filter on.
+    if(ncol(flags) == 1) {
+      cli::cli_inform("Found no flags to filter on")
+      return(tbl)
+    }
+
+    remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
+    count_by_flag <-
+      purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T)) |>
+      purrr::keep(\(x) x > 0)
+
+
+
+    if(nrow(remove) > 0) {
+      cli::cli_h3("Listing how many rows are removed per flag: ")
+      cli::cli_dl(purrr::list_simplify(count_by_flag))
+      cli::cli_li("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
+    } else {
+      cli::cli_h3("{.emph All rows passed validation}")
+    }
+
+
+
+    arrow::write_parquet(remove, outpath)
+
+    dplyr::select(tbl, -dplyr::where(is.logical)) |>
+      dplyr::filter(!rowid %in% remove$rowid)
+  }
+
+  callback
+}
+
+
+#' Update rsIDs from dbSNP that have been merged into other RSIDs
+#'
+#' @inheritParams remove_rows_with_na
+#' @param dbsnp_path filepath to dbSNP155 directory
+#'
+#' @return a tbl
+#' @export
+#'
+#' @examples \dontrun{
+#' update_rsid(sumstat, filepaths = setup_pipeline_paths("testing"), dbsnp_path = "~/dbSNP155")
+#' }
+update_rsid <- function(tbl, filepaths, dbsnp_path) {
+
+
+  # detect merged rsIDs -----------------------------------------------------
+
+  dset <- arrow::open_dataset(paste(dbsnp_path, "refsnp-merged/part-0.parquet", sep = "/"))
+  updates <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID"))) |>
+    dplyr::semi_join(dset, y = _,  by = c("old_RSID" = "RSID")) |>
+    dplyr::collect()
+
+  rsid_info <-
+    dplyr::left_join(tbl, updates, by = c("RSID" = "old_RSID")) |>
+    dplyr::mutate(
+      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
+      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
+    ) |>
+    dplyr::select(rowid, RSID = new_RSID, old_RSID, -RSID.y)
+
+  # add updated rsid to tbl
+  tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
+    dplyr::select(-old_RSID)
+
+  # identify rows with updated rsid
+  updated_rows <- sum(!is.na(rsid_info$old_RSID))
+
+  if(updated_rows > 0) {
+
+    cli::cli_alert_success("{updated_rows} rows with updated RSID")
+    cli::cli_li("{.file {filepaths$updated_rsid}}")
+    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
+
+  } else {
+
+    cli::cli_li("Found no RSIDs that has been merged")
+
+  }
+
+  tbl
+
+}
+
+#' Remove all columns that do not follow tidyGWAS naming
+#'
+#' @param tbl a [dplyr::tibble()]
+#' @return a [dplyr::tibble()]
+#' @export
+#'
+#' @examples \dontrun{
+#' sumstats <- select_correct_columns(sumstats)
+#' }
+select_correct_columns <- function(tbl) {
+
+  # check input columns
+  cli::cli_h3("Checking that columns follow tidyGWAS format")
+  cli::cli_alert_success("The following columns are used for further steps: {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
+
+  # check for invalid columns
+  n_invalid_cols <- length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)
+  if(n_invalid_cols) {
+
+    cli::cli_alert_danger("{.strong Removed columns:  {colnames(tbl)[!colnames(tbl) %in% valid_column_names]}}")
+
+  }
+  tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
+
+  # remove columns with all NA
+  cli::cli_h3("Checking for columns with all NA")
+  na_cols <- colnames(tbl)[colSums(is.na(tbl)) == nrow(tbl)]
+  tbl <- dplyr::select(tbl, -dplyr::all_of(na_cols))
+
+
+  if(length(na_cols) > 0 ){
+
+    cli::cli_alert_danger("The following columns were removed as they contained only NA's:
+                         {.emph {na_cols}}")
+  } else {
+
+    cli::cli_alert_success("Found no columns with all NA")
+  }
+
+  # To continue, we need at least one of the following sets of columns
+  no_chr_pos <- !all(c("CHR", "POS") %in% colnames(tbl))
+  missing_rsid <- !"RSID" %in% colnames(tbl)
+  if(no_chr_pos & missing_rsid) stop("Either CHR and POS or RSID are required columns")
+  if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) stop("EffectAllele and OtherAllele are required columns")
+
+
+
+  # handle B/OR -------------------------------------------------------------
+
+  if("OR" %in% colnames(tbl) & !"B" %in% colnames(tbl)) {
+    cli::cli_alert_info("Found OR but not BETA. converting to B using {.code base::log(OR)}")
+    tbl <- dplyr::mutate(tbl, B = log(OR)) |>
+      dplyr::select(-OR)
+  }
+
+  if("OR" %in% colnames(tbl) & "B" %in% colnames(tbl)) {
+    cli::cli_alert_info("found OR and B, removing OR")
+    tbl <- dplyr::select(tbl, -OR)
+  }
+
+
+  # handle N ----------------------------------------------------------------
+
+  if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
+
+
+  if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
+
+
+  tbl
 
 }
 

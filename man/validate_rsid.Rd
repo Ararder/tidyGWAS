@@ -9,7 +9,7 @@ validate_rsid(tbl, outpath)
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{outpath}{Filepath: Where to write rows with invalid RSID?}
+\item{outpath}{filepath to write out removed rows}
 }
 \value{
 a tbl

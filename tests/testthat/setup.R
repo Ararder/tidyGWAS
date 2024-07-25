@@ -22,8 +22,39 @@ overwrite = FALSE
 build <- "NA"
 tbl <- test_sumstat
 indel_strategy <- "keep"
-outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))
-output_dir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))
+# outdir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))
+# output_dir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_")))
 
 
+
+# reference:
+#   - title: Munging summary statistics made easy
+#
+# - subtitle: dbSNP155
+# desc: >
+#   Functions that interact with the dbSNP155 database.
+# contents:
+#   - tidyGWASls
+# - infer_build
+# - update_ids
+#
+# - subtitle: Cleaning
+# desc: >
+#   Functions that detect and clean up common issues in GWAS summary statistics.
+# contents:
+#   - flag_indels
+# - detect_indels
+# - flag_duplicates
+# - flag_invalid_rsid
+# - remove_duplicates
+# - remove_rows_with_na
+# - select_correct_columns
+#
+# - subtitle: Validation
+# desc: >
+#   Functions that validate GWAS columns
+# contents:
+#   - validate_columns
+# - validate_rsid
+# - validate_sumstat
 

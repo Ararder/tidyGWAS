@@ -5,12 +5,9 @@
 test_that("validate RSIDs does not error", {
   # what happens if validate_rid cannot parse format?
   filepaths <- setup_pipeline_paths(tempfile())
-  # setup cases
-  # 1) no invalid rsids
-  expect_no_error(validate_rsid(pval_as_char_df,filepaths$failed_rsid_parse))
 
-  # 2) some invalid rsids, but chr and POS exists
-  expect_no_error(validate_rsid(test_sumstat, filepaths$failed_rsid_parse))
+
+
 
 
   # some invalid rsids, no CHR or POS
@@ -34,19 +31,27 @@ test_that("validate RSIDs does not error", {
 
 test_that("validate RSIDs does not error", {
   # create rowid
-  tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat))
+  tmp <- dplyr::mutate(test_sumstat, rowid = 1:nrow(test_sumstat)) |>
+    dplyr::select(-CHR, -POS)
 
   only_correct_rsid <- flag_invalid_rsid(tmp) |> dplyr::filter(!invalid_rsid)
   only_incorrect_rsid <- flag_invalid_rsid(tmp) |> dplyr::filter(invalid_rsid)
   expect_no_error(validate_rsid(tmp))
 
   expect_no_error(validate_rsid(only_correct_rsid))
+  expect_no_error(validate_rsid(tmp))
 
-  # test without chr and pos
-  validate_rsid(dplyr::select(tmp, -CHR, -POS))
 
 
 })
+
+test_that("Validate_columns works", {
+
+
+  expect_no_error(validate_sumstat(tbl, convert_p = 0))
+
+})
+
 
 
 
@@ -57,9 +62,9 @@ test_that("Validate_columns works", {
   test_sumstat <- dplyr::mutate(test_sumstat, P = dplyr::if_else(CHR == 6, -3, P))
 
   expect_no_error(
-    for(c in check) tmp <- validate_columns(test_sumstat,col = c)
+    for(c in check) tmp <- validate_columns(test_sumstat,col = c, convert_p = 0)
   )
-  validate_columns(test_sumstat, col = "CaseN")
+
 
 
 })
@@ -150,7 +155,7 @@ test_that("validate_columns can handle missing values", {
   expect_no_error(validate_columns(tmp, "B"))
   expect_no_error(validate_columns(tmp, "SE"))
   expect_no_error(validate_columns(tmp, "EAF"))
-  expect_no_error(validate_columns(tmp, "P"))
+  expect_no_error(validate_columns(tmp, "P", convert_p=0))
   expect_no_error(validate_columns(tmp, "Z"))
 
 

@@ -1,69 +1,3 @@
-#' Remove all columns that do not follow tidyGWAS naming
-#'
-#' @param tbl a [dplyr::tibble()]
-#' @return a [dplyr::tibble()]
-#' @export
-#'
-#' @examples \dontrun{
-#' sumstats <- select_correct_columns(sumstats)
-#' }
-select_correct_columns <- function(tbl) {
-
-  # check input columns
-  cli::cli_h3("Checking that columns follow tidyGWAS format")
-  cli::cli_alert_success("The following columns are used for further steps: {.emph {colnames(tbl)[colnames(tbl) %in% valid_column_names]}}")
-
-  n_invalid_cols <- length(colnames(tbl)[!colnames(tbl) %in% valid_column_names] > 0)
-  if(n_invalid_cols) cli::cli_alert_danger("{.strong Removed columns:  {colnames(tbl)[!colnames(tbl) %in% valid_column_names]}}")
-
-  tbl <- dplyr::select(tbl, dplyr::any_of(valid_column_names))
-
-  # In some formats, columns are kept with all NA, to provide a consistent structure
-  # of the file. For tidyGWAS, this is not necessary, and we remove these columns.
-  cli::cli_h3("Checking for columns with all NA")
-  na_cols <- colnames(tbl)[colSums(is.na(tbl)) == nrow(tbl)]
-  tbl <- dplyr::select(tbl, -dplyr::all_of(na_cols))
-
-  if(length(na_cols) > 0 ){
-  cli::cli_alert_danger("The following columns were removed as they contained only NA's:
-                         {.emph {na_cols}}")
-  } else {
-    cli::cli_alert_success("Found no columns with all NA")
-  }
-
-  # To continue, we need at least one of the following sets of columns
-  if(all(!c("CHR", "POS") %in% colnames(tbl)) & !"RSID" %in% colnames(tbl)) stop("Either CHR and POS or RSID are required columns")
-  if(!all(c("EffectAllele", "OtherAllele") %in% colnames(tbl))) stop("EffectAllele and OtherAllele are required columns")
-
-
-
-  # handle B/OR -------------------------------------------------------------
-
-  if("OR" %in% colnames(tbl) & !"B" %in% colnames(tbl)) {
-    cli::cli_alert_info("Found OR but not BETA. converting to B using {.code base::log(OR)}")
-    tbl <- dplyr::mutate(tbl, B = log(OR)) |>
-      dplyr::select(-OR)
-  }
-
-  if("OR" %in% colnames(tbl) & "B" %in% colnames(tbl)) {
-    cli::cli_alert_info("found OR and B, removing OR")
-    tbl <- dplyr::select(tbl, -OR)
-  }
-
-
-  # handle N ----------------------------------------------------------------
-
-  if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
-
-
-  if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column, and no study_n was supplied. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
-
-
-  tbl
-
-}
-
-
 #' Remove rows with missing values, and write out the removed files to disk
 #'
 #' @param tbl a [dplyr::tibble()]
@@ -103,126 +37,84 @@ remove_rows_with_na <- function(tbl, filepaths) {
     dplyr::select(rowid)
 
   if(nrow(na_rows) > 0) {
+
     outfile <- paste0(filepaths$removed, "missing_values.parquet")
     cli::cli_alert_danger("Found {nrow(na_rows)} rows with missing values. These are removed: ")
     cli::cli_inform("{.file {outfile}}")
     arrow::write_parquet(na_rows, outfile)
+
   } else {
+
     cli::cli_alert_success("No rows contained missing values")
+
   }
 
   tmp
 
 }
 
-#' Remove duplicated rows
-#' @description
-#' remove_duplicates uses either CHR:POS:EffectAllele:OtherAllele
-#' or RSID:EffectAllele:OtherAllele to compute uniqueness.
+
+
+
+#' Remove duplicated rows from a summary statistics file
 #'
-#' If possible rows are arranged by p-value, to select the row with the smallest P.
+#' @param tbl a [dplyr::tibble()], with columns in `tidyGWAS()`
+#' @param columns a character vector of columns passed to `dplyr::distinct()`
+#' @param filepath a filepath to write out the removed rows
 #'
-#'
-#' @inheritParams remove_rows_with_na
-#'
-#' @return a tbl
+#' @return a [dplyr::tibble()] with duplicates removed
 #' @export
 #'
 #' @examples \dontrun{
-#' paths <- setup_pipeline_paths("testing")
-#' df <- remove_duplicates(sumstat, paths)
+#' remove_duplicates(tbl, c("CHR", "POS",), "duplicated_rows.tsv")
 #' }
-remove_duplicates <- function(tbl, filepaths) {
+
+remove_duplicates <- function(tbl, columns = NULL, filepath) {
 
 
-  # arrange by P if possible - so that row with smallest pval is selected
-  # in case of duplicate
+  # arrange by P if possible - dplyr::distinct() keeps the first row
   if("P" %in% colnames(tbl)) tbl <- dplyr::arrange(tbl, .data[["P"]])
 
-  if(all(c("CHR", "POS") %in% colnames(tbl))) {
-    id <- "CHR_POS_REF_ALT"
-    cols_to_use <- c("CHR", "POS", "EffectAllele", "OtherAllele")
-  } else {
-    id <- "RSID_REF_ALT"
-    cols_to_use <- c("RSID", "EffectAllele", "OtherAllele")
+  # -------------------------------------------------------------------------
+
+  if(is.null(columns)) {
+    if(all(c("CHR", "POS") %in% colnames(tbl))) {
+      columns <- c("CHR", "POS", "EffectAllele", "OtherAllele")
+    } else {
+      columns <- c("RSID", "EffectAllele", "OtherAllele")
+    }
   }
 
+  # -------------------------------------------------------------------------
+
+
+
   # remove duplicates using cols_to_use
-  no_dups <- dplyr::distinct(tbl, dplyr::pick(dplyr::all_of(cols_to_use)), .keep_all = TRUE)
+  no_dups <- dplyr::distinct(tbl, dplyr::pick(dplyr::all_of(columns)), .keep_all = TRUE)
 
   # find which rows were removed
   removed <- dplyr::anti_join(tbl, no_dups, by = "rowid")
 
-
-
-  cli::cli_alert_info("A unique ID is formed by concontenating {cols_to_use}")
+  # logging
+  cli::cli_alert_info("Lookins for duplications with columns: {columns}")
   if(nrow(removed) > 0) {
 
-
     cli::cli_alert_danger("Removed {nrow(removed)} rows flagged as duplications")
-    cli::cli_li("{.file {filepaths$removed_duplicates}}")
-    arrow::write_parquet(removed, filepaths$removed_duplicates)
+    cli::cli_li("{.file {filepath}}")
+    arrow::write_parquet(removed, filepath)
 
   } else {
 
     cli::cli_alert_success("Found no duplications")
-
   }
+
+  # done --------------------------------------------------------------------
+
 
   no_dups
-}
-
-#' Update rsIDs from dbSNP that have been merged into other RSIDs
-#'
-#' @inheritParams remove_rows_with_na
-#' @param dbsnp_path filepath to dbSNP155 directory
-#'
-#' @return a tbl
-#' @export
-#'
-#' @examples \dontrun{
-#' update_rsid(sumstat, filepaths = setup_pipeline_paths("testing"), dbsnp_path = "~/dbSNP155")
-#' }
-update_rsid <- function(tbl, filepaths, dbsnp_path) {
-
-
-  # detect merged rsIDs -----------------------------------------------------
-
-  dset <- arrow::open_dataset(paste(dbsnp_path, "refsnp-merged/part-0.parquet", sep = "/"))
-  updates <- dplyr::select(tbl, dplyr::all_of(c("rowid", "RSID"))) |>
-    dplyr::semi_join(dset, y = _,  by = c("old_RSID" = "RSID")) |>
-    dplyr::collect()
-
-  rsid_info <-
-    dplyr::left_join(tbl, updates, by = c("RSID" = "old_RSID")) |>
-    dplyr::mutate(
-      new_RSID = dplyr::if_else(!is.na(RSID.y), RSID.y, RSID),
-      old_RSID = dplyr::if_else(!is.na(RSID.y), RSID, NA_character_)
-    ) |>
-    dplyr::select(rowid, RSID = new_RSID, old_RSID, -RSID.y)
-
-  # add updated rsid to tbl
-  tbl <- dplyr::inner_join(dplyr::select(tbl, -RSID), rsid_info, by = "rowid") |>
-    dplyr::select(-old_RSID)
-
-  # identify rows with updated rsid
-  updated_rows <- sum(!is.na(rsid_info$old_RSID))
-
-  if(updated_rows > 0) {
-
-    cli::cli_alert_success("{updated_rows} rows with updated RSID")
-    cli::cli_li("{.file {filepaths$updated_rsid}}")
-    arrow::write_parquet(dplyr::filter(rsid_info, !is.na(old_RSID)), filepaths$updated_rsid)
-
-  } else {
-
-    cli::cli_li("Found no RSIDs that has been merged")
-
-  }
-
-  tbl
 
 }
+
 
 
 
@@ -242,7 +134,7 @@ update_rsid <- function(tbl, filepaths, dbsnp_path) {
 #' @examples \dontrun{
 #' detect_indels(sumstat, TRUE, filepaths = setup_pipeline_paths("testing"))
 #' }
-detect_indels <- function(tbl, indel_strategy, filepaths,...) {
+detect_indels <- function(tbl, indel_strategy, filepaths, ...) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
@@ -261,7 +153,6 @@ detect_indels <- function(tbl, indel_strategy, filepaths,...) {
       tbl = indels,
       remove_cols = c("EffectAllele", "OtherAllele"),
       filter_func = make_callback(filepaths$removed_validate_indels),
-      id = "indel_rows",
       ...
     )
   }
@@ -277,45 +168,4 @@ detect_indels <- function(tbl, indel_strategy, filepaths,...) {
 
   list("main" = tbl, "indels" = indels)
 
-}
-
-
-make_callback <- function(id) {
-
-
-  outpath <- paste0(id, ".parquet")
-
-  callback <- function(tbl) {
-    # split into filter flags
-    flags <- dplyr::select(tbl, rowid, dplyr::where(is.logical))
-    # if ncol == 1, only rowid exists - no flags to filter on.
-    if(ncol(flags) == 1) {
-      cli::cli_inform("Found no flags to filter on")
-      return(tbl)
-    }
-
-    remove <- dplyr::filter(flags, dplyr::if_any(dplyr::where(is.logical), \(x) x))
-    count_by_flag <-
-      purrr::map(dplyr::select(remove, -rowid), \(x) sum(x, na.rm = T)) |>
-      purrr::keep(\(x) x > 0)
-
-
-
-    if(nrow(remove) > 0) {
-      cli::cli_h3("Listing how many rows are removed per flag: ")
-      cli::cli_dl(purrr::list_simplify(count_by_flag))
-      cli::cli_li("Removed a total of {nrow(remove)} rows: {.file {outpath}}")
-    } else {
-      cli::cli_h3("{.emph All rows passed validation}")
-    }
-
-
-
-    arrow::write_parquet(remove, outpath)
-
-    dplyr::select(tbl, -dplyr::where(is.logical)) |>
-      dplyr::filter(!rowid %in% remove$rowid)
-  }
-
-  callback
 }

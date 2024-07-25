@@ -4,7 +4,7 @@
 \alias{validate_sumstat}
 \title{Validate statistics columns in a GWAS summary statistics file}
 \usage{
-validate_sumstat(tbl, remove_cols = c(""), filter_func, convert_p, id)
+validate_sumstat(tbl, remove_cols = c(""), filter_func, convert_p)
 }
 \arguments{
 \item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
@@ -14,8 +14,6 @@ validate_sumstat(tbl, remove_cols = c(""), filter_func, convert_p, id)
 \item{filter_func}{handles reporting and writing removed files to disk}
 
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
-
-\item{id}{Used to customize messages.}
 }
 \value{
 a tbl

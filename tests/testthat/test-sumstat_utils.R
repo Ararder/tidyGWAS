@@ -10,7 +10,6 @@ test_that("flag_indel works", {
 
 
 
-
 test_that("flag_incorrect_rsid_format detects incorrect formats", {
   valid_rsids <-   c("rs2321", "rs12331230","Rs100", "rS94", "RS12313")
   not_valid_rsids <- c("ss12313", "X:123213:A:C", "Y_12123123_A_T", "14:043824", "rs12331230_A_C", "14:043824:rs12331230")
@@ -32,70 +31,6 @@ test_that("flag_incorrect_rsid_format detects incorrect formats", {
 
 })
 
-test_that("repair_stats works can impute Z using B and P", {
-
-  tmp <- dplyr::select(test_sumstat, -SE) |>
-    dplyr::mutate(N = CaseN + ControlN)
-  expect_no_error(repair_stats(tmp))
-
-  # tmp2 <- dplyr::mutate(ll, SE = se_from_z_eaf_n(Z, EAF, N))
-  # expect_equal(tmp2$SE, test_sumstat$SE, tolerance = 0.01)
-
-})
-
-
-test_that("If OR is provided and not B, OR should be converted to B", {
-  tmp1 <- dplyr::mutate(pval_as_char_df, OR = exp(B)) |>
-    dplyr::select(-B)
-  repaired <- select_correct_columns(tmp1)
-
-
-  expect_equal(repaired$B, pval_as_char_df$B)
-})
-
-
-
-test_that("If OR is provided and B exists, OR should be removed", {
-  tmp1 <- dplyr::mutate(pval_as_char_df, OR = exp(B))
-  repaired <- select_correct_columns(tmp1)
-  expect_true(!"OR" %in% colnames(repaired))
-})
-
-test_that("Repair stats can repair B and SE from Z", {
-
-  tmp <- dplyr::mutate(test_sumstat,N = CaseN + ControlN, Z = B/SE) |>
-    dplyr::select(-B, -SE)
-  after_repair <- repair_stats(tmp)
-
-  cor(after_repair$B, test_sumstat$B)
-  expect_true(cor(after_repair$B, test_sumstat$B) > 0.99)
-  expect_true(cor(after_repair$SE, test_sumstat$SE) > 0.98)
-  expect_true(cor(after_repair$Z, test_sumstat$B/test_sumstat$SE) > 0.99)
-
-
-})
-
-
-test_that("User should be informed if study N is used to impute B and SE", {
-
-
-  z_only <- dplyr::mutate(test_sumstat, Z = B/SE) |>
-    dplyr::select(-B, -SE)
-  msg <- "*However, N does not not vary across SNPs, indicating it's the study-wide N and not SNP-wise N*"
-  expect_message(regex = msg, repair_stats(dplyr::mutate(z_only,N  = 33433)))
-
-
-
-})
-
-
-test_that("repair_stats should be able to add P col if missing using Z", {
-  test_sumstat <- flag_indels(pval_as_char_df) |> dplyr::filter(!indel)
-  without_p <- dplyr::select(test_sumstat, -P)
-  ll <- repair_stats(without_p)
-  expect_equal(ll$P, as.double(test_sumstat$P), tolerance = 0.01)
-
-})
 
 
 test_that("split_rsid_by_regex correctly splits rows", {

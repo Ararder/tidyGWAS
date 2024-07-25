@@ -2,27 +2,25 @@
 % Please edit documentation in R/filters.R
 \name{remove_duplicates}
 \alias{remove_duplicates}
-\title{Remove duplicated rows}
+\title{Remove duplicated rows from a summary statistics file}
 \usage{
-remove_duplicates(tbl, filepaths)
+remove_duplicates(tbl, columns = NULL, filepath)
 }
 \arguments{
-\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}}
+\item{tbl}{a \code{\link[dplyr:reexports]{dplyr::tibble()}}, with columns in \code{tidyGWAS()}}
 
-\item{filepaths}{a list of filepaths, created by \code{\link[=setup_pipeline_paths]{setup_pipeline_paths()}}}
+\item{columns}{a character vector of columns passed to \code{dplyr::distinct()}}
+
+\item{filepath}{a filepath to write out the removed rows}
 }
 \value{
-a tbl
+a \code{\link[dplyr:reexports]{dplyr::tibble()}} with duplicates removed
 }
 \description{
-remove_duplicates uses either CHR:POS:EffectAllele:OtherAllele
-or RSID:EffectAllele:OtherAllele to compute uniqueness.
-
-If possible rows are arranged by p-value, to select the row with the smallest P.
+Remove duplicated rows from a summary statistics file
 }
 \examples{
 \dontrun{
-paths <- setup_pipeline_paths("testing")
-df <- remove_duplicates(sumstat, paths)
+remove_duplicates(tbl, c("CHR", "POS",), "duplicated_rows.tsv")
 }
 }
