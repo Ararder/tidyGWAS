@@ -14,6 +14,8 @@
 <url><loc>http://arvidharder.com/tidyGWAS/reference/flag_invalid_rsid.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/index.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/infer_build.html</loc></url>
+<url><loc>http://arvidharder.com/tidyGWAS/reference/meta_analyze.html</loc></url>
+<url><loc>http://arvidharder.com/tidyGWAS/reference/meta_analyze_by_chrom.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/remove_duplicates.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/remove_rows_with_na.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/repair_stats.html</loc></url>
@@ -21,7 +23,6 @@
 <url><loc>http://arvidharder.com/tidyGWAS/reference/setup_pipeline_paths.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/tidyGWAS.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/update_rsid.html</loc></url>
-<url><loc>http://arvidharder.com/tidyGWAS/reference/validate_columns.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/validate_rsid.html</loc></url>
 <url><loc>http://arvidharder.com/tidyGWAS/reference/validate_sumstat.html</loc></url>
 </urlset>

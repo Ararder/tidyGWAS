@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,10 +78,22 @@
         <dd>Infer what genome build a GWAS summary statistics file is on.</dd>
       </dl><dl><dt>
 
+          <code><a href="meta_analyze.html">meta_analyze()</a></code>
+
+        </dt>
+        <dd>Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS</dd>
+      </dl><dl><dt>
+
+          <code><a href="meta_analyze_by_chrom.html">meta_analyze_by_chrom()</a></code>
+
+        </dt>
+        <dd>meta_analyze summary statistics, one chromosome at a time! This function is exposed to allow for testing using real data</dd>
+      </dl><dl><dt>
+
           <code><a href="remove_duplicates.html">remove_duplicates()</a></code>
 
         </dt>
-        <dd>Remove duplicated rows</dd>
+        <dd>Remove duplicated rows from a summary statistics file</dd>
       </dl><dl><dt>
 
           <code><a href="remove_rows_with_na.html">remove_rows_with_na()</a></code>
@@ -118,12 +130,6 @@
 
         </dt>
         <dd>Update rsIDs from dbSNP that have been merged into other RSIDs</dd>
-      </dl><dl><dt>
-
-          <code><a href="validate_columns.html">validate_columns()</a></code>
-
-        </dt>
-        <dd>Check that values in GWAS summary statistics columns are correct</dd>
       </dl><dl><dt>
 
           <code><a href="validate_rsid.html">validate_rsid()</a></code>
