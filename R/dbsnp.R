@@ -114,10 +114,25 @@ map_to_dbsnp <- function(tbl, dbsnp_path, build = c("NA", "37", "38")) {
 
 
 
+#' Augment a data.frame with information from dbSNP
+#'
+#' @param tbl a [dplyr::tibble()] with columns CHR, POS, EffectAllele, OtherAllele
+#' or RSID, EffectAllele, OtherAllele2.
+#' @param repair "rsid" to repair RSID, "pos" to repair CHR and POS
+#' @param build used if repair = "rsid" to specify genome build
+#' @param dbsnp_path path to the directory containing the dbSNP dataset
+#'
+#' @return a [dplyr::tibble()] with added columns CHR, POS_37, POS_38 RSID, REF_37, ALT_37, REF_38, ALT_38, no_dbsnp_entry, incompat_alleles
+#' @export
+#'
+#' @examples \dontrun{
+#' repair_ids(gwas_sumstats, repair = "rsid", build = "38", dbsnp_path = "/path/to/dbsnp")
+#' }
 repair_ids <- function(tbl, repair = c("rsid", "pos"), build = c("NA", "37", "38"), dbsnp_path) {
   repair <- rlang::arg_match(repair)
   build <- rlang::arg_match(build)
   rlang::check_required(dbsnp_path)
+  if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
 
   if(repair == "rsid") {
     tbl <- dplyr::select(tbl, -dplyr::any_of("RSID"))
@@ -135,7 +150,6 @@ repair_ids <- function(tbl, repair = c("rsid", "pos"), build = c("NA", "37", "38
     # most GWASes are still on GRCh37, so we default to that
     build <- "37"
     tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
-    if(!"rowid" %in% colnames(tbl)) tbl$rowid <- 1:nrow(tbl)
     dbsnp <- map_to_dbsnp(tbl = tbl, dbsnp_path = dbsnp_path)
 
   }

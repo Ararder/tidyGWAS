@@ -88,10 +88,20 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p) {
 
   tbl <- flag_indels(tbl)
   indels <-  dplyr::select(dplyr::filter(tbl,  .data[["indel"]]), -indel)
-  tbl2 <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
+  without_indels <- dplyr::select(dplyr::filter(tbl, !.data[["indel"]]), -indel)
   cli::cli_alert_success("Detected {nrow(indels)} rows as indels")
 
-  if(nrow(indels) > 0) {
+
+  if(indel_strategy == "remove") {
+
+    if(!is.null(indels)) {
+      arrow::write_parquet(indels, filepaths$removed_indels)
+      cli::cli_alert_warning("{.code indel_strategy = 'remove'}. Removed {nrow(indels)} rows as indels")
+      cli::cli_inform("{.file {filepaths$removed_indels}}")
+    }
+    # yes this is intentional, to return an empty tibble of same format
+    indels <- dplyr::filter(indels, FALSE)
+  } else if(nrow(indels) > 0 & indel_strategy == "keep") {
 
     indels <- validate_sumstat(
       tbl = indels,
@@ -99,17 +109,10 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p) {
       filter_func = make_callback(filepaths$removed_validate_indels),
       convert_p = convert_p
     )
+
   }
 
-  if(indel_strategy == "remove" & !is.null(indels)) {
 
-
-    arrow::write_parquet(indels, filepaths$removed_indels)
-    cli::cli_alert_warning("{.code keep_indels = FALSE}. Removed {nrow(indels)} rows as indels")
-    cli::cli_inform("{.file {filepaths$removed_indels}}")
-    indels <- NULL
-  }
-
-  list("main" = tbl, "indels" = indels)
+  list("main" = without_indels, "indels" = indels)
 
 }

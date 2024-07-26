@@ -28,18 +28,4 @@ test_that("NA rows are removed", {
 
 
 
-test_that("indels are removed", {
-
-  filepaths <- setup_pipeline_paths(tempfile())
-
-
-  expect_no_error(detect_indels(pval_as_char_df, FALSE, filepaths, convert_p = 0))
-  expect_no_error(detect_indels(pval_as_char_df, TRUE, filepaths, convert_p = 0))
-
-  #
-
-
-
-})
-
 

@@ -1,3 +1,30 @@
 url: http://arvidharder.com/tidyGWAS/
 template:
   bootstrap: 5
+reference:
+- title: tidyGWAS
+
+- subtitle: Functions using dbSNP reference data
+  contents:
+  - tidyGWAS
+  - validate_rsid
+  - infer_build
+  - repair_ids
+
+- subtitle: Validating columns
+  contents:
+  - repair_stats
+  - validate_sumstat
+
+- subtitle: Meta-analysis
+  contents:
+  - meta_analyze
+  - meta_analyze_by_chrom
+
+- subtitle: Helpful functions
+  contents:
+  - flag_duplicates
+  - flag_indels
+  - flag_invalid_rsid
+  - strand_flip
+

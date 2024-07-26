@@ -69,7 +69,22 @@ test_that("can read in file from disk", {
 
 })
 
+test_that("indels handled correctly", {
+  cleaned <- tidyGWAS(
+    tbl = pval_as_char_df,
+    dbsnp_path,
+    indel_strategy = "remove"
+  )
+  expect_true(nrow(cleaned) < nrow(pval_as_char_df) -1500)
 
+  cleaned <- tidyGWAS(
+    tbl = pval_as_char_df,
+    dbsnp_path,
+    indel_strategy = "keep"
+  )
+  expect_true(nrow(cleaned) == nrow(pval_as_char_df) -161)
+
+})
 test_that("Testing with CHR and POS", {
 
 
@@ -151,7 +166,7 @@ test_that("Handles edge cases", {
 
   # test with indels
   expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_path))
-  expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_path, keep_indels = FALSE))
+  expect_no_error(tidyGWAS(pval_as_char_df, dbsnp_path = dbsnp_path, indel_strategy = "remove"))
 
   # handle where all rows are invalid_rsid
   tdf <- dplyr::filter(flag_invalid_rsid(test_sumstat), invalid_rsid)

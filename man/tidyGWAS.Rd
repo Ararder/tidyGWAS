@@ -10,8 +10,7 @@ tidyGWAS(
   ...,
   column_names,
   output_format = c("hivestyle", "parquet", "csv"),
-  output_dir = paste0(tempdir(), "/", stringr::str_replace_all(date(), pattern = c(` ` =
-    "_", `:` = "_"))),
+  output_dir = tempfile(),
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
@@ -31,16 +30,18 @@ tidyGWAS(
 \item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
 \item{column_names}{a named list of column names:
-\code{list("RSID" = SNP, POS = "BP")}}
+\code{list(RSID = "SNP", POS = "BP")}}
 
 \item{output_format}{How should the finished cleaned file be saved?
 \itemize{
-\item "'csv' corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
+\item 'csv' corresponds to \code{\link[arrow:write_csv_arrow]{arrow::write_csv_arrow()}}
 \item 'parquet' corresponds to \code{\link[arrow:write_parquet]{arrow::write_parquet()}}
-\item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by CHR
+\item 'hivestyle' corresponds to \code{\link[arrow:write_dataset]{arrow::write_dataset()}} split by \code{CHR}
 }}
 
-\item{output_dir}{filepath to a folder where data should be stored. The folder should not yet exist.}
+\item{output_dir}{filepath to a folder where tidyGWAS output will be stored.
+The folder should not yet exist. Note that the default argument is \code{tempfile()},
+meaning that tidyGWAS output will not be saved by default over R sessions.}
 
 \item{CaseN}{manually input number of cases}
 

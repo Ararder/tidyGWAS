@@ -40,15 +40,17 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param tbl a `data.frame` or `character()` vector
 #' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
-#' @param output_dir filepath to a folder where data should be stored. The folder should not yet exist.
+#' @param output_dir filepath to a folder where tidyGWAS output will be stored.
+#'   The folder should not yet exist. Note that the default argument is `tempfile()`,
+#'   meaning that tidyGWAS output will not be saved by default over R sessions.
 #' @param output_format How should the finished cleaned file be saved?
-#'  * "'csv' corresponds to [arrow::write_csv_arrow()]
+#'  * 'csv' corresponds to [arrow::write_csv_arrow()]
 #'  * 'parquet' corresponds to [arrow::write_parquet()]
-#'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by CHR
+#'  * 'hivestyle' corresponds to [arrow::write_dataset()] split by `CHR`
 #'
 #' @param logfile Should messages be redirected to a logfile?
 #' @param column_names a named list of column names:
-#' `list("RSID" = SNP, POS = "BP")`
+#' `list(RSID = "SNP", POS = "BP")`
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
@@ -74,7 +76,7 @@ tidyGWAS <- function(
     ...,
     column_names,
     output_format = c("hivestyle","parquet", "csv"),
-    output_dir = paste0(tempdir(), "/",stringr::str_replace_all(date(), pattern = c(" "="_", ":"="_"))),
+    output_dir = tempfile(),
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
@@ -103,7 +105,7 @@ tidyGWAS <- function(
   output_format <-  rlang::arg_match(output_format)
   build <-          rlang::arg_match(build)
   default_build <- rlang::arg_match(default_build)
-  indel_strategy <- rlang::arg_match(build)
+  indel_strategy <- rlang::arg_match(indel_strategy)
 
 
   # welcome message ----------------------------------------------------------

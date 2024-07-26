@@ -42,7 +42,6 @@ validate_sumstat <- function(tbl, remove_cols = c(""), filter_func, convert_p) {
   # use filter func if passed
   if(!missing(filter_func))  tbl <- filter_func(tbl)
 
-
   # finished ----------------------------------------------------------------
 
   tbl
