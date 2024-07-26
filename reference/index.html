@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,8 +36,95 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="tidygwas">tidyGWAS<a class="anchor" aria-label="anchor" href="#tidygwas"></a></h2>
 
+
+
+
+    </div><div class="section level2">
+
+      <h3 id="functions-using-dbsnp-reference-data">Functions using dbSNP reference data<a class="anchor" aria-label="anchor" href="#functions-using-dbsnp-reference-data"></a></h3>
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="tidyGWAS.html">tidyGWAS()</a></code>
+
+        </dt>
+        <dd>Execute validation and quality control of GWAS summmary statistics</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_rsid.html">validate_rsid()</a></code>
+
+        </dt>
+        <dd>Validate format of the RSID column in a GWAS summary statistics file</dd>
+      </dl><dl><dt>
+
+          <code><a href="infer_build.html">infer_build()</a></code>
+
+        </dt>
+        <dd>Infer what genome build a GWAS summary statistics file is on.</dd>
+      </dl><dl><dt>
+
+          <code><a href="repair_ids.html">repair_ids()</a></code>
+
+        </dt>
+        <dd>Augment a data.frame with information from dbSNP</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="validating-columns">Validating columns<a class="anchor" aria-label="anchor" href="#validating-columns"></a></h3>
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="repair_stats.html">repair_stats()</a></code>
+
+        </dt>
+        <dd>Repair statistics column in a GWAS summary statistics tibble</dd>
+      </dl><dl><dt>
+
+          <code><a href="validate_sumstat.html">validate_sumstat()</a></code>
+
+        </dt>
+        <dd>Validate statistics columns in a GWAS summary statistics file</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="meta-analysis">Meta-analysis<a class="anchor" aria-label="anchor" href="#meta-analysis"></a></h3>
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="meta_analyze.html">meta_analyze()</a></code>
+
+        </dt>
+        <dd>Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS</dd>
+      </dl><dl><dt>
+
+          <code><a href="meta_analyze_by_chrom.html">meta_analyze_by_chrom()</a></code>
+
+        </dt>
+        <dd>meta_analyze summary statistics, one chromosome at a time! This function is exposed to allow for testing using real data</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="helpful-functions">Helpful functions<a class="anchor" aria-label="anchor" href="#helpful-functions"></a></h3>
 
 
 
@@ -66,54 +153,13 @@
         <dd>Detect entries that are not valid rsID's in GWAS summary statistics</dd>
       </dl><dl><dt>
 
-          <code><a href="infer_build.html">infer_build()</a></code>
-
-        </dt>
-        <dd>Infer what genome build a GWAS summary statistics file is on.</dd>
-      </dl><dl><dt>
-
-          <code><a href="meta_analyze.html">meta_analyze()</a></code>
-
-        </dt>
-        <dd>Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS</dd>
-      </dl><dl><dt>
-
-          <code><a href="meta_analyze_by_chrom.html">meta_analyze_by_chrom()</a></code>
-
-        </dt>
-        <dd>meta_analyze summary statistics, one chromosome at a time! This function is exposed to allow for testing using real data</dd>
-      </dl><dl><dt>
-
-          <code><a href="repair_stats.html">repair_stats()</a></code>
-
-        </dt>
-        <dd>Repair statistics column in a GWAS summary statistics tibble</dd>
-      </dl><dl><dt>
-
           <code><a href="strand_flip.html">strand_flip()</a></code>
 
         </dt>
         <dd>Strand flip alleles</dd>
-      </dl><dl><dt>
-
-          <code><a href="tidyGWAS.html">tidyGWAS()</a></code>
-
-        </dt>
-        <dd>Execute validation and quality control of GWAS summmary statistics</dd>
-      </dl><dl><dt>
-
-          <code><a href="validate_rsid.html">validate_rsid()</a></code>
-
-        </dt>
-        <dd>Validate format of the RSID column in a GWAS summary statistics file</dd>
-      </dl><dl><dt>
-
-          <code><a href="validate_sumstat.html">validate_sumstat()</a></code>
-
-        </dt>
-        <dd>Validate statistics columns in a GWAS summary statistics file</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

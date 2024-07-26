@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -138,10 +138,10 @@ using a tsv file, we provide the argument <code>delim</code> with
 <span>  output_dir <span class="op">=</span> <span class="va">out</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.2</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2024-07-25 14:34:30.259708</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.3</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; Starting at 2024-07-26 13:11:14.680129</span></span>
 <span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpcmgS3D/file17da53df8c80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpT1xuYz/file186b4b7bf58d</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -206,7 +206,7 @@ using a tsv file, we provide the argument <code>delim</code> with
 <span><span class="co">#&gt; 99 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 21 rows with no dbSNP entry or with incompat alleles</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpcmgS3D/file17da53df8c80/pipeline_info/removed_nodbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpT1xuYz/file186b4b7bf58d/pipeline_info/removed_nodbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -233,9 +233,9 @@ using a tsv file, we provide the argument <code>delim</code> with
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 21 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 3.9s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 3.8s</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpcmgS3D/file17da53df8c80/metadata.yaml</span></span></span>
+<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpT1xuYz/file186b4b7bf58d/metadata.yaml</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 99,979 × 21</span></span></span>
 <span><span class="co">#&gt;    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -274,7 +274,7 @@ want a standard csv file, use <code>output_format="csv"</code>
 </ol>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpcmgS3D/file17da53df8c80</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpT1xuYz/file186b4b7bf58d</span></span></span>
 <span><span class="co">#&gt; ├── metadata.yaml</span></span>
 <span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">pipeline_info</span></span></span>
 <span><span class="co">#&gt; │   ├── removed_nodbsnp.parquet</span></span>
