@@ -172,7 +172,6 @@ validate_columns <- function(tbl, col, convert_p) {
 
     tbl <- validate_p(tbl, convert_p = convert_p)
 
-
   } else if(col == "POS") {
 
     tbl <- validate_pos(tbl)
@@ -180,9 +179,12 @@ validate_columns <- function(tbl, col, convert_p) {
   } else if(col == "CHR") {
     tbl <- validate_chr(tbl)
 
-  } else if(col == "EffectAllele" | col == "OtherAllele") {
+  } else if(col == "EffectAllele") {
+    tbl <- validate_effectallele(tbl)
 
-    tbl <- validate_alleles(tbl, col = col)
+  } else if(col == "OtherAllele") {
+    tbl <- validate_otherallele(tbl)
+
   } else if(col == "INFO") {
     tbl <- validate_info(tbl)
   }
@@ -240,16 +242,27 @@ validate_chr <- function(tbl) {
   )
 }
 
-validate_alleles <- function(tbl, col) {
-  stopifnot(all(c("EffectAllele", "OtherAllele") %in% colnames(tbl)))
-  stopifnot("EffectAllele and OtherAllele are not character columns, indicating mislabelling of columns" = is.character("EffectAllele") & is.character("OtherAllele"))
-  possible_alleles <- c("A", "C","G","T")
 
-  tbl <- dplyr::mutate(tbl, {{ col }} := stringr::str_to_upper(.data[[col]]))
-  existing_alleles <- unique(tbl[[col]])
-  if(!all(existing_alleles %in% possible_alleles)) cli::cli_alert_danger("Found non ACGT alleles in {col}: {existing_alleles}")
-  new_col <- glue::glue("invalid_{col}")
-  dplyr::mutate(tbl, {{ new_col }} := dplyr::if_else(!.data[[col]] %in% possible_alleles, TRUE, FALSE))
+validate_effectallele <- function(tbl) {
+  possible_alleles <- c("A", "C","G","T")
+  dplyr::mutate(
+    tbl,
+    EffectAllele = stringr::str_to_upper(EffectAllele),
+    invalid_EffectAllele = dplyr::if_else(!EffectAllele %in% possible_alleles, TRUE, FALSE)
+
+  )
+
+
+}
+
+validate_otherallele <- function(tbl) {
+  possible_alleles <- c("A", "C","G","T")
+  dplyr::mutate(
+    tbl,
+    OtherAllele = stringr::str_to_upper(OtherAllele),
+    invalid_OtherAllele = dplyr::if_else(!OtherAllele %in% possible_alleles | OtherAllele == EffectAllele, TRUE, FALSE)
+  )
+
 }
 
 validate_pos <- function(tbl) {

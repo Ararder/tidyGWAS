@@ -100,13 +100,16 @@ test_that("validate_columns catches issues", {
 
 ## validate EA and OA ------------------------------------------------------
 
-
 test_that("validate_effect_cols detects and prints alleles outside ACGT", {
+
 
   expect_message(validate_columns(pval_as_char_df, "EffectAllele"))
   expect_message(validate_columns(pval_as_char_df, "OtherAllele"))
 
 })
+
+
+
 
 
 

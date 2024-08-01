@@ -37,16 +37,15 @@ tar -xvf dbSNP155_v0.9.tar
 
 ```
 
-
 # Quick start
 
-This is what a typical call to `tidyGWAS()` will look like. Continue reading for a more detailed explanation of each argument.
-
+This is what a typical call to `tidyGWAS()` will look like. A detailed
+explanation of the different arguments follows.
 
 ```{r, eval=FALSE}
 # we setup a directory where we will store all summary statistics cleaned by tidyGWAS
 gwas_folder <- tempfile()
-# create a new folder inside, based on the name of the GWAS
+# provide the filepath to the name of a directory that tidyGWAS will create.
 outdir <- paste0(gwas_folder, "gwasName")
 
 cleaned <- tidyGWAS(
@@ -69,15 +68,24 @@ cleaned <- tidyGWAS(
   )
 ```
 
+# Tutorial
 
-# Walk-through tutorial
-Here a longer tutorial starts, walking through the different arguments of `tidyGWAS()`.
+Provide tidyGWAS either with an in-memory `dplyr::tibble()` or a
+filepath.
 
-To run tidyGWAS on your summary statistics of choice, provide
-a in-memory `dplyr::tibble()` or a filepath. In this example, a filepath
-to a gzipped tsv file is passed. tidyGWAS uses
-`arrow::read_delim_arrow()` to read in files. Since we are using a tsv
-file, we provide the argument `delim` with `"\t"`.
+1.  Here a filepath to a gzipped tsv file is passed, along with `delim`
+    = `"\t"`. tidyGWAS uses [arrow::read_delim_arrow()] to read in files
+    from disk. If you have trouble with parsing the file correctly, use
+    another package such as [data.table::fread()] or
+    [readr::read_table()] to first read in the into memory, and then
+    pass the in-memory data.frame to tidyGWAS.
+2.  `dbsnp_path = dbsnp_path` gives the filepath to the reference data
+3.  `output_dir = out` gives the filepath to the output directory that
+    tidyGWAS will create. The directory cannot exist yet - to protect
+    for accidently overwriting files. If no argument is passed to
+    `output_dir`, tidyGWAS will create a folder in the R tempdir,
+    meaning that any cleaned summary statistics will deleted if the R
+    session is ended.
 
 ```{r}
 library(tidyGWAS)
@@ -97,22 +105,34 @@ tidyGWAS(
 )
 ```
 
+### Output files
+
+tidyGWAS returns all its output in a directory.
+
+```{r}
+fs::dir_tree(out)
+```
+
 That's a lot of files!
 
 1.  Removed rows are stored in `pipeline/removed_*`
+
 2.  `metadata.yaml` contains metadata about the execution
+
 3.  `raw` contains the summary statistics ***before*** any munging was
     done. Useful to reproduce, or to identify why rows were removed.
+
 4.  `tidyGWAS_hivestyle` contains the cleaned summary statistics, in
     something called a [hivestyle
     partition](https://arrow.apache.org/docs/r/articles/dataset.html),
     by default. The motivation for this is detailed further
     [down](#hivestyle-partitioning) in the vignette. If you just want a
-    standard csv file, use `output_format="csv"`
+    standard csv file, use `output_format="csv"` or
+    `output_format="parquet"`
 
-```{r}
-fs::dir_tree(out)
-```
+5.  To read in the cleaned summary statistics:
+
+    `df <- arrow::open_dataset(paste0(out, "/tidyGWAS_hivestyle")) |> dplyr::collect()`
 
 ### Setting column names
 
@@ -128,12 +148,12 @@ head(sumstats)
 colnames(sumstats)
 ```
 
-`tidyGWAS()` will not guess which columns are which, and therefore
-requires either the correct column names to exist before cleaning, or a
-mapping between tidyGWAS column names and the column names in the input
-file. This is done using the `column_names` argument, which takes a
-named list, where the names are the tidyGWAS columns and the values the
-corresponding column in the input file.
+To prevent parsing files wrong `tidyGWAS()` will not guess which columns
+are which. Therefore, tidyGWAS requires the colum names to be the same
+as it's native format or a mapping between tidyGWAS column names and the
+column names in the input file. This is done using the `column_names`
+argument, which takes a named list, where the names are the tidyGWAS
+columns and the values the corresponding column in the input file.
 
 ```{r, eval = FALSE}
 # what if the names were all wrong?
@@ -162,7 +182,7 @@ tidyGWAS(
 
 ```
 
-### The tidyGWAS nomenclature
+### The tidyGWAS columns
 
 tidyGWAS uses the following column names:
 
@@ -226,7 +246,7 @@ cleaned <- tidyGWAS(
 
 ```
 
-### Reading files directly from disk
+### Reading in files
 
 If you pass a filepath to tidyGWAS, it will attempt to read in the file
 with `arrow::read_delim_arrow()`
@@ -276,22 +296,10 @@ motivation for this. In essence, this format will significantly speed up
 other downstream applications such as meta-analysis, LD querying and
 other analyses.
 
-```{r, eval=FALSE}
-dir_tree(fs::path(gwas_folder,"scz_pgc3", "tidyGWAS_hivestyle"), recurse =2)
-
-# This is the equivalent of readr::read_tsv() or data.table::fread() for 
-# the hivestyle format.
-```
-
-# The output format
-
-The partitioned .parquet files can easily be read into memory using
-`arrow::open_dataset() |> collect()`.
-
-`tidyGWAS()` will add a set of columns, some depending on what existed
-in the input columns.
-
 ### Variant identity
+
+TidyGWAS will add the following columns dealing with variant ID, in
+addition to saving and validating all valid columns in the input file.
 
 1.  `CHR` Chromosome. The same across both builds
 
@@ -310,20 +318,23 @@ in the input columns.
     file in `raw`, so that any row can be mapped back to it's original
     values.
 
-### Statistics columns
+7.  `indel` TRUE/FALSE whether the variant is of type INsertion/DELetion
 
-statistics columns such as `B, P, SE, Z` will be added if missing and if
-it is possible to impute them using existing columns.
+8.  `id` variant ID in the format of `CHR:POS:REF:ALT`
 
+9.  All other valid columns in the input summary statistics file
 
+10. If possible `repair_stats()` will add statistics columns such as
+    `B, P, SE, Z`, if they are missing and possible to repair.
 
 # Parallel computation
 
-tidyGWAS automatically detects the number of cores. In some cases, for example when
-running tidyGWAS in a HPC cluster, you might need to manually set the
-number of cores, which can be done using the `OMP_NUM_THREADS` variable.
-This should not be a larger number of cores than what you have requested
-in your HPC job (in the example below, the "--cpus-per-task" flag)
+tidyGWAS automatically detects the number of cores. In some cases, for
+example when running tidyGWAS in a HPC cluster, you might need to
+manually set the number of cores, which can be done using the
+`OMP_NUM_THREADS` variable. This should not be a larger number of cores
+than what you have requested in your HPC job (in the example below, the
+"--cpus-per-task" flag)
 
 ```{bash, eval=FALSE}
 
@@ -350,5 +361,3 @@ of summary statistics.
 1.  20 million rows \~20gb
 2.  40 million rows \~40gb
 3.  60 million rows \~75gb
-
-
