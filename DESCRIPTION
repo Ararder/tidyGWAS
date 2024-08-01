@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics with minimal filtering
-Version: 0.9.3
+Version: 0.9.4
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 

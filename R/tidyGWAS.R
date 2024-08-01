@@ -292,8 +292,6 @@ tidyGWAS <- function(
 
   }
 
-  # add a CHR:POS:REF:ALT column
-  main <- create_id(main, inferred_build)
 
   # all removed rows should be able to be tracked
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
