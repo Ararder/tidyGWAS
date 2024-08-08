@@ -1,5 +1,5 @@
 utils::globalVariables(
-  c("REF", "EA_is_ref", "CHR", "ID", "W", "N_info", "INFO","tmp")
+  c("REF", "EA_is_ref", "CHR", "ID", "W", "N_info", "INFO","tmp", "EffectiveN", "N_EAF")
 )
 
 
@@ -55,15 +55,17 @@ align_to_ref <- function(dset) {
 #' }
 #'
 meta_analyze_by_chrom <- function(dset, chrom, by) {
-  stats <- c("B", "SE", "EAF", "N", "CaseN", "ControlN","INFO")
+  stats <- c("B", "SE", "EAF", "N", "CaseN", "ControlN","INFO", "EffectiveN")
   cols <- c(by, stats)
 
   dset |>
     dplyr::filter(CHR == {{ chrom }}) |>
-    dplyr::filter(!is.na(ID)) |>
-    dplyr::filter(is.finite(B) & is.finite(SE)) |>
+    dplyr::filter(is.na(indel) | !indel) |>
+    # dplyr::filter(is.finite(B) & is.finite(SE)) |>
     align_to_ref() |>
     dplyr::select(dplyr::any_of(cols)) |>
+    # for each varianat, calculate the weight, and multiply B by weight
+    # allele frequency and INFO is weighted by sample size
     dplyr::mutate(
       W = 1 / (SE^2),
       B = B*W,
@@ -73,7 +75,7 @@ meta_analyze_by_chrom <- function(dset, chrom, by) {
     dplyr::summarise(
       n_contributions = dplyr::n(),
       dplyr::across(dplyr::any_of(c("W", "B")), sum),
-      dplyr::across(dplyr::any_of(c("EAF", "INFO", "CaseN", "ControlN", "N")), ~sum(.x, na.rm=T)),
+      dplyr::across(dplyr::any_of(c("EAF", "INFO", "CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T)),
       # calculate the total sample size for all SNPs with info
       N_info = sum((N*INFO)/INFO, na.rm = TRUE),
       N_EAF = sum((N*EAF)/EAF, na.rm = TRUE),
@@ -85,7 +87,7 @@ meta_analyze_by_chrom <- function(dset, chrom, by) {
       dplyr::across(dplyr::any_of(c("INFO")), ~.x / N_info),
       dplyr::across(dplyr::any_of(c("EAF")), ~.x / N_EAF)
     ) |>
-    dplyr::select(-W, N_info) |>
+    dplyr::select(-W, -N_info, -N_EAF) |>
     dplyr::collect() |>
     dplyr::mutate(P  = stats::pnorm(-abs(B/SE)) *2)
 
