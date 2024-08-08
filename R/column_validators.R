@@ -164,6 +164,10 @@ validate_columns <- function(tbl, col, convert_p) {
 
     tbl <- validate_controln(tbl)
 
+  } else if(col == "EffectiveN"){
+
+    tbl <- validate_effectiven(tbl)
+
   } else if(col == "Z") {
 
     tbl <- validate_z(tbl)
@@ -349,6 +353,14 @@ validate_controln <- function(tbl) {
     tbl,
     ControlN = as.integer(ControlN),
     invalid_ControlN = dplyr::if_else(ControlN <= 0 | !is.finite(ControlN), TRUE, FALSE)
+  )
+}
+
+validate_effectiven <- function(tbl) {
+  dplyr::mutate(
+    tbl,
+    EffectiveN = as.integer(EffectiveN),
+    invalid_EffectiveN = dplyr::if_else(EffectiveN <= 0 | !is.finite(EffectiveN), TRUE, FALSE)
   )
 }
 

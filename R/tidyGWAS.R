@@ -6,7 +6,7 @@ utils::globalVariables(c(
   "alt_allele"))
 
 snp_cols <- c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele", "rowid")
-info_cols <- c("INFO", "N", "CaseN", "ControlN", "EAF")
+info_cols <- c("INFO", "N", "CaseN", "ControlN","EffectiveN", "EAF")
 stats_cols <- c("B", "Z", "OR", "P", "SE", info_cols)
 valid_column_names <- c(snp_cols, stats_cols, info_cols)
 

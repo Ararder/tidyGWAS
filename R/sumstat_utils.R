@@ -154,8 +154,6 @@ split_rsid_by_regex <- function(tbl) {
 
 
 
-
-
 #' Strand flip alleles
 #'
 #' @param tbl a [dplyr::tibble()] with columns `EffectAllele` and `OtherAllele`

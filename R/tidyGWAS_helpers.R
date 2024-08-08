@@ -129,7 +129,7 @@ write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 
 standardize_column_order <- function(tbl) {c
   char_cols <- c("CHR", "EffectAllele", "OtherAllele")
-  integer_cols <- c("N", "CaseN", "ControlN", "POS_37", "POS_38", "rowid")
+  integer_cols <- c("N", "CaseN", "ControlN", "EffectiveN", "POS_37", "POS_38", "rowid")
   double <- c("B", "P", "EAF", "Z", "SE", "INFO")
   logical <- c("multi_allelic", "indel")
 
@@ -340,8 +340,16 @@ select_correct_columns <- function(tbl) {
 
   # handle N ----------------------------------------------------------------
 
-  if(all(c("CaseN", "ControlN") %in% colnames(tbl))) tbl$N <- (tbl$CaseN + tbl$ControlN)
+  if(all(c("CaseN", "ControlN") %in% colnames(tbl)) & !"EffectiveN" %in% colnames(tbl)) {
+    cli::cli_alert_info("Found CaseN and ControlN, and no effective N:
+                        Calculating EffectiveN by {.code EffectiveN = 4 / (1 / ControlN + 1 / CaseN)}")
+    round(tbl$EffectiveN <- 4 / (1 / tbl$ControlN + 1 / tbl$CaseN))
+  }
 
+  if(all(c("CaseN", "ControlN") %in% colnames(tbl)))  {
+    cli::cli_alert_info("Found CaseN and ControlN, Calculating N by {.code N = ControlN + CaseN}")
+    tbl$N <- tbl$CaseN + tbl$ControlN
+  }
 
   if(!"N" %in% colnames(tbl)) cli::cli_alert_danger("Found no N column. It is highly recommended to supply a value for N, as many downstream GWAS applications rely on this information")
 
