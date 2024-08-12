@@ -346,7 +346,7 @@ select_correct_columns <- function(tbl) {
     round(tbl$EffectiveN <- 4 / (1 / tbl$ControlN + 1 / tbl$CaseN))
   }
 
-  if(all(c("CaseN", "ControlN") %in% colnames(tbl)))  {
+  if(all(c("CaseN", "ControlN") %in% colnames(tbl)) & !"N" %in% colnames(tbl))  {
     cli::cli_alert_info("Found CaseN and ControlN, Calculating N by {.code N = ControlN + CaseN}")
     tbl$N <- tbl$CaseN + tbl$ControlN
   }
