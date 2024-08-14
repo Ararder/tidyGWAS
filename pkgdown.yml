@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   tidyGWAS: tidyGWAS.html
   transforming_dbsnp_to_parquet: transforming_dbsnp_to_parquet.html
-last_built: 2024-08-08T08:42Z
+last_built: 2024-08-14T08:05Z
 urls:
   reference: http://arvidharder.com/tidyGWAS/reference
   article: http://arvidharder.com/tidyGWAS/articles
