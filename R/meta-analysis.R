@@ -58,10 +58,13 @@ meta_analyze_by_chrom <- function(dset, chrom, by) {
   stats <- c("B", "SE", "EAF", "N", "CaseN", "ControlN","INFO", "EffectiveN")
   cols <- c(by, stats)
 
-  dset |>
-    dplyr::filter(CHR == {{ chrom }}) |>
-    dplyr::filter(is.na(indel) | !indel) |>
-    # dplyr::filter(is.finite(B) & is.finite(SE)) |>
+  q1 <- dplyr::filter(dset, CHR == {{ chrom }})
+
+  if("indel" %in% names(arrow::schema(dset))) {
+    q1 <- dplyr::filter(is.na(indel) | !indel)
+  }
+
+  q1 |>
     align_to_ref() |>
     dplyr::select(dplyr::any_of(cols)) |>
     # for each varianat, calculate the weight, and multiply B by weight
@@ -72,23 +75,86 @@ meta_analyze_by_chrom <- function(dset, chrom, by) {
       dplyr::across(dplyr::any_of(c("EAF", "INFO")), ~.x * N)
     ) |>
     dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
-    dplyr::summarise(
-      n_contributions = dplyr::n(),
-      dplyr::across(dplyr::any_of(c("W", "B")), sum),
-      dplyr::across(dplyr::any_of(c("EAF", "INFO", "CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T)),
-      # calculate the total sample size for all SNPs with info
-      N_info = sum((N*INFO)/INFO, na.rm = TRUE),
-      N_EAF = sum((N*EAF)/EAF, na.rm = TRUE),
-    ) |>
-    dplyr::ungroup() |>
-    dplyr::mutate(
-      B = B / W,
-      SE = 1 / sqrt(W),
-      dplyr::across(dplyr::any_of(c("INFO")), ~.x / N_info),
-      dplyr::across(dplyr::any_of(c("EAF")), ~.x / N_EAF)
-    ) |>
-    dplyr::select(-W, -N_info, -N_EAF) |>
+    handle_info_eaf() |>
+    dplyr::select(-dplyr::any_of(c("W", "N_info", "N_EAF"))) |>
     dplyr::collect() |>
     dplyr::mutate(P  = stats::pnorm(-abs(B/SE)) *2)
+
+}
+
+
+handle_info_eaf <- function(query) {
+  if(all(c("INFO", "EAF") %in% names(arrow::schema(query)))) {
+    query |>
+      dplyr::summarise(
+        n_contributions = dplyr::n(),
+        dplyr::across(dplyr::any_of(c("W", "B")), sum),
+        dplyr::across(dplyr::any_of(c("CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T)),
+        dplyr::across(dplyr::all_of(c("EAF", "INFO")), ~sum(.x, na.rm=T)),
+        # calculate the total sample size for all SNPs with info
+        N_info = sum( N * (INFO/INFO), na.rm = TRUE),
+        N_EAF = sum(  N * (EAF/EAF), na.rm = TRUE),
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        B = B / W,
+        SE = 1 / sqrt(W),
+        INFO = INFO / N_info,
+        EAF = EAF / N_EAF
+      )
+
+
+  } else if("INFO" %in% names(arrow::schema(query))) {
+    query |>
+      dplyr::summarise(
+        n_contributions = dplyr::n(),
+        dplyr::across(dplyr::any_of(c("W", "B")), sum),
+        dplyr::across(dplyr::any_of(c("CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T)),
+        INFO = sum(INFO, na.rm = TRUE),
+        # N can be present but not info for SNPs. Need to remove these
+        N_info = sum(N* (INFO/INFO), na.rm = TRUE),
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        B = B / W,
+        SE = 1 / sqrt(W),
+        INFO = INFO / N_info,
+      )
+
+
+
+  } else if("EAF" %in% names(arrow::schema(query))) {
+    query |>
+      dplyr::summarise(
+        n_contributions = dplyr::n(),
+        dplyr::across(dplyr::any_of(c("W", "B")), sum),
+        dplyr::across(dplyr::any_of(c("CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T)),
+        EAF = sum(EAF, na.rm = TRUE),
+        # calculate the total sample size for all SNPs with info
+        N_EAF = sum( N*(EAF/EAF), na.rm = TRUE),
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        B = B / W,
+        SE = 1 / sqrt(W),
+        EAF = EAF / N_EAF
+      )
+
+
+  } else {
+    query |>
+      dplyr::summarise(
+        n_contributions = dplyr::n(),
+        dplyr::across(dplyr::any_of(c("W", "B")), sum),
+        dplyr::across(dplyr::any_of(c("CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T))
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(
+        B = B / W,
+        SE = 1 / sqrt(W)
+      )
+
+
+  }
 
 }

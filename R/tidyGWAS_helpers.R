@@ -143,7 +143,6 @@ standardize_column_order <- function(tbl) {c
    dplyr::all_of(first),
    dplyr::any_of(second),
    dplyr::all_of(end),
-   dplyr::everything()
  ) |>
    dplyr::mutate(
      dplyr::across(dplyr::any_of(char_cols), ~as.character(.)),
