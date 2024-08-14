@@ -61,7 +61,7 @@ meta_analyze_by_chrom <- function(dset, chrom, by) {
   q1 <- dplyr::filter(dset, CHR == {{ chrom }})
 
   if("indel" %in% names(arrow::schema(dset))) {
-    q1 <- dplyr::filter(is.na(indel) | !indel)
+    q1 <- dplyr::filter(q1, is.na(indel) | !indel)
   }
 
   q1 |>
