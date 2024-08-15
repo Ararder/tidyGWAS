@@ -127,7 +127,7 @@ write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 }
 
 
-standardize_column_order <- function(tbl) {c
+standardize_column_order <- function(tbl) {
   char_cols <- c("CHR", "EffectAllele", "OtherAllele")
   integer_cols <- c("N", "CaseN", "ControlN", "EffectiveN", "POS_37", "POS_38", "rowid")
   double <- c("B", "P", "EAF", "Z", "SE", "INFO")
