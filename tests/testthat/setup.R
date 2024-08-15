@@ -16,3 +16,32 @@ overwrite = FALSE
 build <- "NA"
 tbl <- test_sumstat
 output_dir = tempfile()
+# tmp <- readr::read_tsv("~/Desktop/local.tsv")
+#
+#
+# column_names = list(
+#   CHR = "#CHROM",
+#   RSID = "ID",
+#   EffectAllele = "A1",
+#   OtherAllele = "REF",
+#   EAF = "A1_FREQ",
+#   SE = "LOG(OR)_SE",
+#   Z = "Z_STAT",
+#   N = "OBS_CT"
+# )
+#
+# tmp
+# #
+# # res <- tidyGWAS::tidyGWAS(
+# #   tmp,
+# #   dbsnp_path = "~/Downloads/dbSNP155",
+# #   column_names = list(
+# #     CHR = "#CHROM",
+# #     RSID = "ID",
+# #     EffectAllele = "A1",
+# #     OtherAllele = "REF",
+# #     EAF = "A1_FREQ",
+# #     SE = "LOG(OR)_SE",
+# #     Z = "Z_STAT",
+# #     N = "OBS_CT"
+# #   ))

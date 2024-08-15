@@ -277,6 +277,11 @@ tidyGWAS <- function(
   # merge back indels -------------------------------------------------------
 
   if(!is.null(indels)) {
+    if("POS" %in% colnames(indels)) {
+      renamed_pos <- list("POS")
+      names(renamed_pos) <- paste0("POS", "_", inferred_build)
+      indels <- dplyr::rename(indels, !!!renamed_pos)
+    }
 
     main <- dplyr::bind_rows(main, dplyr::mutate(indels, indel = TRUE))
 

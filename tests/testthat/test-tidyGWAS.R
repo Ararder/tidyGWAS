@@ -85,6 +85,16 @@ test_that("indels handled correctly", {
   expect_true(nrow(cleaned) == nrow(pval_as_char_df) -161)
 
 })
+
+test_that("POS column is removed if exist in indels",{
+
+    res <- tidyGWAS(
+      tbl = pval_as_char_df,
+      dbsnp_path = dbsnp_path
+    )
+    expect_false("POS" %in% colnames(res))
+
+})
 test_that("Testing with CHR and POS", {
 
 
