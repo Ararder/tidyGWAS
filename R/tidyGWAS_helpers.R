@@ -134,7 +134,7 @@ standardize_column_order <- function(tbl) {c
   logical <- c("multi_allelic", "indel")
 
   first <- c("CHR", "POS_38", "POS_37", "RSID", "EffectAllele", "OtherAllele")
-  second <- c("B", "P","EAF","Z",  "SE", "N", "CaseN", "ControlN", "INFO", "indel")
+  second <- c("B","SE", "P","EAF","N", "CaseN", "ControlN","EffectiveN","Z", "INFO", "indel")
   end <- c("rowid", "multi_allelic", "REF_37", "REF_38")
 
 
