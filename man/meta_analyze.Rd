@@ -7,25 +7,30 @@
 meta_analyze(
   dset,
   by = c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele"),
-  method = c("ivw")
+  method = c("ivw"),
+  ref = c("REF_37", "REF_38")
 )
 }
 \arguments{
 \item{dset}{an \code{\link[arrow:open_dataset]{arrow::open_dataset()}} object}
 
-\item{by}{a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")
-Columns not in by will not be kept. So if you group by c("CHR", "POS"), only these columns will be kept in the output.
-The columns passed are used to define a unique variant. If for example you pass c("CHR", "POS"), then all variants with the same
-chromosome and position would be considered the same variant. You can use 'ID'
-to speed up the meta analysis, but RSID information will then be lost.}
+\item{by}{a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")}
 
 \item{method}{method to use for performing meta-analysis. Currently, only IVW (based on standard errors) is supported.}
+
+\item{ref}{either "REF_37" or "REF_38", depending on which column you want to use to standardize reference allele}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
-Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS
+\code{\link[=meta_analyze]{meta_analyze()}} will:
+\itemize{
+\item flip the effect allele to the reference allele (using either GRCh37 or GRCh38), control with \code{ref}
+\item variant id is constructed using \code{by} columns
+\item EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
+\item CaseN, N, ControlN and EffectiveN are all summed and carried forward
+}
 }
 \examples{
 \dontrun{

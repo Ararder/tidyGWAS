@@ -14,7 +14,7 @@ utils::globalVariables(c("new_RSID", "old_RSID"))
 #' @param tbl a [dplyr::tibble()]
 #' @param column Which columns should be used to form a unique ID?
 #'
-#' @return a tibble with new columns dup_{column}
+#' @return a tibble with a new column marking duplicates
 #' @export
 #'
 #' @examples \dontrun{

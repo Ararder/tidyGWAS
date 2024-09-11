@@ -45,3 +45,42 @@ output_dir = tempfile()
 # #     Z = "Z_STAT",
 # #     N = "OBS_CT"
 # #   ))
+
+
+setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
+  tmp <- test_sumstat |> dplyr::mutate(N = CaseN + ControlN, REF_37 = EffectAllele)
+  meta1 <- tmp[1,]
+
+  ten_sumstats <- dplyr::tibble(
+    CHR = meta1$CHR,
+    POS = meta1$POS,
+    RSID = meta1$RSID,
+    EffectAllele = meta1$EffectAllele,
+    OtherAllele = meta1$OtherAllele,
+    B = meta1$B,
+    EAF = EAF,
+    SE = meta1$SE,
+    REF_37 = EffectAllele,
+    INFO = INFO,
+    N = N
+  ) 
+  
+  tmpdir <- tempfile()
+
+  make_fake_sumstats <- function(tbl) {
+    tmpdir <- tempdir()
+    outdir <- fs::dir_create(fs::path(tmpdir, "fake_sumstats"))
+    for(i in 1:nrow(tbl)) {
+      out <- paste0(outdir, "/trait", i)
+      arrow::write_dataset(dplyr::group_by(tbl |> dplyr::slice(i), CHR), out)
+    }
+    outdir
+  }
+  outdir <- make_fake_sumstats(ten_sumstats)
+  
+  m <- fs::dir_ls(outdir) |> 
+    purrr::map(arrow::open_dataset) |> 
+    purrr::reduce(c)
+
+  m
+}

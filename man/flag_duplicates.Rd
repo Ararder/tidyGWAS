@@ -15,7 +15,7 @@ flag_duplicates(
 \item{column}{Which columns should be used to form a unique ID?}
 }
 \value{
-a tibble with new columns dup_{column}
+a tibble with a new column marking duplicates
 }
 \description{
 Many duplication tools such as \code{\link[base:duplicated]{base::duplicated()}} or \code{\link[dplyr:distinct]{dplyr::distinct()}}

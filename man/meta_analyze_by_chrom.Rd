@@ -5,18 +5,16 @@
 \title{meta_analyze summary statistics, one chromosome at a time!
 This function is exposed to allow for testing using real data}
 \usage{
-meta_analyze_by_chrom(dset, chrom, by)
+meta_analyze_by_chrom(dset, chrom, by, ref)
 }
 \arguments{
 \item{dset}{an \code{\link[arrow:open_dataset]{arrow::open_dataset()}} object}
 
 \item{chrom}{chromosome to use for meta-analysis}
 
-\item{by}{a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")
-Columns not in by will not be kept. So if you group by c("CHR", "POS"), only these columns will be kept in the output.
-The columns passed are used to define a unique variant. If for example you pass c("CHR", "POS"), then all variants with the same
-chromosome and position would be considered the same variant. You can use 'ID'
-to speed up the meta analysis, but RSID information will then be lost.}
+\item{by}{a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")}
+
+\item{ref}{either "REF_37" or "REF_38", depending on which column you want to use to standardize reference allele}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}

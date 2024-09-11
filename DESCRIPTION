@@ -31,7 +31,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tictoc
-RoxygenNote: 7.3.2.9000
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
