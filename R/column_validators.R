@@ -239,9 +239,11 @@ validate_chr <- function(tbl) {
     CHR = stringr::str_remove(CHR, "CHR"),
     CHR = stringr::str_remove(CHR, "CH"),
     # can now handle
-    CHR = dplyr::if_else(CHR == "XY", "XY", CHR),
-    CHR = dplyr::if_else(CHR == "23", "X", CHR),
     CHR = dplyr::if_else(CHR == "M", "MT", CHR),
+    CHR = dplyr::if_else(CHR == "23", "X", CHR),
+    CHR = dplyr::if_else(CHR == "24", "Y", CHR),
+    CHR = dplyr::if_else(CHR == "25", "XY", CHR),
+    CHR = dplyr::if_else(CHR == "26", "MT", CHR),
     invalid_CHR = dplyr::if_else(!CHR %in% valid_chr | is.na(CHR), TRUE, FALSE)
   )
 }

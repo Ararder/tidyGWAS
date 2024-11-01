@@ -1,3 +1,8 @@
+# tidyGWAS 0.9.6
+Added values that tidyGWAS detects as correct columns:
+24 -> "Y"
+25 -> "XY"
+26 -> "MT"
 # tidyGWAS 0.9.0
 
 Major revision from earlier versions. The reference data format has been updated:

@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics with minimal filtering
-Version: 0.9.5
+Version: 0.9.6
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
@@ -31,7 +31,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0),
     tictoc
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.2.9000
 Roxygen: list(markdown = TRUE)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
