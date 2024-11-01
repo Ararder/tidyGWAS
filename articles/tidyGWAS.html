@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.6</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -149,10 +149,10 @@ session is ended.</li>
 <span>  output_dir <span class="op">=</span> <span class="va">out</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.5</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2024-09-11 14:40:53.56758</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.6</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; Starting at 2024-11-01 09:09:37.402903</span></span>
 <span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpgGgTS0/file1964220c0d1a</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpzQIrTJ/file192653cfbb8a</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -222,7 +222,7 @@ session is ended.</li>
 <span><span class="co">#&gt; 99 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 21 rows with no dbSNP entry or with incompat alleles</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpgGgTS0/file1964220c0d1a/pipeline_info/removed_nodbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpzQIrTJ/file192653cfbb8a/pipeline_info/removed_nodbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -249,9 +249,9 @@ session is ended.</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 21 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4.2s</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpgGgTS0/file1964220c0d1a/metadata.yaml</span></span></span>
+<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpzQIrTJ/file192653cfbb8a/metadata.yaml</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 99,979 × 20</span></span></span>
 <span><span class="co">#&gt;    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -275,7 +275,7 @@ session is ended.</li>
 <p>tidyGWAS returns all its output in a directory.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpgGgTS0/file1964220c0d1a</span></span>
+<span><span class="co">#&gt; /tmp/RtmpzQIrTJ/file192653cfbb8a</span></span>
 <span><span class="co">#&gt; ├── metadata.yaml</span></span>
 <span><span class="co">#&gt; ├── pipeline_info</span></span>
 <span><span class="co">#&gt; │   ├── removed_nodbsnp.parquet</span></span>
@@ -571,7 +571,7 @@ size of summary statistics.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
