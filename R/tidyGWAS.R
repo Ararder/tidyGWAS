@@ -54,6 +54,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
+#' @param allow_duplications Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats
 #' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
 #' @param indel_strategy Should indels be kept or removed?
@@ -80,6 +81,7 @@ tidyGWAS <- function(
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
+    allow_duplications = FALSE,
     build = c("NA","37", "38"),
     default_build = c("37", "38"),
     indel_strategy = c("keep", "remove"),
@@ -99,6 +101,7 @@ tidyGWAS <- function(
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
   stopifnot(rlang::is_bool(logfile))
+  stopifnot(rlang::is_bool(allow_duplications))
   stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
   stopifnot("The `output_dir` specified already exists" = !dir.exists(output_dir))
   stopifnot("the filepath for dbSNP does not exist" = file.exists(dbsnp_path))
@@ -173,9 +176,14 @@ tidyGWAS <- function(
 
 
   # 3) Remove duplicated SNPs --------------------------------------------------
+  if(allow_duplications) {
+    cli::cli_alert_warning("Skipping the check for duplicated variants, as `allow_duplications` is set to TRUE")
 
-  cli::cli_h2("3) Scanning for rows with duplications")
-  tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
+  } else {
+    cli::cli_h2("3) Scanning for rows with duplications")
+    tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
+
+  }
 
 
 
@@ -236,12 +244,20 @@ tidyGWAS <- function(
     # -------------------------------------------------------------------------
     # possible that rows coded as CHR:POS in the RSID column are actually
     # duplications of the other columns, but we cannot detect that until now
-
-    main <- remove_duplicates(
-      main,
-      columns = c("CHR" ,"POS_38", "EffectAllele","OtherAllele"),
-      filepath = filepaths$removed_duplications_chr_pos_in_rsid_col
-    )
+    if(allow_duplications) {
+      cli::cli_alert_warning(
+      "Skipping the check for duplicated variants.
+      This means that variants with CHR:POS in RSID columns are allowed to have the same RSID as existing RSIDs in the dataset.
+      Change this by setting `allow_duplications` to FALSE"
+      )
+    } else {
+      cli::cli_h3("6) Scanning for rows with duplications")
+      main <- remove_duplicates(
+        main,
+        columns = c("CHR" ,"POS_38", "EffectAllele","OtherAllele"),
+        filepath = filepaths$removed_duplications_chr_pos_in_rsid_col
+      )
+    }
 
 
   }
@@ -257,10 +273,11 @@ tidyGWAS <- function(
 
   # no dbSNP mapping
   n_before <- nrow(main)
+  before_filters <- main
   main <- dplyr::filter(main, !no_dbsnp_entry & !incompat_alleles) |>
     dplyr::select(-dplyr::all_of(c("no_dbsnp_entry", "incompat_alleles")))
 
-  removed_no_dbsnp <- dplyr::anti_join(tbl, main, by = "rowid")
+  removed_no_dbsnp <- dplyr::anti_join(before_filters, main, by = "rowid")
   if(nrow(removed_no_dbsnp) > 0) {
 
     cli::cli_alert_warning("Removed {nrow(removed_no_dbsnp)} rows with no dbSNP entry or with incompat alleles")

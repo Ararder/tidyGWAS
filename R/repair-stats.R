@@ -83,3 +83,20 @@ n_from_se_eaf <- function(SE, EAF) {
   EAF <- dplyr::if_else(EAF > 0.5, 1-EAF, EAF)
   round(4 / ((2 * EAF * (1-EAF)) * (SE^2) ))
 }
+
+# impute_N <- function(tbl) {
+#   # source: https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
+#   columns <- colnames(tbl)
+#   stopifnot("EAF" %in% columns)
+#   stopifnot("SE" %in% columns)
+#
+#   tbl |>
+#     dplyr::mutate(
+#       MAF = dplyr::if_else(EAF > 0.5, 1 - EAF, EAF),
+#       N = 4/( (2 * MAF * (1-MAF)) * SE^2),
+#       N = as.integer(N)
+#     ) |>
+#     dplyr::mutate(
+#       eff_n = 4 / (1 / CaseN + 1 / ControlN)
+#     )
+# }

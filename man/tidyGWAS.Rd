@@ -14,6 +14,7 @@ tidyGWAS(
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
+  allow_duplications = FALSE,
   build = c("NA", "37", "38"),
   default_build = c("37", "38"),
   indel_strategy = c("keep", "remove"),
@@ -48,6 +49,8 @@ meaning that tidyGWAS output will not be saved by default over R sessions.}
 \item{ControlN}{manually input number of controls}
 
 \item{N}{manually input sample size}
+
+\item{allow_duplications}{Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats}
 
 \item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
 

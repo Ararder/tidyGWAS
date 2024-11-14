@@ -16,36 +16,10 @@ overwrite = FALSE
 build <- "NA"
 tbl <- test_sumstat
 output_dir = tempfile()
-# tmp <- readr::read_tsv("~/Desktop/local.tsv")
-#
-#
-# column_names = list(
-#   CHR = "#CHROM",
-#   RSID = "ID",
-#   EffectAllele = "A1",
-#   OtherAllele = "REF",
-#   EAF = "A1_FREQ",
-#   SE = "LOG(OR)_SE",
-#   Z = "Z_STAT",
-#   N = "OBS_CT"
-# )
-#
-# tmp
-# #
-# # res <- tidyGWAS::tidyGWAS(
-# #   tmp,
-# #   dbsnp_path = "~/Downloads/dbSNP155",
-# #   column_names = list(
-# #     CHR = "#CHROM",
-# #     RSID = "ID",
-# #     EffectAllele = "A1",
-# #     OtherAllele = "REF",
-# #     EAF = "A1_FREQ",
-# #     SE = "LOG(OR)_SE",
-# #     Z = "Z_STAT",
-# #     N = "OBS_CT"
-# #   ))
-
+indel_strategy <- "keep"
+default_build <- "37"
+allow_duplications <- FALSE
+repair_cols <- TRUE
 
 setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
   tmp <- test_sumstat |> dplyr::mutate(N = CaseN + ControlN, REF_37 = EffectAllele)
@@ -63,8 +37,8 @@ setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
     REF_37 = EffectAllele,
     INFO = INFO,
     N = N
-  ) 
-  
+  )
+
   tmpdir <- tempfile()
 
   make_fake_sumstats <- function(tbl) {
@@ -77,9 +51,9 @@ setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
     outdir
   }
   outdir <- make_fake_sumstats(ten_sumstats)
-  
-  m <- fs::dir_ls(outdir) |> 
-    purrr::map(arrow::open_dataset) |> 
+
+  m <- fs::dir_ls(outdir) |>
+    purrr::map(arrow::open_dataset) |>
     purrr::reduce(c)
 
   m
