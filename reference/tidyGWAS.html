@@ -89,6 +89,7 @@ while other formats use A1 as non-effect allele.</p>
 <span>  CaseN <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ControlN <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  allow_duplications <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
 <span>  default_build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
 <span>  indel_strategy <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"keep"</span>, <span class="st">"remove"</span><span class="op">)</span>,</span>
@@ -142,6 +143,10 @@ meaning that tidyGWAS output will not be saved by default over R sessions.</p></
 
 <dt id="arg-n">N<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
 <dd><p>manually input sample size</p></dd>
+
+
+<dt id="arg-allow-duplications">allow_duplications<a class="anchor" aria-label="anchor" href="#arg-allow-duplications"></a></dt>
+<dd><p>Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats</p></dd>
 
 
 <dt id="arg-build">build<a class="anchor" aria-label="anchor" href="#arg-build"></a></dt>
