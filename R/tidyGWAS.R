@@ -352,6 +352,8 @@ tidyGWAS <- function(
     output_format = output_format,
     build = build,
     outdir = output_dir,
+    impute_freq = impute_freq,
+    impute_n = impute_n,
     convert_p = convert_p,
     indel_strategy = indel_strategy,
     repair_cols = repair_cols,
