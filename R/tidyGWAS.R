@@ -340,7 +340,8 @@ tidyGWAS <- function(
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
   cli::cli_alert_info("Total running time: {fmt}")
-
+  # args <- modifyList(formals(), as.list(match.call()))
+  # implement later
   metadata <- list(
     date = as.character(Sys.Date()),
     tidyGWAS_version = as.character(utils::packageVersion('tidyGWAS')),
