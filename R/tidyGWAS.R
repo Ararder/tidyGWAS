@@ -54,11 +54,16 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
+#' @param impute_freq Should allele frequency be imputed if it's missing?
+#'  Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
+#'  where EAF corresponds to frequency of the EffectAllele.
+#' @param impute_n Should N be imputed if it's missing? see discussion in:
+#'  https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
 #' @param allow_duplications Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats
 #' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
 #' @param indel_strategy Should indels be kept or removed?
-#' @param repair_cols Should any missing statistical columns be repaired if possible?
+#' @param repair_cols Should any missing statistical columns be repaired if possible? calls [repair_stats()] if TRUE
 #' @param default_build If only RSID exists, the build cannot be inferred. Nonetheless,
 #' tidyGWAS applies a filter on incompatible alleles with GRCh37/38. In such a case,
 #' tidyGWAS needs to decide on which reference genome to compare alleles with.
@@ -81,6 +86,8 @@ tidyGWAS <- function(
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
+    impute_freq = NULL,
+    impute_n = FALSE,
     allow_duplications = FALSE,
     build = c("NA","37", "38"),
     default_build = c("37", "38"),
@@ -98,6 +105,8 @@ tidyGWAS <- function(
   if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
   if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
+  if(!is.null(impute_freq)) stopifnot(rlang::is_scalar_character(impute_freq))
+  if(!is.null(impute_freq)) stopifnot(file.exists(impute_freq))
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
   stopifnot(rlang::is_bool(logfile))
@@ -158,7 +167,7 @@ tidyGWAS <- function(
 
   indels <- tbl$indels
   if(nrow(indels) == 0) indels <- NULL
-  tbl <- tbl$main
+  tbl <- tbl$main |> dplyr::mutate(indel = FALSE)
 
 
   # 2 Drop na -----------------------------------------------------------------
@@ -310,7 +319,7 @@ tidyGWAS <- function(
   if(repair_cols) {
 
     cli::cli_h2("6) Repairing missings statistics columns if possible")
-    main <- repair_stats(main)
+    main <- repair_stats(main, impute_freq = impute_freq, impute_n = impute_n)
 
   }
 

@@ -37,6 +37,22 @@ tar -xvf dbSNP155_v0.9.tar
 
 ```
 
+## Using an apptainer or docker container instead
+
+You can skip the installation step by using a docker container with
+docker or apptainer.
+
+```{bash, eval = FALSE}
+# using apptainer
+apptainer pull docker://arvhar/tidygwas:latest
+apptainer shell ~/tidygwas_latest.sif
+
+# using docker 
+docker run arvhar/tidygwas:latest
+
+
+```
+
 # Quick start
 
 This is what a typical call to `tidyGWAS()` will look like. A detailed

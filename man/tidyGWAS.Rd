@@ -14,6 +14,8 @@ tidyGWAS(
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
+  impute_freq = NULL,
+  impute_n = FALSE,
   allow_duplications = FALSE,
   build = c("NA", "37", "38"),
   default_build = c("37", "38"),
@@ -50,6 +52,13 @@ meaning that tidyGWAS output will not be saved by default over R sessions.}
 
 \item{N}{manually input sample size}
 
+\item{impute_freq}{Should allele frequency be imputed if it's missing?
+Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
+where EAF corresponds to frequency of the EffectAllele.}
+
+\item{impute_n}{Should N be imputed if it's missing? see discussion in:
+https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics}
+
 \item{allow_duplications}{Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats}
 
 \item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
@@ -62,7 +71,7 @@ tidyGWAS needs to decide on which reference genome to compare alleles with.}
 
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 
-\item{repair_cols}{Should any missing statistical columns be repaired if possible?}
+\item{repair_cols}{Should any missing statistical columns be repaired if possible? calls \code{\link[=repair_stats]{repair_stats()}} if TRUE}
 
 \item{logfile}{Should messages be redirected to a logfile?}
 }

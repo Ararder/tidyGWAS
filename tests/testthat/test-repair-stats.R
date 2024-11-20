@@ -62,3 +62,37 @@ test_that("repair_stats should be able to add P col if missing using Z", {
   expect_equal(ll$P, as.double(test_sumstat$P), tolerance = 0.01)
 
 })
+
+test_that("repair_stats can add EAF", {
+  impute_freq <- test_path("fixtures/HRC_eur_0.001.parquet")
+  test <- dplyr::select(tbl, -EAF)
+
+  res <- repair_stats(test, impute_freq = impute_freq)
+  expect_true("EAF" %in% colnames(res))
+
+  # does not replace EAF if it already exists
+  res <- repair_stats(tbl, impute_freq = impute_freq)
+  expect_true(all(res$EAF == tbl$EAF))
+
+
+})
+
+
+
+test_that("impute_n works", {
+  impute_freq <- test_path("fixtures/HRC_eur_0.001.parquet")
+
+
+  expect_no_error(res <- repair_stats(tbl, impute_n = TRUE))
+  res <- repair_stats(dplyr::mutate(tbl, N = CaseN + ControlN), impute_n = TRUE)
+
+  # mean(tbl$N), check that N is not different
+  expect_equal(128002.1, mean(res$N), tolerance = 0.1)
+
+
+  # can impute freq, and then calculate N
+  res <- repair_stats(dplyr::select(tbl, -EAF), impute_freq = impute_freq, impute_n = TRUE)
+
+
+})
+

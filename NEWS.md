@@ -1,8 +1,21 @@
+# tidyGWAS 0.9.7
+added functionality for QTL summary statistics by providing the option to not
+remove duplicated variants.
+
+in addition, added the option to provide a custom reference file for allele frequency,
+that will impute the allele frequency from the reference file if allele frequency is missing.
+
+Added the option to impute N using SE and allele frequency.
+
+
 # tidyGWAS 0.9.6
+
 Added values that tidyGWAS detects as correct columns:
 24 -> "Y"
 25 -> "XY"
 26 -> "MT"
+
+
 # tidyGWAS 0.9.0
 
 Major revision from earlier versions. The reference data format has been updated:

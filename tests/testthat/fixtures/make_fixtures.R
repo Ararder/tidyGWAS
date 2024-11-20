@@ -48,3 +48,18 @@ dplyr::filter(temp, !is.na(old_RSID)) |>
   arrow::write_parquet(test_path("fixtures/dbSNP155/refsnp-merged/part-0.parquet"))
 
 
+
+
+# -------------------------------------------------------------------------
+# make EAF file
+df <- arrow::read_parquet("~/Downloads/HRC_eur_0.001.parquet")
+all <- dplyr::select(pval_as_char_df, RSID) |>
+  dplyr::bind_rows(
+    dplyr::select(test_sumstat, RSID)
+  ) |>
+  dplyr::distinct()
+
+sub <- df |>
+  dplyr::filter(RSID %in% all$RSID)
+
+arrow::write_parquet(sub, test_path("fixtures/HRC_eur_0.001.parquet"))

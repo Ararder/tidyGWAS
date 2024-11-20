@@ -21,6 +21,7 @@ default_build <- "37"
 allow_duplications <- FALSE
 repair_cols <- TRUE
 
+
 setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
   tmp <- test_sumstat |> dplyr::mutate(N = CaseN + ControlN, REF_37 = EffectAllele)
   meta1 <- tmp[1,]

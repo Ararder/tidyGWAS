@@ -1,3 +1,4 @@
+utils::globalVariables(c("MAF"))
 #' Repair statistics column in a GWAS summary statistics tibble
 #'
 #' `repair_stats()` is a collection of functions that can be used to
@@ -11,9 +12,31 @@
 #' @examples \dontrun{
 #' updated <- repair_stats(my_gwas)
 #' }
-repair_stats <- function(tbl) {
+repair_stats <- function(tbl, impute_freq = NULL, impute_n=FALSE) {
 
   start_cols <- colnames(tbl)
+
+  if(!is.null(impute_freq) & !"EAF" %in% colnames(tbl)) {
+    df_eaf <- arrow::read_parquet(impute_freq)
+    stopifnot(all(c("RSID", "EffectAllele", "OtherAllele", "EAF") %in% colnames(df_eaf)))
+    cli::cli_alert_info("Imputing EAF using the provided frequency file")
+
+    tbl1 <- dplyr::inner_join(tbl, df_eaf, by = c("RSID", "EffectAllele", "OtherAllele")) |>
+      dplyr::select(c("RSID", "EffectAllele", "OtherAllele", "EAF"))
+    tbl2 <- dplyr::inner_join(tbl, df_eaf, by = c("RSID", "EffectAllele" ="OtherAllele", "OtherAllele" = "EffectAllele")) |>
+      dplyr::mutate(EAF = 1-EAF) |>
+      dplyr::select(c("RSID", "EffectAllele", "OtherAllele", "EAF"))
+    final_eaf <- dplyr::bind_rows(tbl1, tbl2)
+    cli::cli_alert_success("Was able to add allele frequency for {nrow(final_eaf)} / {nrow(tbl)} SNPs")
+    tbl <- dplyr::left_join(tbl, final_eaf, by = c("RSID", "EffectAllele", "OtherAllele"))
+
+
+
+  }
+  if(impute_n & !"N" %in% colnames(tbl) & all(c("EAF", "SE") %in% colnames(tbl))) {
+    cli::cli_alert_info("N missing: Calculating N using the formula:  N = 4/( (2 * MAF * (1-MAF)) * SE^2)")
+    tbl <- impute_N(tbl)
+  }
 
   if(all(c("B", "SE") %in% colnames(tbl)) & !"Z" %in% colnames(tbl)) {
     cli::cli_alert_info("Z missing: Calculating Z using the formula:  Z = B / SE")
@@ -84,19 +107,18 @@ n_from_se_eaf <- function(SE, EAF) {
   round(4 / ((2 * EAF * (1-EAF)) * (SE^2) ))
 }
 
-# impute_N <- function(tbl) {
-#   # source: https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
-#   columns <- colnames(tbl)
-#   stopifnot("EAF" %in% columns)
-#   stopifnot("SE" %in% columns)
-#
-#   tbl |>
-#     dplyr::mutate(
-#       MAF = dplyr::if_else(EAF > 0.5, 1 - EAF, EAF),
-#       N = 4/( (2 * MAF * (1-MAF)) * SE^2),
-#       N = as.integer(N)
-#     ) |>
-#     dplyr::mutate(
-#       eff_n = 4 / (1 / CaseN + 1 / ControlN)
-#     )
-# }
+impute_N <- function(tbl) {
+  # source: https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
+  columns <- colnames(tbl)
+  stopifnot("EAF" %in% columns)
+  stopifnot("SE" %in% columns)
+
+  tbl |>
+    dplyr::mutate(
+      MAF = dplyr::if_else(EAF > 0.5, 1 - EAF, EAF),
+      N = 4/( (2 * MAF * (1-MAF)) * SE^2),
+      N = as.integer(N)
+    ) |>
+    dplyr::select(-MAF)
+
+}

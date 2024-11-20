@@ -243,6 +243,17 @@ make_callback <- function(id) {
 }
 
 
+#' Title
+#'
+#' @inheritParams tidyGWAS
+#' @param filepath file to write removed rows to
+#'
+#' @return a data.frame with updated RSID column
+#' @export
+#'
+#' @examples \dontrun{
+#' update_rsid(tbl, "path/to/file.parquet", "path/to/dbsnp")
+#'}
 update_rsid <- function(tbl, filepath, dbsnp_path) {
 
 
