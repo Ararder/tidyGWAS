@@ -49,6 +49,12 @@ repair_stats <- function(tbl, impute_freq = NULL, impute_n=FALSE) {
     tbl <- dplyr::mutate(tbl, Z = z_from_p_b(P, B))
   }
 
+  if(all(c("B", "Z") %in% colnames(tbl)) & !"SE" %in% colnames(tbl)) {
+    cli::cli_alert_info("Found B and Z but not SE. Calculating SE using:
+                        B / Z = SE")
+    tbl <- dplyr::mutate(tbl, SE = B / Z)
+  }
+
 
   if(all(c("Z", "N", "EAF") %in% colnames(tbl)) & all(!c("B", "SE") %in% colnames(tbl))) {
     cli::cli_alert_info("{.strong Imputing B and SE, using Z, EAF and N }. The B and SE will correspond to a standardized scale, which might not always be the same scale that the original betas was on.")
