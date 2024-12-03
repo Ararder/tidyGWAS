@@ -59,5 +59,5 @@ The computationally intensive part of aligning summary statistics with
 dbSNP 155 (\> 940 million rows) for both GRCh37 and GRCh38 (in total 1.8
 billion rows) is implemented using the [Apache Arrow
 R](https://arrow.apache.org/docs/r/) implementation, allowing for the
-full function to run in \<5 minutes, using less than 16gb, with ~7
+full function to run in \<3 minutes, using less than 16gb, with ~7
 million rows on a Macbook Pro M2.
