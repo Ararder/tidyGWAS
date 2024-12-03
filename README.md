@@ -14,7 +14,7 @@ genetics and genomics analysis pipelines. Often, the specific filters
 suggested for pipelines can be different, requiring each pipeline to
 have a step where summary statistics are “munged”.
 
-tidyGWAS aims to provide a standardized format *before* before any
+tidyGWAS aims to provide a standardized format *before* any
 pipeline specific munging is done. With that in mind, tidyGWAS is
 conservative in removing rows, and by default keeps both indels and
 multi-allelic variants.
@@ -43,7 +43,7 @@ multi-allelic variants.
         2.225074e-308 (minimum pvalue in R)
 
 8.  Imputation of missing columns: RSID from CHR:POS or CHR:POS from
-    RSID. Any of B,SE, P, Z if missing and possible
+    RSID. Any of B,SE, P, Z, N and EAF if missing and possible
 
 9.  Validation of CHR:POS:RSID by matching with dbSNP v.155
 
