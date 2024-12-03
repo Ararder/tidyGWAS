@@ -9,7 +9,7 @@
 coverage](https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Ararder/tidyGWAS?branch=main)
 <!-- badges: end -->
 
-Interested in the trying tidyGWAS out? Check out the get [started page](arvidharder.com/tidyGWAS/).
+Interested in the trying tidyGWAS out? Check out the get [started page](http://arvidharder.com/tidyGWAS/articles/tidyGWAS.html).
 
 Genome-wide summary statistics are becoming a staple in many different
 genetics and genomics analysis pipelines. Often, the specific filters
