@@ -66,7 +66,7 @@ meta_analyze_by_chrom <- function(dset, chrom, by, ref) {
   cols <- c(by, stats)
 
   q1 <- dplyr::filter(dset, CHR == {{ chrom }}) |>
-    dplyr::rename(REF = {{ref}} )
+    dplyr::rename(REF = dplyr::all_of(ref))
 
   if("indel" %in% names(arrow::schema(dset))) {
     q1 <- dplyr::filter(q1, is.na(indel) | !indel)

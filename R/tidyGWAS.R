@@ -38,7 +38,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' while other formats use A1 as non-effect allele.
 #'
 #' @param tbl a `data.frame` or `character()` vector
-#' @param dbsnp_path filepath to the dbSNP155 directory (untarred dbSNP155.tar)
+#' @param dbsnp_path filepath to the dbSNP155 directory
 #' @param ... pass additional arguments to [arrow::read_delim_arrow()], if tbl is a filepath.
 #' @param output_dir filepath to a folder where tidyGWAS output will be stored.
 #'   The folder should not yet exist. Note that the default argument is `tempfile()`,
@@ -54,11 +54,12 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
-#' @param impute_freq Should allele frequency be imputed if it's missing?
-#'  Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
-#'  where EAF corresponds to frequency of the EffectAllele.
-#' @param impute_n Should N be imputed if it's missing? see discussion in:
-#'  https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics
+#' @param impute_freq one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
+#'  Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used
+#' @param impute_freq_file filepath to a .parquet file with custom allele frequencies.
+#'  The file needs to be a tabular dataframe with columns RSID, EffectAllele, OtherAllele, EAF.
+#'  EAF should correspond to the frequency of the EffectAllele.
+#' @param impute_n Should N be imputed if it's missing?
 #' @param allow_duplications Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats
 #' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
@@ -86,7 +87,8 @@ tidyGWAS <- function(
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
-    impute_freq = NULL,
+    impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
+    impute_freq_file = NULL,
     impute_n = FALSE,
     allow_duplications = FALSE,
     build = c("NA","37", "38"),
@@ -105,8 +107,17 @@ tidyGWAS <- function(
   if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
   if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
-  if(!is.null(impute_freq)) stopifnot(rlang::is_scalar_character(impute_freq))
-  if(!is.null(impute_freq)) stopifnot(file.exists(impute_freq))
+  impute_freq <- rlang::arg_match(impute_freq)
+  if(!is.null(impute_freq_file) & impute_freq != "None")  {
+    cli::cli_abort(
+      "If `impute_freq_file` is provided, `impute_freq` must be `None`.
+      Impute_freq is used to add allele frequency from the provided 1000kg reference files.
+      impute_freq_file is used to pass a custom file - Using both are imcompatible."
+    )
+  }
+  if(!is.null(impute_freq_file)) stopifnot(rlang::is_scalar_character(impute_freq))
+  if(!is.null(impute_freq_file)) stopifnot(file.exists(impute_freq))
+
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
   stopifnot(rlang::is_bool(logfile))
@@ -122,12 +133,9 @@ tidyGWAS <- function(
 
   # welcome message ----------------------------------------------------------
   start_time <- Sys.time()
-  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
-  cli::cli_inform("Starting at {start_time}")
-
 
   # check input data.frame --------------------------------------------------
-
+  cli::cli_inform("Parsing input summary statistics...")
   tbl <- parse_tbl(tbl, ...)
   filename <- tbl$filename
   md5 <- tbl$md5
@@ -143,6 +151,10 @@ tidyGWAS <- function(
     withr::local_message_sink(filepaths$logfile)
     withr::local_output_sink(filepaths$logfile)
   }
+  # welcome message ----------------------------------------------------------
+  start_time <- Sys.time()
+  cli::cli_h1("Running {.pkg tidyGWAS {packageVersion('tidyGWAS')}}")
+  cli::cli_inform("Starting at {start_time}")
   cli::cli_inform("with {rows_start} rows in input data.frame")
   cli::cli_alert_info("Saving output in folder: {.file {filepaths$base}}")
 
@@ -319,7 +331,7 @@ tidyGWAS <- function(
   if(repair_cols) {
 
     cli::cli_h2("6) Repairing missings statistics columns if possible")
-    main <- repair_stats(main, impute_freq = impute_freq, impute_n = impute_n)
+    main <- repair_stats(main,dbsnp_path = dbsnp_path, impute_freq = impute_freq, impute_freq_file = impute_freq_file, impute_n = impute_n)
 
   }
 

@@ -9,7 +9,7 @@ infer_build(tbl, dbsnp_path, n_snps = 10000)
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+\item{dbsnp_path}{filepath to the dbSNP155 directory}
 
 \item{n_snps}{number of snps to check CHR and POS for}
 }

@@ -14,7 +14,8 @@ tidyGWAS(
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
-  impute_freq = NULL,
+  impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
+  impute_freq_file = NULL,
   impute_n = FALSE,
   allow_duplications = FALSE,
   build = c("NA", "37", "38"),
@@ -28,7 +29,7 @@ tidyGWAS(
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{dbsnp_path}{filepath to the dbSNP155 directory (untarred dbSNP155.tar)}
+\item{dbsnp_path}{filepath to the dbSNP155 directory}
 
 \item{...}{pass additional arguments to \code{\link[arrow:read_delim_arrow]{arrow::read_delim_arrow()}}, if tbl is a filepath.}
 
@@ -52,12 +53,14 @@ meaning that tidyGWAS output will not be saved by default over R sessions.}
 
 \item{N}{manually input sample size}
 
-\item{impute_freq}{Should allele frequency be imputed if it's missing?
-Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
-where EAF corresponds to frequency of the EffectAllele.}
+\item{impute_freq}{one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
+Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used}
 
-\item{impute_n}{Should N be imputed if it's missing? see discussion in:
-https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics}
+\item{impute_freq_file}{filepath to a .parquet file with custom allele frequencies.
+The file needs to be a tabular dataframe with columns RSID, EffectAllele, OtherAllele, EAF.
+EAF should correspond to the frequency of the EffectAllele.}
+
+\item{impute_n}{Should N be imputed if it's missing?}
 
 \item{allow_duplications}{Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats}
 

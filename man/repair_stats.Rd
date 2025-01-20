@@ -4,17 +4,27 @@
 \alias{repair_stats}
 \title{Repair statistics column in a GWAS summary statistics tibble}
 \usage{
-repair_stats(tbl, impute_freq = NULL, impute_n = FALSE)
+repair_stats(
+  tbl,
+  dbsnp_path,
+  impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
+  impute_freq_file = NULL,
+  impute_n = FALSE
+)
 }
 \arguments{
 \item{tbl}{a \code{data.frame} or \code{character()} vector}
 
-\item{impute_freq}{Should allele frequency be imputed if it's missing?
-Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
-where EAF corresponds to frequency of the EffectAllele.}
+\item{dbsnp_path}{filepath to the dbSNP155 directory}
 
-\item{impute_n}{Should N be imputed if it's missing? see discussion in:
-https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics}
+\item{impute_freq}{one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
+Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used}
+
+\item{impute_freq_file}{filepath to a .parquet file with custom allele frequencies.
+The file needs to be a tabular dataframe with columns RSID, EffectAllele, OtherAllele, EAF.
+EAF should correspond to the frequency of the EffectAllele.}
+
+\item{impute_n}{Should N be imputed if it's missing?}
 }
 \value{
 a tibble

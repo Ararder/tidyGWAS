@@ -126,7 +126,7 @@ write_finished_tidyGWAS <- function(df, output_format, filepaths) {
 
 }
 
-
+tidyGWAS_new_columns <- c("POS_38","POS_37", "REF_38", "REF_37", "indel", "multi_allelic", "rowid")
 standardize_column_order <- function(tbl) {
   char_cols <- c("CHR", "EffectAllele", "OtherAllele")
   integer_cols <- c("N", "CaseN", "ControlN", "EffectiveN", "POS_37", "POS_38", "rowid")
@@ -358,3 +358,8 @@ select_correct_columns <- function(tbl) {
 
 }
 
+download_ref <- function(filepath) {
+  rlang::is_scalar_character(filepath)
+  stopifnot("The directory does not exist" = dir.exists(filepath))
+
+}

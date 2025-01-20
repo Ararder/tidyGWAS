@@ -12,14 +12,31 @@ utils::globalVariables(c("MAF"))
 #' @examples \dontrun{
 #' updated <- repair_stats(my_gwas)
 #' }
-repair_stats <- function(tbl, impute_freq = NULL, impute_n=FALSE) {
+repair_stats <- function(tbl, dbsnp_path, impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"), impute_freq_file = NULL, impute_n=FALSE) {
 
   start_cols <- colnames(tbl)
+  impute_freq <- rlang::arg_match(impute_freq)
 
-  if(!is.null(impute_freq) & !"EAF" %in% colnames(tbl)) {
-    df_eaf <- arrow::read_parquet(impute_freq)
+  # check if allele frequency should be repaired
+  if(impute_freq != "None" & is.null(impute_freq_file)) {
+    cli::cli_alert_info("Imputing allele frequency using 1000G data, using population: {impute_freq}")
+    df_eaf <- arrow::open_dataset(paste0(dbsnp_path, "/EAF_REF_1KG")) |>
+      dplyr::filter(.data[["ancestry"]] == impute_freq) |>
+      dplyr::collect()
+    repair_eaf <- TRUE
+  } else if(!is.null(impute_freq_file)) {
+    cli::cli_alert_info("Imputing allele frequency using custom frequency file")
+    df_eaf <- arrow::read_parquet(impute_freq_file)
     stopifnot(all(c("RSID", "EffectAllele", "OtherAllele", "EAF") %in% colnames(df_eaf)))
-    cli::cli_alert_info("Imputing EAF using the provided frequency file")
+    repair_eaf <- TRUE
+  } else {
+    repair_eaf <- FALSE
+  }
+
+
+
+  if(repair_eaf & !"EAF" %in% colnames(tbl)) {
+
 
     tbl1 <- dplyr::inner_join(tbl, df_eaf, by = c("RSID", "EffectAllele", "OtherAllele")) |>
       dplyr::select(c("RSID", "EffectAllele", "OtherAllele", "EAF"))
