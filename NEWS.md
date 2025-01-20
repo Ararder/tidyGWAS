@@ -1,3 +1,8 @@
+# tidyGWAS 0.9.9
+Added reference allele frequencies to the dbSNP155 reference data from zenodo.
+Added the options to impute allele frequenecy from this reference data.
+
+
 # tidyGWAS 0.9.7
 added functionality for QTL summary statistics by providing the option to not
 remove duplicated variants.
