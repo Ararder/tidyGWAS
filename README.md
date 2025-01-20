@@ -9,12 +9,14 @@
 coverage](https://codecov.io/gh/Ararder/tidyGWAS/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Ararder/tidyGWAS?branch=main)
 <!-- badges: end -->
 
+Interested in the trying tidyGWAS out? Check out the get [started page](https://ararder.github.io/tidyGWAS/articles/tidyGWAS.html).
+
 Genome-wide summary statistics are becoming a staple in many different
 genetics and genomics analysis pipelines. Often, the specific filters
 suggested for pipelines can be different, requiring each pipeline to
 have a step where summary statistics are “munged”.
 
-tidyGWAS aims to provide a standardized format *before* before any
+tidyGWAS aims to provide a standardized format *before* any
 pipeline specific munging is done. With that in mind, tidyGWAS is
 conservative in removing rows, and by default keeps both indels and
 multi-allelic variants.
@@ -43,7 +45,7 @@ multi-allelic variants.
         2.225074e-308 (minimum pvalue in R)
 
 8.  Imputation of missing columns: RSID from CHR:POS or CHR:POS from
-    RSID. Any of B,SE, P, Z if missing and possible
+    RSID. Any of B,SE, P, Z, N and EAF if missing and possible
 
 9.  Validation of CHR:POS:RSID by matching with dbSNP v.155
 
@@ -59,5 +61,5 @@ The computationally intensive part of aligning summary statistics with
 dbSNP 155 (\> 940 million rows) for both GRCh37 and GRCh38 (in total 1.8
 billion rows) is implemented using the [Apache Arrow
 R](https://arrow.apache.org/docs/r/) implementation, allowing for the
-full function to run in \<5 minutes, using less than 16gb, with ~7
+full function to run in \<3 minutes, using less than 16gb, with ~7
 million rows on a Macbook Pro M2.
