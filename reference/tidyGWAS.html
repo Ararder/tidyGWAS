@@ -31,7 +31,7 @@ while other formats use A1 as non-effect allele."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -89,7 +89,8 @@ while other formats use A1 as non-effect allele.</p>
 <span>  CaseN <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ControlN <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  N <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  impute_freq <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  impute_freq <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"None"</span>, <span class="st">"EUR"</span>, <span class="st">"AMR"</span>, <span class="st">"AFR"</span>, <span class="st">"SAS"</span>, <span class="st">"EAS"</span><span class="op">)</span>,</span>
+<span>  impute_freq_file <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  impute_n <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  allow_duplications <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  build <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NA"</span>, <span class="st">"37"</span>, <span class="st">"38"</span><span class="op">)</span>,</span>
@@ -110,7 +111,7 @@ while other formats use A1 as non-effect allele.</p>
 
 
 <dt id="arg-dbsnp-path">dbsnp_path<a class="anchor" aria-label="anchor" href="#arg-dbsnp-path"></a></dt>
-<dd><p>filepath to the dbSNP155 directory (untarred dbSNP155.tar)</p></dd>
+<dd><p>filepath to the dbSNP155 directory</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
@@ -148,14 +149,18 @@ meaning that tidyGWAS output will not be saved by default over R sessions.</p></
 
 
 <dt id="arg-impute-freq">impute_freq<a class="anchor" aria-label="anchor" href="#arg-impute-freq"></a></dt>
-<dd><p>Should allele frequency be imputed if it's missing?
-Provide a filepath to a .parquet file with columns RSID, EffectAllele, OtherAllele, EAF.
-where EAF corresponds to frequency of the EffectAllele.</p></dd>
+<dd><p>one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
+Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used</p></dd>
+
+
+<dt id="arg-impute-freq-file">impute_freq_file<a class="anchor" aria-label="anchor" href="#arg-impute-freq-file"></a></dt>
+<dd><p>filepath to a .parquet file with custom allele frequencies.
+The file needs to be a tabular dataframe with columns RSID, EffectAllele, OtherAllele, EAF.
+EAF should correspond to the frequency of the EffectAllele.</p></dd>
 
 
 <dt id="arg-impute-n">impute_n<a class="anchor" aria-label="anchor" href="#arg-impute-n"></a></dt>
-<dd><p>Should N be imputed if it's missing? see discussion in:
-https://github.com/GenomicSEM/GenomicSEM/wiki/2.1-Calculating-Sum-of-Effective-Sample-Size-and-Preparing-GWAS-Summary-Statistics</p></dd>
+<dd><p>Should N be imputed if it's missing?</p></dd>
 
 
 <dt id="arg-allow-duplications">allow_duplications<a class="anchor" aria-label="anchor" href="#arg-allow-duplications"></a></dt>

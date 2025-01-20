@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.7</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,9 +75,9 @@
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ararder/tidyGWAS"</span><span class="op">)</span></span></code></pre></div>
 <p>Secondly, you will need to download the reference data. tidyGWAS uses
-a slightly edited version of dbSNP v155, that is available <a href="https://zenodo.org/records/12805493" class="external-link">here</a>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">wget</span> https://zenodo.org/records/12805493/files/dbSNP155_v0.9.tar</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> dbSNP155_v0.9.tar</span></code></pre></div>
+a slightly edited version of dbSNP v155, that is available <a href="https://zenodo.org/records/14697504" class="external-link">here</a>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">wget</span> https://zenodo.org/records/14697504/files/dbSNP155.tar</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">tar</span> <span class="at">-xvf</span> dbSNP155.tar</span></code></pre></div>
 <div class="section level3">
 <h3 id="using-an-apptainer-or-docker-container-instead">Using an apptainer or docker container instead<a class="anchor" aria-label="anchor" href="#using-an-apptainer-or-docker-container-instead"></a>
 </h3>
@@ -160,11 +160,14 @@ session is ended.</li>
 <span>  dbsnp_path <span class="op">=</span> <span class="va">dbsnp_path</span>,</span>
 <span>  output_dir <span class="op">=</span> <span class="va">out</span></span>
 <span><span class="op">)</span></span>
+<span><span class="co">#&gt; Parsing input summary statistics...</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.7</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
-<span><span class="co">#&gt; Starting at 2025-01-18 08:52:59.332876</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.9</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Starting at 2025-01-20 11:15:54.295288</span></span>
 <span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpYKWnnZ/file1dd2695a2a36</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -234,7 +237,7 @@ session is ended.</li>
 <span><span class="co">#&gt; 99 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 21 rows with no dbSNP entry or with incompat alleles</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpYKWnnZ/file1dd2695a2a36/pipeline_info/removed_nodbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63/pipeline_info/removed_nodbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -261,9 +264,9 @@ session is ended.</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 21 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 3.6s</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpYKWnnZ/file1dd2695a2a36/metadata.yaml</span></span></span>
+<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63/metadata.yaml</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 99,979 × 20</span></span></span>
 <span><span class="co">#&gt;    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -287,57 +290,57 @@ session is ended.</li>
 <p>tidyGWAS returns all its output in a directory.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="co">#&gt; /tmp/RtmpYKWnnZ/file1dd2695a2a36</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmpdz6Bd0/file1db27d32ec63</span></span></span>
 <span><span class="co">#&gt; ├── metadata.yaml</span></span>
-<span><span class="co">#&gt; ├── pipeline_info</span></span>
+<span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">pipeline_info</span></span></span>
 <span><span class="co">#&gt; │   ├── removed_nodbsnp.parquet</span></span>
 <span><span class="co">#&gt; │   └── removed_validate_chr_pos_path.parquet.parquet</span></span>
-<span><span class="co">#&gt; ├── raw</span></span>
+<span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">raw</span></span></span>
 <span><span class="co">#&gt; │   └── sumstats.tsv.gz.parquet</span></span>
-<span><span class="co">#&gt; └── tidyGWAS_hivestyle</span></span>
-<span><span class="co">#&gt;     ├── CHR=1</span></span>
+<span><span class="co">#&gt; └── <span style="color: #0000BB; font-weight: bold;">tidyGWAS_hivestyle</span></span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=1</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=10</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=10</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=11</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=11</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=12</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=12</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=13</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=13</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=14</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=14</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=15</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=15</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=16</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=16</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=17</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=17</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=18</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=18</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=19</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=19</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=2</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=2</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=20</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=20</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=21</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=21</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=22</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=22</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=3</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=3</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=4</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=4</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=5</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=5</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=6</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=6</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=7</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=7</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     ├── CHR=8</span></span>
+<span><span class="co">#&gt;     ├── <span style="color: #0000BB; font-weight: bold;">CHR=8</span></span></span>
 <span><span class="co">#&gt;     │   └── part-0.parquet</span></span>
-<span><span class="co">#&gt;     └── CHR=9</span></span>
+<span><span class="co">#&gt;     └── <span style="color: #0000BB; font-weight: bold;">CHR=9</span></span></span>
 <span><span class="co">#&gt;         └── part-0.parquet</span></span></code></pre></div>
 <p>That’s a lot of files!</p>
 <ol style="list-style-type: decimal">
