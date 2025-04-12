@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">tidyGWAS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.9.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -129,13 +129,14 @@ like. A detailed explanation of the different arguments follows.</p>
 <ol style="list-style-type: decimal">
 <li>Here a filepath to a gzipped tsv file is passed, along with
 <code>delim</code> = <code>"\t"</code>. tidyGWAS uses
-[arrow::read_delim_arrow()] to read in files from disk. If you have
-trouble with parsing the file correctly, use another package such as
-[data.table::fread()] or [readr::read_table()] to first read in the into
-memory, and then pass the in-memory data.frame to tidyGWAS.</li>
+<code><a href="https://arrow.apache.org/docs/r/reference/read_delim_arrow.html" class="external-link">arrow::read_delim_arrow()</a></code> to read in files from disk. If
+you have trouble with parsing the file correctly, use another package
+such as <code>data.table::fread()</code> or
+<code>readr::read_table()</code> to first read in the into memory, and
+then pass the in-memory data.frame to tidyGWAS.</li>
 <li>
 <code>dbsnp_path = dbsnp_path</code> gives the filepath to the
-reference data</li>
+reference data.</li>
 <li>
 <code>output_dir = out</code> gives the filepath to the output
 directory that tidyGWAS will create. The directory cannot exist yet - to
@@ -148,8 +149,8 @@ session is ended.</li>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://arvidharder.com/tidyGWAS/">tidyGWAS</a></span><span class="op">)</span></span>
 <span><span class="co"># we use the dummy version of dbSNP that comes with the package</span></span>
 <span><span class="va">dbsnp_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/dbSNP155"</span>, package <span class="op">=</span> <span class="st">"tidyGWAS"</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># a dummy sumstats with 100 000 rows</span></span>
-<span><span class="co"># gwas &lt;- system.file("extdata", package="tidyGWAS") |&gt; paste0("/sumstats.tsv.gz")</span></span>
 <span><span class="va">gwas</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/sumstats.tsv.gz"</span>, package <span class="op">=</span> <span class="st">"tidyGWAS"</span><span class="op">)</span></span>
 <span><span class="co"># store the results in a temporary directory</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span><span class="op">)</span></span>
@@ -163,11 +164,11 @@ session is ended.</li>
 <span><span class="co">#&gt; Parsing input summary statistics...</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.9</span> <span style="color: #00BBBB;">──────────────────────────────────────────────────────</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;">Running </span><span style="color: #0000BB; font-weight: bold;">tidyGWAS 0.9.9.1</span> <span style="color: #00BBBB;">────────────────────────────────────────────────────</span></span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Starting at 2025-01-20 11:15:54.295288</span></span>
+<span><span class="co">#&gt; Starting at 2025-04-12 14:02:51.002002</span></span>
 <span><span class="co">#&gt; with 100000 rows in input data.frame</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63</span></span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Saving output in folder: <span style="color: #0000BB;">/tmp/RtmpD8T39g/file1d4c753635ad</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
@@ -237,7 +238,7 @@ session is ended.</li>
 <span><span class="co">#&gt; 99 snps matched GRCh38, 9998 for GRCh37, inferring build to be 37</span></span>
 <span><span class="co">#&gt; <span style="color: #BBBB00;">!</span> Removed 21 rows with no dbSNP entry or with incompat alleles</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63/pipeline_info/removed_nodbsnp.parquet</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">/tmp/RtmpD8T39g/file1d4c753635ad/pipeline_info/removed_nodbsnp.parquet</span></span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; ── <span style="font-weight: bold;">6) Repairing missings statistics columns if possible</span> ──</span></span>
@@ -264,9 +265,9 @@ session is ended.</li>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> A total of 21 rows were removed</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 3.6s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Total running time: 4s</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/Rtmpdz6Bd0/file1db27d32ec63/metadata.yaml</span></span></span>
+<span><span class="co">#&gt; Saving metadata from analysis to <span style="color: #0000BB;">/tmp/RtmpD8T39g/file1d4c753635ad/metadata.yaml</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 99,979 × 20</span></span></span>
 <span><span class="co">#&gt;    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
@@ -281,7 +282,7 @@ session is ended.</li>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 6     3.11<span style="color: #949494;">e</span>7 C            T           <span style="text-decoration: underline;">17</span>683 0.143 1.54<span style="color: #949494;">e</span><span style="color: #BB0000;">-25</span> 0.013<span style="text-decoration: underline;">7</span> 1     <span style="text-decoration: underline;">53</span>386</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 6     3.03<span style="color: #949494;">e</span>7 A            G           <span style="text-decoration: underline;">71</span>635 0.154 2.58<span style="color: #949494;">e</span><span style="color: #BB0000;">-25</span> 0.014<span style="text-decoration: underline;">8</span> 0.992 <span style="text-decoration: underline;">49</span>683</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 99,969 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 10 more variables: ControlN &lt;int&gt;, EAF &lt;dbl&gt;, EffectiveN &lt;dbl&gt;, N &lt;int&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 10 more variables: ControlN &lt;int&gt;, EAF &lt;dbl&gt;, EffectiveN &lt;int&gt;, N &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   POS_38 &lt;int&gt;, RSID &lt;chr&gt;, REF_37 &lt;chr&gt;, REF_38 &lt;chr&gt;, multi_allelic &lt;lgl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   Z &lt;dbl&gt;</span></span></span></code></pre></div>
 <div class="section level4">
@@ -290,7 +291,7 @@ session is ended.</li>
 <p>tidyGWAS returns all its output in a directory.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fs</span><span class="fu">::</span><span class="fu"><a href="https://fs.r-lib.org/reference/dir_tree.html" class="external-link">dir_tree</a></span><span class="op">(</span><span class="va">out</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/Rtmpdz6Bd0/file1db27d32ec63</span></span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB; font-weight: bold;">/tmp/RtmpD8T39g/file1d4c753635ad</span></span></span>
 <span><span class="co">#&gt; ├── metadata.yaml</span></span>
 <span><span class="co">#&gt; ├── <span style="color: #0000BB; font-weight: bold;">pipeline_info</span></span></span>
 <span><span class="co">#&gt; │   ├── removed_nodbsnp.parquet</span></span>
@@ -532,8 +533,6 @@ statistics the file in <code>raw</code>, so that any row can be mapped
 back to it’s original values.</p></li>
 <li><p><code>indel</code> TRUE/FALSE whether the variant is of type
 INsertion/DELetion</p></li>
-<li><p><code>id</code> variant ID in the format of
-<code>CHR:POS:REF:ALT</code></p></li>
 <li><p>All other valid columns in the input summary statistics
 file</p></li>
 <li><p>If possible <code><a href="../reference/repair_stats.html">repair_stats()</a></code> will add statistics
@@ -566,14 +565,10 @@ example below, the “–cpus-per-task” flag)</p>
 <h2 id="computational-cost-and-memory-usage">Computational cost and memory usage<a class="anchor" aria-label="anchor" href="#computational-cost-and-memory-usage"></a>
 </h2>
 <p>Memory use and time scales with the size of the summary statistics.
-From running tidyGWAS, here’s an estimation:</p>
-<p>The memory usage will likely be the main constraint with increasing
-size of summary statistics.</p>
-<ol style="list-style-type: decimal">
-<li>20 million rows ~20gb</li>
-<li>40 million rows ~40gb</li>
-<li>60 million rows ~75gb</li>
-</ol>
+From running tidyGWAS, here’s an estimation. Especially, if the summary
+statistics are missing CHR and POS, tidyGWAS will require additional
+memory. 1. 10 million rows ~ 5-15gb 2. 40 million rows 10-40gb 3. 60
+million rows 65-85gb</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
