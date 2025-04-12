@@ -90,12 +90,12 @@ Provide tidyGWAS either with an in-memory `dplyr::tibble()` or a
 filepath.
 
 1.  Here a filepath to a gzipped tsv file is passed, along with `delim`
-    = `"\t"`. tidyGWAS uses [arrow::read_delim_arrow()] to read in files
+    = `"\t"`. tidyGWAS uses `arrow::read_delim_arrow()` to read in files
     from disk. If you have trouble with parsing the file correctly, use
-    another package such as [data.table::fread()] or
-    [readr::read_table()] to first read in the into memory, and then
+    another package such as `data.table::fread()` or
+    `readr::read_table()` to first read in the into memory, and then
     pass the in-memory data.frame to tidyGWAS.
-2.  `dbsnp_path = dbsnp_path` gives the filepath to the reference data
+2.  `dbsnp_path = dbsnp_path` gives the filepath to the reference data.
 3.  `output_dir = out` gives the filepath to the output directory that
     tidyGWAS will create. The directory cannot exist yet - to protect
     for accidently overwriting files. If no argument is passed to
@@ -107,8 +107,8 @@ filepath.
 library(tidyGWAS)
 # we use the dummy version of dbSNP that comes with the package
 dbsnp_path <- system.file("extdata/dbSNP155", package = "tidyGWAS")
+
 # a dummy sumstats with 100 000 rows
-# gwas <- system.file("extdata", package="tidyGWAS") |> paste0("/sumstats.tsv.gz")
 gwas <- system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS")
 # store the results in a temporary directory
 out <- tempfile()
@@ -336,11 +336,9 @@ addition to saving and validating all valid columns in the input file.
 
 7.  `indel` TRUE/FALSE whether the variant is of type INsertion/DELetion
 
-8.  `id` variant ID in the format of `CHR:POS:REF:ALT`
+8.  All other valid columns in the input summary statistics file
 
-9.  All other valid columns in the input summary statistics file
-
-10. If possible `repair_stats()` will add statistics columns such as
+9. If possible `repair_stats()` will add statistics columns such as
     `B, P, SE, Z`, if they are missing and possible to repair.
 
 # Parallel computation
@@ -369,11 +367,9 @@ Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandA
 # Computational cost and memory usage
 
 Memory use and time scales with the size of the summary statistics. From
-running tidyGWAS, here's an estimation:
+running tidyGWAS, here's an estimation. Especially, if the summary statistics are
+missing CHR and POS, tidyGWAS will require additional memory.
+1.  10 million rows ~ 5-15gb
+2.  40 million rows 10-40gb
+3.  60 million rows 65-85gb
 
-The memory usage will likely be the main constraint with increasing size
-of summary statistics.
-
-1.  20 million rows \~20gb
-2.  40 million rows \~40gb
-3.  60 million rows \~75gb

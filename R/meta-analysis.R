@@ -1,5 +1,5 @@
 utils::globalVariables(
-  c("REF", "EA_is_ref", "CHR", "ID", "W", "N_info", "INFO","tmp", "EffectiveN", "N_EAF")
+  c("REF", "EA_is_ref", "CHR", "ID", "W", "N_info", "INFO","tmp", "EffectiveN", "N_EAF", "tdg_path", "name")
 )
 
 
@@ -163,5 +163,32 @@ handle_info_eaf <- function(query) {
 
   }
 
+}
+
+
+
+#' Create a data lake in hivestyle format
+#'
+#' @param dir a directory containing tidyGWAS cleaned summary statistics.
+#'  Each directory should contain a tidyGWAS_hivestyle directory.
+#' @param lake a directory to create the data lake in.
+#'
+#' @returns NULL
+#' @export
+#'
+#' @examples \dontrun{
+#' # create_lake("/path/to/dir", "/path/to/lake")
+#' }
+create_lake <- function(dir, lake) {
+  paths <- fs::dir_ls(dir, type = "dir", glob = "*tidyGWAS_hivestyle", recurse = 1)
+  fs::dir_create(lake)
+
+  tbl <- dplyr::tibble(
+    tdg_path = paths,
+    name = fs::path_dir(tdg_path) |> fs::path_file(),
+    new_path = fs::path(lake, paste0("dataset_name=",name))
+  )
+
+  fs::link_create(tbl$tdg_path, tbl$new_path)
 }
 

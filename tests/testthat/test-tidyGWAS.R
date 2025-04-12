@@ -95,6 +95,75 @@ test_that("POS column is removed if exist in indels",{
     expect_false("POS" %in% colnames(res))
 
 })
+
+
+test_that("Handles only RSID and no non-rsid values", {
+  tmp_test <- test_sumstat
+  tmp_test$CHR <- NULL
+  tmp_test$POS <- NULL
+  tmp_test1 <- dplyr::filter(tmp_test, stringr::str_detect(RSID, "rs"))
+
+
+  expect_no_error(
+    tidyGWAS(
+      tbl = tmp_test1,
+      dbsnp_path = dbsnp_path
+    )
+  )
+
+  expect_no_error(
+    tidyGWAS(
+      tbl = tmp_test,
+      dbsnp_path = dbsnp_path
+    )
+  )
+
+
+
+})
+
+test_that("Handles duplications when chr-pos in RSID maps to existing row", {
+  tmp_test <- test_sumstat
+
+  add <- dplyr::slice(tmp_test,1:15) |>
+    dplyr::mutate(RSID = paste0(CHR, ":", POS)) |>
+    dplyr::select(-rowid)
+
+  add2 <- dplyr::slice(tmp_test,1:15) |>
+    dplyr::mutate(RSID = paste0("27", ":", POS)) |>
+    dplyr::select(-rowid)
+
+
+  tmp_test2 <- dplyr::bind_rows(add2, tmp_test) |> dplyr::select(-rowid, -CHR,-POS)
+  tmp_test <- dplyr::bind_rows(add, tmp_test) |> dplyr::select(-rowid)
+  tmp_test$CHR <- NULL
+  tmp_test$POS <- NULL
+
+
+
+  expect_no_error(
+    tidyGWAS(
+      tbl = tmp_test,
+      dbsnp_path = dbsnp_path
+    )
+  )
+
+  expect_no_error(
+    tidyGWAS(
+      tbl = tmp_test2,
+      dbsnp_path = dbsnp_path
+    )
+  )
+
+
+
+})
+
+
+
+
+
+
 test_that("Testing with CHR and POS", {
 
 
@@ -210,4 +279,8 @@ test_that("write_finished_tidyGWAS works", {
 
 
 })
+
+
+
+
 

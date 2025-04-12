@@ -186,21 +186,6 @@ check_columns <- function(columns, df) {
 
 
 
-create_id <- function(tbl, build = c("37", "38")) {
-  build <- rlang::arg_match(build)
-  ref_name <- paste0("REF_", build)
-  tbl |>
-    dplyr::mutate(
-      ref_allele = .data[[ref_name]],
-      POS = .data[[paste0("POS_", build)]]
-    ) |>
-    dplyr::mutate(
-      alt_allele = dplyr::if_else(ref_allele == EffectAllele, OtherAllele, EffectAllele),
-      ID = stringr::str_c(CHR, POS, ref_allele, alt_allele, sep = ":")
-    ) |>
-    dplyr::select(-"alt_allele", -"ref_allele", -"POS")
-
-}
 
 make_callback <- function(id) {
 
@@ -362,4 +347,26 @@ download_ref <- function(filepath) {
   rlang::is_scalar_character(filepath)
   stopifnot("The directory does not exist" = dir.exists(filepath))
 
+}
+
+
+
+
+apply_dbsnp_filter <- function(tbl, filepaths) {
+
+  n_before <- nrow(tbl)
+  before_filters <- tbl
+  tbl <- dplyr::filter(tbl, !no_dbsnp_entry & !incompat_alleles) |>
+    dplyr::select(-dplyr::all_of(c("no_dbsnp_entry", "incompat_alleles")))
+
+  removed_no_dbsnp <- dplyr::anti_join(before_filters, tbl, by = "rowid")
+  if(nrow(removed_no_dbsnp) > 0) {
+
+    cli::cli_alert_warning("Removed {nrow(removed_no_dbsnp)} rows with no dbSNP entry or with incompat alleles")
+    cli::cli_inform("{.file {filepaths$removed_no_dbsnp}}")
+    arrow::write_parquet(removed_no_dbsnp, filepaths$removed_no_dbsnp)
+
+  }
+
+  tbl
 }

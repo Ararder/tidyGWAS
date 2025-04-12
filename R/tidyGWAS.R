@@ -179,7 +179,7 @@ tidyGWAS <- function(
 
   indels <- tbl$indels
   if(nrow(indels) == 0) indels <- NULL
-  tbl <- tbl$main |> dplyr::mutate(indel = FALSE)
+  tbl <- dplyr::mutate(tbl$main, indel = FALSE)
 
 
   # 2 Drop na -----------------------------------------------------------------
@@ -229,6 +229,7 @@ tidyGWAS <- function(
 
     # -------------------------------------------------------------------------
     main <- repair_ids(tbl, build = inferred_build, dbsnp_path = dbsnp_path)
+    main <- apply_dbsnp_filter(main, filepaths)
 
   } else {
 
@@ -249,18 +250,23 @@ tidyGWAS <- function(
     # validate columns --------------------------------------------------------
 
     cli::cli_h3("4a) Validating columns with a valid RSID")
+    cli::cli_inform("Number of rows with valid RSID: {nrow(tbl)}")
     main_callback <- make_callback(filepaths$removed_validate_rsid)
     tbl <- validate_sumstat(tbl, filter_func = main_callback, convert_p = convert_p)
-
-    cli::cli_h3("4b) Validating columns with CHR:POS in RSID column")
-    without_rsid_callback <- make_callback(filepaths$removed_validate_rsid_without_rsid)
-    without_rsid <- validate_sumstat(without_rsid, filter_func = main_callback, convert_p = convert_p)
-
-    cli::cli_h3("5) Adding CHR and POS based on RSID. Adding dbSNP based QC flags")
     main <- repair_ids(tbl, dbsnp_path = dbsnp_path, repair = "pos")
-    without_rsid <- repair_ids(without_rsid, dbsnp_path = dbsnp_path, repair = "rsid")
-    main <- dplyr::bind_rows(main, without_rsid)
 
+    if(!is.null(without_rsid)) {
+      cli::cli_h3("4b) Validating columns with CHR:POS in RSID column")
+      cli::cli_inform("Number of rows with CHR:POS in RSID column: {nrow(without_rsid)}")
+
+      without_rsid_callback <- make_callback(filepaths$removed_validate_rsid_without_rsid)
+      without_rsid <- validate_sumstat(without_rsid, filter_func = main_callback, convert_p = convert_p)
+      without_rsid <- repair_ids(without_rsid, dbsnp_path = dbsnp_path, repair = "rsid")
+
+      main <- dplyr::bind_rows(main, without_rsid)
+    }
+
+    main <- apply_dbsnp_filter(main, filepaths)
 
     # -------------------------------------------------------------------------
     # possible that rows coded as CHR:POS in the RSID column are actually
@@ -291,21 +297,6 @@ tidyGWAS <- function(
 
 
   # apply filters -----------------------------------------------------------
-
-  # no dbSNP mapping
-  n_before <- nrow(main)
-  before_filters <- main
-  main <- dplyr::filter(main, !no_dbsnp_entry & !incompat_alleles) |>
-    dplyr::select(-dplyr::all_of(c("no_dbsnp_entry", "incompat_alleles")))
-
-  removed_no_dbsnp <- dplyr::anti_join(before_filters, main, by = "rowid")
-  if(nrow(removed_no_dbsnp) > 0) {
-
-    cli::cli_alert_warning("Removed {nrow(removed_no_dbsnp)} rows with no dbSNP entry or with incompat alleles")
-    cli::cli_inform("{.file {filepaths$removed_no_dbsnp}}")
-    arrow::write_parquet(removed_no_dbsnp, filepaths$removed_no_dbsnp)
-
-  }
 
   main <-
     flag_duplicates(main, column = "rsid") |>
