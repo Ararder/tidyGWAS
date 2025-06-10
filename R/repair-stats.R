@@ -22,15 +22,21 @@ repair_stats <- function(tbl, dbsnp_path, impute_freq = c("None", "EUR", "AMR", 
     cli::cli_alert_info("Imputing allele frequency using 1000G data, using population: {impute_freq}")
     df_eaf <- arrow::open_dataset(paste0(dbsnp_path, "/EAF_REF_1KG")) |>
       dplyr::filter(.data[["ancestry"]] == impute_freq) |>
+      dplyr::select(CHR, POS_38 = POS, EffectAllele, OtherAllele, EAF) |>
       dplyr::collect()
     repair_eaf <- TRUE
+
   } else if(!is.null(impute_freq_file)) {
+
     cli::cli_alert_info("Imputing allele frequency using custom frequency file")
     df_eaf <- arrow::read_parquet(impute_freq_file)
     stopifnot(all(c("RSID", "EffectAllele", "OtherAllele", "EAF") %in% colnames(df_eaf)))
     repair_eaf <- TRUE
+
   } else {
+
     repair_eaf <- FALSE
+
   }
 
 
@@ -38,14 +44,16 @@ repair_stats <- function(tbl, dbsnp_path, impute_freq = c("None", "EUR", "AMR", 
   if(repair_eaf & !"EAF" %in% colnames(tbl)) {
 
 
-    tbl1 <- dplyr::inner_join(tbl, df_eaf, by = c("RSID", "EffectAllele", "OtherAllele")) |>
-      dplyr::select(c("RSID", "EffectAllele", "OtherAllele", "EAF"))
-    tbl2 <- dplyr::inner_join(tbl, df_eaf, by = c("RSID", "EffectAllele" ="OtherAllele", "OtherAllele" = "EffectAllele")) |>
+    tbl1 <- dplyr::inner_join(tbl, df_eaf, by = c("CHR","POS_38", "EffectAllele", "OtherAllele")) |>
+      dplyr::select(c("CHR","POS_38", "EffectAllele", "OtherAllele", "EAF"))
+
+    tbl2 <- dplyr::inner_join(tbl, df_eaf, by = c("CHR","POS_38", "EffectAllele" ="OtherAllele", "OtherAllele" = "EffectAllele")) |>
       dplyr::mutate(EAF = 1-EAF) |>
-      dplyr::select(c("RSID", "EffectAllele", "OtherAllele", "EAF"))
+      dplyr::select(c("CHR","POS_38", "EffectAllele", "OtherAllele", "EAF"))
+
     final_eaf <- dplyr::bind_rows(tbl1, tbl2)
     cli::cli_alert_success("Was able to add allele frequency for {nrow(final_eaf)} / {nrow(tbl)} SNPs")
-    tbl <- dplyr::left_join(tbl, final_eaf, by = c("RSID", "EffectAllele", "OtherAllele"))
+    tbl <- dplyr::left_join(tbl, final_eaf, by = c("CHR","POS_38", "EffectAllele", "OtherAllele"))
 
 
 

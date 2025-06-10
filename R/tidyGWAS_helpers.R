@@ -11,7 +11,7 @@ parse_tbl <- function(tbl, ...) {
     ncols <- length(colnames(tbl))
     if(ncols <= 3) {
       stop(glue::glue("Only {ncols} columns in the file. At least 3 columns are required.
-                      Most likely you forgot to use the `delim` argument to specify the delimiter."))
+                      Did you forgot to use the `delim` argument to specify the delimiter?"))
     }
 
 

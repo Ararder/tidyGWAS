@@ -280,6 +280,18 @@ test_that("write_finished_tidyGWAS works", {
 
 })
 
+test_that("repair allele frequency works", {
+  skip("requires local")
+  dbsnp_path <- "~/Downloads/dbSNP155/"
+
+  tidyGWAS(
+    dplyr::select(tbl, -EAF),
+    dbsnp_path = dbsnp_path,
+    impute_freq = "EUR"
+  )
+
+})
+
 
 
 

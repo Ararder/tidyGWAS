@@ -63,3 +63,20 @@ sub <- df |>
   dplyr::filter(RSID %in% all$RSID)
 
 arrow::write_parquet(sub, test_path("fixtures/HRC_eur_0.001.parquet"))
+
+
+
+#  make EAF V2 ------------------------------------------------------------
+df <- arrow::open_dataset(test_path("fixtures/dbSNP155/v155")) |> dplyr::collect()
+all <- arrow::open_dataset("~/Downloads/dbSNP155/EAF_REF_1KG/")
+
+colnames(df)
+all |>
+  dplyr::mutate(POS = as.integer(POS)) |>
+  dplyr::semi_join(df, by = c("CHR" ="CHR", "POS" = "POS_38")) |>
+    dplyr::group_by(ancestry) |>
+    arrow::write_dataset(test_path("fixtures/dbSNP155/EAF_REF_1KG/"))
+
+
+arrow::open_dataset(test_path("fixtures/dbSNP155/EAF_REF_1KG/")) |> dplyr::collect()
+

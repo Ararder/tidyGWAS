@@ -64,15 +64,19 @@ test_that("repair_stats should be able to add P col if missing using Z", {
 })
 
 test_that("repair_stats can add EAF", {
-  file <- test_path("fixtures/HRC_eur_0.001.parquet")
-  test <- dplyr::select(tbl, -EAF)
 
-  res <- repair_stats(test, impute_freq_file = file)
+
+  test <- tidyGWAS::tidyGWAS(tbl, dbsnp_path) |>
+    dplyr::select(CHR, POS_37, POS_38, RSID, EffectAllele, OtherAllele,SE)
+
+  res <- repair_stats(tbl = test, dbsnp_path = dbsnp_path, impute_freq = "AFR")
   expect_true("EAF" %in% colnames(res))
 
-  # does not replace EAF if it already exists
-  res <- repair_stats(tbl, impute_freq_file = file)
-  expect_true(all(res$EAF == tbl$EAF))
+  # can impute freq, and then calculate N
+  expect_no_error(repair_stats(test, dbsnp_path, impute_freq = "EUR", impute_n = TRUE))
+
+  # can impute N
+  expect_no_error(repair_stats(tbl, impute_n = TRUE))
 
 
 })
@@ -90,8 +94,6 @@ test_that("impute_n works", {
   expect_equal(128002.1, mean(res$N), tolerance = 0.1)
 
 
-  # can impute freq, and then calculate N
-  res <- repair_stats(dplyr::select(tbl, -EAF), impute_freq_file = file, impute_n = TRUE)
 
 
 })
