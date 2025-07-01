@@ -153,22 +153,7 @@ standardize_column_order <- function(tbl) {
 
 }
 
-update_column_names <- function(tbl, column_map, CaseN = NULL, ControlN =NULL, N=NULL) {
 
-
-  if(!missing(column_map)) {
-    check_columns(column_map, tbl)
-    tbl <- dplyr::rename(tbl, !!!column_map)
-  }
-
-  if(!is.null(CaseN)) tbl <- dplyr::mutate(tbl, CaseN =  {{ CaseN }})
-  if(!is.null(ControlN)) tbl <- dplyr::mutate(tbl, ControlN =  {{ ControlN }})
-  if(!is.null(N)) tbl <- dplyr::mutate(tbl, N = {{ N }})
-
-
-
-  tbl
-}
 
 
 check_columns <- function(columns, df) {

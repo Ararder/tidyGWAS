@@ -3,29 +3,6 @@
 
 # tidyGWAS ----------------------------------------------------------------
 
-test_that("Can update column names", {
-  column_map <- list(
-    CHR = "chrom",
-    POS = "position",
-    RSID = "SNP",
-    EffectAllele = "A1",
-    OtherAllele = "A2"
-  )
-  tbl <- dplyr::rename(
-    tbl,
-    chrom = CHR,
-    position = POS,
-    SNP = RSID,
-    A1 = EffectAllele,
-    A2 = OtherAllele
-  )
-
-  expect_no_error(
-    update_column_names(tbl, column_map, CaseN = NULL, ControlN = NULL, N = NULL)
-  )
-
-
-})
 
 
 test_that("Can parse file from disk with different column names", {

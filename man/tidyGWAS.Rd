@@ -8,7 +8,7 @@ tidyGWAS(
   tbl,
   dbsnp_path,
   ...,
-  column_names,
+  column_names = NULL,
   output_format = c("hivestyle", "parquet", "csv"),
   output_dir = tempfile(),
   CaseN = NULL,

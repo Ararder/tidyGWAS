@@ -1,3 +1,13 @@
+
+
+# tidyGWAS 0.9.9.2
+Version bumping. 1.0 will come when manuscript is accepted.
+Updates:
+1. Added experimental support for automatic column name guessing
+2. Added experimental support for downloading and cleaning files directly from
+GWAS catalog, using only study_id
+
+
 # tidyGWAS 0.9.9
 Added reference allele frequencies to the dbSNP155 reference data from zenodo.
 Added the options to impute allele frequenecy from this reference data.

@@ -81,7 +81,7 @@ tidyGWAS <- function(
     tbl,
     dbsnp_path,
     ...,
-    column_names,
+    column_names = NULL,
     output_format = c("hivestyle","parquet", "csv"),
     output_dir = tempfile(),
     CaseN = NULL,
@@ -163,10 +163,19 @@ tidyGWAS <- function(
 
 
   # start of pipeline ----------------------------------------------------------
+  if(!is.null(CaseN)) tbl <- dplyr::mutate(tbl, CaseN =  {{ CaseN }})
+  if(!is.null(ControlN)) tbl <- dplyr::mutate(tbl, ControlN =  {{ ControlN }})
+  if(!is.null(N)) tbl <- dplyr::mutate(tbl, N = {{ N }})
+
   # 0) formatting --------------------------------------------------------------
+  if(is.null(column_names)) {
+    tbl <- guess_names(tbl)
 
+  } else {
+    check_columns(column_names, tbl)
+    tbl <- dplyr::rename(tbl, !!!column_names)
+  }
 
-  if(!missing(column_names)) tbl <- update_column_names(tbl, column_names, CaseN = CaseN, ControlN=ControlN, N=N)
 
   tbl <- select_correct_columns(tbl)
 
