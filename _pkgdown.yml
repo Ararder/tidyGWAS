@@ -10,6 +10,9 @@ reference:
   - validate_rsid
   - infer_build
   - repair_ids
+- subtitle: Interact with GWAS catalog
+  contents:
+  - from_gwas_catalog
 
 - subtitle: Validating columns
   contents:
