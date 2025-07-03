@@ -15,6 +15,7 @@ reference:
   - from_gwas_catalog
   - from_gwas_catalog_region
   - get_open_targets_cs
+  - check_rest_avail
 
 - subtitle: Validating columns
   contents:
