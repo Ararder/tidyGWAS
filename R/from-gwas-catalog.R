@@ -2,7 +2,6 @@
 #'
 #' @param study_id A single character string with study ID, e.g. "GCST90475332"
 #' @param quiet TRUE/FALSE - controls progress bar for downloading
-#' @param harmonised TRUE/FALSE - whether to download harmonised summary statistics
 #'
 #' @returns a filepath to downloaded summary statistics
 #' @export
@@ -28,31 +27,14 @@ from_gwas_catalog <- function(study_id, quiet = FALSE, harmonised = FALSE) {
   gwas_file <- fs::path(workdir, fs::path_file(picked$gwas))
 
   # download meta file and print it?
-  curl::curl_download(url = picked$yaml, destfile = meta_file)
-  # meta <- yaml::read_yaml(meta_file)
+
 
   cli::cli_alert_info("Downloading GWAS summary statistics {.path {gwas_file}}")
+  curl::curl_download(url = picked$yaml, destfile = meta_file)
   curl::curl_download(url = picked$gwas, destfile = gwas_file, quiet = quiet)
 
   gwas_file
 }
-
-check_sumstats_avail <- function(
-    study_id,
-    server = "https://www.ebi.ac.uk/gwas/rest/api"
-) {
-  resp <- httr::GET(
-    paste0(server, "/studies/", study_id),
-    httr::accept("application/json")
-  )
-  httr::stop_for_status(resp)
-  jsonlite::fromJSON(httr::content(
-    resp,
-    "text",
-    encoding = "UTF-8"
-  ))$fullPvalueSet
-}
-
 
 
 get_study_id_url <- function(study_id) {
@@ -86,6 +68,7 @@ scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
 
 
 .pick_sumstats <- function(urls, harmonised = TRUE) {
+  ## 1. keep only real data files (drop .yaml, .tbi, .log, etc.)
 
 
   if (!length(urls)) {
@@ -117,3 +100,92 @@ scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
 
 }
 
+
+# -------------------------------------------------------------------------
+
+get_gwas_catalog_region <- function(study_id, chr, start, end) {
+  rlang::is_scalar_character(study_id) ||
+    cli::cli_abort(
+      "study_id: {.arg {study_id}} must be a single character string"
+    )
+  endpoint <- paste0(base_url, "/chromosomes/", chr, "/associations")
+  base_url <- "https://www.ebi.ac.uk/gwas/summary-statistics/api"
+
+  params <- list(
+    bp_lower = start,
+    bp_upper = end,
+    study_accession = study_id,
+    size = 5000
+  )
+
+  t <- .fetch_page(endpoint, params)
+
+  tidy_catalog_json(t)
+}
+
+
+check_sumstats_avail <- function(
+  study_id,
+  server = "https://www.ebi.ac.uk/gwas/rest/api"
+) {
+  resp <- httr::GET(
+    paste0(server, "/studies/", study_id),
+    httr::accept("application/json")
+  )
+  httr::stop_for_status(resp)
+  jsonlite::fromJSON(httr::content(
+    resp,
+    "text",
+    encoding = "UTF-8"
+  ))$fullPvalueSet
+}
+
+
+check_rest_avail <- function(study_id) {
+  url <- sprintf(
+    "https://www.ebi.ac.uk/gwas/summary-statistics/api/studies/%s",
+    study_id
+  )
+  httr::status_code(httr::GET(url, httr::user_agent("has_rest_api"))) == 200
+}
+
+
+# -------------------------------------------------------------------------
+
+.fetch_page <- function(url, query) {
+  resp <- httr::GET(url, query = query)
+  httr::stop_for_status(resp)
+
+  data <- jsonlite::fromJSON(
+    httr::content(resp, "text", encoding = "UTF-8"),
+    flatten = TRUE
+  )
+}
+
+
+variables <- c(
+  "variant_id",
+  "base_pair_location",
+  "effect_allele",
+  "other_allele",
+  "beta",
+  "se",
+  "effect_allele_frequency",
+  "odds_ratio",
+  "ci_lower",
+  "ci_upper",
+  "p_value"
+)
+
+tidy_catalog_json <- function(data) {
+  assocs <- data[["_embedded"]][["associations"]]
+  purrr::map(assocs, \(row) {
+    existing <- names(row)
+    does_exist <- intersect(variables, existing)
+
+    row[does_exist] |>
+      purrr::map(\(x) ifelse(is.null(x), NA, x)) |>
+      dplyr::as_tibble()
+  }) |>
+    purrr::list_rbind()
+}

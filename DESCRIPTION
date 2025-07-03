@@ -29,7 +29,8 @@ Imports:
     jsonlite,
     xml2,
     rvest,
-    fs
+    fs,
+    vctrs
 Suggests: 
     knitr,
     readr,
