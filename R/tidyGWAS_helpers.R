@@ -8,7 +8,7 @@ parse_tbl <- function(tbl, ...) {
       )
 
       fp <- from_gwas_catalog(study_id = tbl)
-      gwas <- arrow::read_delim_arrow(tbl, delim = "\t")
+      gwas <- arrow::read_delim_arrow(fp, delim = "\t")
     } else {
       file.exists(tbl) || cli::cli_abort(
         "File {.file {tbl}} does not exist. Please provide a valid file path."
