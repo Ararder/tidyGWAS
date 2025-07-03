@@ -88,8 +88,10 @@ get_study_id_url <- function(study_id) {
 
 
 scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
-  page <- xml2::read_html(url)
+  html_raw <- curl::curl_fetch_memory(url)$content
+  page <- xml2::read_html(rawToChar(html_raw))
   hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
+
   hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
   non_harmonised <- file.path(url, hrefs[!grepl("harmonised/", hrefs)])
 
