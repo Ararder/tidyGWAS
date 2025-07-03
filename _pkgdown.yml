@@ -10,10 +10,10 @@ reference:
   - validate_rsid
   - infer_build
   - repair_ids
-- subtitle: Interact with GWAS catalog and open targets
+- subtitle: Interact with GWAS catalog and Open Targets
   contents:
   - from_gwas_catalog
-  - get_gwas_catalog_region
+  - from_gwas_catalog_region
   - get_open_targets_cs
 
 - subtitle: Validating columns

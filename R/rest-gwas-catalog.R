@@ -43,6 +43,16 @@ from_gwas_catalog_region <- function(study_id, chr, start, end) {
 
 
 
+#' Check if API access is available for a GWAS catalog study
+#'
+#' @param study_id a study accession ID, e.g. "GCST000001"
+#'
+#' @returns TRUE if the REST API is available for the study, FALSE otherwise
+#' @export
+#'
+#' @examples \dontrun{
+#' #' check_rest_avail("GCST000001")
+#' }
 check_rest_avail <- function(study_id) {
   url <- sprintf(
     "https://www.ebi.ac.uk/gwas/summary-statistics/api/studies/%s",
