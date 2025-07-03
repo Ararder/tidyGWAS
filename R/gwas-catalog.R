@@ -12,17 +12,38 @@
 #' }
 from_gwas_catalog <- function(study_id, quiet = FALSE, harmonised = FALSE) {
   rlang::check_required(study_id)
-  rlang::is_scalar_logical(harmonised) || cli::cli_abort("harmonised: {.arg {harmonised}} must be a single logical value")
-  rlang::is_scalar_logical(quiet) || cli::cli_abort("quiet: {.arg {quiet}} must be a single logical value")
-  rlang::is_scalar_character(study_id) || cli::cli_abort("study_id: {.arg {study_id}} must be a single character string")
-  check_sumstats_avail(study_id) ||cli::cli_abort("Full summary statistics for {study_id} must be available in GWAS catalog")
-
+  rlang::is_scalar_logical(harmonised) ||
+    cli::cli_abort(
+      "harmonised: {.arg {harmonised}} must be a single logical value"
+    )
+  rlang::is_scalar_logical(quiet) ||
+    cli::cli_abort("quiet: {.arg {quiet}} must be a single logical value")
+  rlang::is_scalar_character(study_id) ||
+    cli::cli_abort(
+      "study_id: {.arg {study_id}} must be a single character string"
+    )
+  check_sumstats_avail(study_id) ||
+    cli::cli_abort(
+      "Full summary statistics for {study_id} must be available in GWAS catalog"
+    )
 
   workdir <- fs::dir_create(fs::path(tempdir(), study_id))
+  base_url <- get_study_id_url(study_id)
+
+  urls <- tryCatch(
+    scrape_dir(base_url),
+    error = function(e) {
+      if (startsWith(base_url, "https://")) {
+        cli::cli_alert_info("HTTPS blocked; retrying over HTTP")
+        scrape_dir(sub("^https", "http", base_url))
+      } else {
+        stop(e)
+      }
+    }
+  )
 
   all_urls <- scrape_dir(get_study_id_url(study_id))
   picked <- .pick_sumstats(all_urls, harmonised)
-
 
   meta_file <- fs::path(workdir, fs::path_file(picked$yaml))
   gwas_file <- fs::path(workdir, fs::path_file(picked$gwas))
@@ -38,8 +59,8 @@ from_gwas_catalog <- function(study_id, quiet = FALSE, harmonised = FALSE) {
 }
 
 check_sumstats_avail <- function(
-    study_id,
-    server = "https://www.ebi.ac.uk/gwas/rest/api"
+  study_id,
+  server = "https://www.ebi.ac.uk/gwas/rest/api"
 ) {
   resp <- httr::GET(
     paste0(server, "/studies/", study_id),
@@ -52,7 +73,6 @@ check_sumstats_avail <- function(
     encoding = "UTF-8"
   ))$fullPvalueSet
 }
-
 
 
 get_study_id_url <- function(study_id) {
@@ -86,8 +106,6 @@ scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
 
 
 .pick_sumstats <- function(urls, harmonised = TRUE) {
-
-
   if (!length(urls)) {
     cli::cli_abort(
       "No .tsv/.txt summary-statistics files found in the directory"
@@ -99,21 +117,16 @@ scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
     cli::cli_abort(
       "No harmonised summary-statistics files found in the directory"
     )
-  } else if(harmonised) {
-
+  } else if (harmonised) {
     gwas <- stringr::str_subset(urls[harmonised_files], "\\.tsv(\\.gz)?$")
     yaml <- stringr::str_subset(urls[harmonised_files], "meta.yaml$")
-  } else if(!harmonised) {
+  } else if (!harmonised) {
     gwas <- stringr::str_subset(urls[!harmonised_files], "\\.tsv(\\.gz)?$")
     yaml <- stringr::str_subset(urls[!harmonised_files], "meta.yaml$")
-
   }
 
   list(
     gwas = gwas,
     yaml = yaml
   )
-
-
 }
-
