@@ -2,7 +2,6 @@
 #'
 #' @param study_id A single character string with study ID, e.g. "GCST90475332"
 #' @param quiet TRUE/FALSE - controls progress bar for downloading
-#' @param harmonised TRUE/FALSE - whether to download harmonised summary statistics
 #'
 #' @returns a filepath to downloaded summary statistics
 #' @export
@@ -10,12 +9,9 @@
 #' @examples \dontrun{
 #' from_gwas_catalog("GCST90475332")
 #' }
-from_gwas_catalog <- function(study_id, quiet = FALSE, harmonised = FALSE) {
+from_gwas_catalog <- function(study_id, quiet = FALSE) {
   rlang::check_required(study_id)
-  rlang::is_scalar_logical(harmonised) ||
-    cli::cli_abort(
-      "harmonised: {.arg {harmonised}} must be a single logical value"
-    )
+
   rlang::is_scalar_logical(quiet) ||
     cli::cli_abort("quiet: {.arg {quiet}} must be a single logical value")
   rlang::is_scalar_character(study_id) ||
@@ -42,20 +38,44 @@ from_gwas_catalog <- function(study_id, quiet = FALSE, harmonised = FALSE) {
     }
   )
 
-  all_urls <- scrape_dir(get_study_id_url(study_id))
-  picked <- .pick_sumstats(all_urls, harmonised)
+  picked <- .pick_sumstats(urls, FALSE)
 
   meta_file <- fs::path(workdir, fs::path_file(picked$yaml))
   gwas_file <- fs::path(workdir, fs::path_file(picked$gwas))
 
   # download meta file and print it?
   curl::curl_download(url = picked$yaml, destfile = meta_file)
+  cli::cli_inform("meta data available at {.path {meta_file}}")
   # meta <- yaml::read_yaml(meta_file)
 
   cli::cli_alert_info("Downloading GWAS summary statistics {.path {gwas_file}}")
   curl::curl_download(url = picked$gwas, destfile = gwas_file, quiet = quiet)
 
   gwas_file
+}
+
+scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
+  html_raw <- curl::curl_fetch_memory(url)$content
+  page <- xml2::read_html(rawToChar(html_raw))
+  hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
+
+  hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
+  non_harmonised <- file.path(url, hrefs[!grepl("harmonised/", hrefs)])
+
+  # if (any(grepl("harmonised/", hrefs))) {
+  #   html_raw <- curl::curl_fetch_memory(file.path(url, "harmonised/"))$content
+  #   page <- xml2::read_html(rawToChar(html_raw))
+  #   hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
+  #
+  #   hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
+  #
+  #   c(non_harmonised, file.path(file.path(url, "harmonised"), hrefs))
+  # } else {
+  #   non_harmonised
+  # }
+  #
+  #
+  non_harmonised
 }
 
 check_sumstats_avail <- function(
@@ -87,24 +107,7 @@ get_study_id_url <- function(study_id) {
 }
 
 
-scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
-  html_raw <- curl::curl_fetch_memory(url)$content
-  page <- xml2::read_html(rawToChar(html_raw))
-  hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
 
-  hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
-  non_harmonised <- file.path(url, hrefs[!grepl("harmonised/", hrefs)])
-
-  if (any(grepl("harmonised/", hrefs))) {
-    page <- xml2::read_html(file.path(url, "harmonised/"))
-    hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
-    hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
-
-    c(non_harmonised, file.path(file.path(url, "harmonised"), hrefs))
-  } else {
-    non_harmonised
-  }
-}
 
 
 .pick_sumstats <- function(urls, harmonised = TRUE) {
