@@ -109,8 +109,8 @@ formats <- list(
       Z = "Z_STAT",
       N = "OBS_CT"
   ),
-  Finn_gen = list(
-    CHR = "chrom",
+  FINNGEN = list(
+    CHR = "#chrom",
     POS = "pos",
     RSID = "rsids",
     EffectAllele = "alt",
