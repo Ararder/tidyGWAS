@@ -108,10 +108,21 @@ formats <- list(
       SE = "LOG(OR)_SE",
       Z = "Z_STAT",
       N = "OBS_CT"
+  ),
+  Finn_gen = list(
+    CHR = "chrom",
+    POS = "pos",
+    RSID = "rsids",
+    EffectAllele = "alt",
+    OtherAllele = "ref",
+    EAF = "af_alt",
+    P = "pval",
+    B = "beta",
+    SE = "sebeta",
+    EAF = "af_alt"
   )
 
 )
-
 
 
 
