@@ -61,6 +61,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #'  EAF should correspond to the frequency of the EffectAllele.
 #' @param impute_n Should N be imputed if it's missing?
 #' @param allow_duplications Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats
+#' @param min_EAF Apply a filter on allele frequency prior to applying the algorithm. Useful to speed up cleaning of very large files
 #' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
 #' @param indel_strategy Should indels be kept or removed?
@@ -91,6 +92,7 @@ tidyGWAS <- function(
     impute_freq_file = NULL,
     impute_n = FALSE,
     allow_duplications = FALSE,
+    min_EAF = NULL,
     build = c("NA","37", "38"),
     default_build = c("37", "38"),
     indel_strategy = c("keep", "remove"),
@@ -117,6 +119,15 @@ tidyGWAS <- function(
   }
   if(!is.null(impute_freq_file)) stopifnot(rlang::is_scalar_character(impute_freq))
   if(!is.null(impute_freq_file)) stopifnot(file.exists(impute_freq))
+
+
+  if(!is.null(min_EAF) & !rlang::is_scalar_double(min_EAF)) {
+
+    cli::cli_abort("`min_EAF` should be a single numeric value, or NULL")
+
+  }
+
+
 
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
@@ -178,6 +189,18 @@ tidyGWAS <- function(
 
 
   tbl <- select_correct_columns(tbl)
+
+  if(!is.null(min_EAF)) {
+    rlang::is_scalar_double(min_EAF) || rlang::abort("min_EAF must be a single value of type double")
+    if(min_EAF <= 0 | min_EAF >= 0.5) rlang::abort("min_EAF must be a double in the range 0 <= min_EAF <= 0.5")
+    "EAF" %in% colnames(tbl) || rlang::abort("EAF column is missing from the data.frame. Cannot prefilter on allele frequency without EAF")
+    cli::cli_inform("Filtering rows with EAF < {min_EAF}")
+    n_eaf <- nrow(tbl)
+    tbl <- dplyr::filter(tbl, EAF >= min_EAF & EAF <= (1-min_EAF))
+    n_eaf_after <- nrow(tbl)
+    cli::cli_alert_info("Removed {n_eaf - n_eaf_after} rows with EAF < {min_EAF}")
+  }
+
 
 
   # 1) detect indels ----------------------------------------------------------

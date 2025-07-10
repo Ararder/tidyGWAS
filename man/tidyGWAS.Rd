@@ -18,6 +18,7 @@ tidyGWAS(
   impute_freq_file = NULL,
   impute_n = FALSE,
   allow_duplications = FALSE,
+  min_EAF = NULL,
   build = c("NA", "37", "38"),
   default_build = c("37", "38"),
   indel_strategy = c("keep", "remove"),
@@ -63,6 +64,8 @@ EAF should correspond to the frequency of the EffectAllele.}
 \item{impute_n}{Should N be imputed if it's missing?}
 
 \item{allow_duplications}{Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats}
+
+\item{min_EAF}{Apply a filter on allele frequency prior to applying the algorithm. Useful to speed up cleaning of very large files}
 
 \item{build}{If you are sure of what genome build ('37' or '38'), can be used to skip \code{\link[=infer_build]{infer_build()}} and speed up computation}
 
