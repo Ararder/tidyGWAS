@@ -30,7 +30,9 @@ Imports:
     xml2,
     fs,
     vctrs,
-    rvest
+    rvest,
+    data.table,
+    R.utils
 Suggests: 
     knitr,
     readr,

@@ -207,6 +207,22 @@ test_that("minimum number of columns", {
 
 
 
+test_that("add EAF flag", {
+
+  test_tbl <- dplyr::mutate(test_sumstat, EAF = EAF + 0.2)
+  main <- tidyGWAS(
+    tbl = test_tbl,
+    dbsnp_path = dbsnp_path,
+    flag_discrep_freq = "AMR"
+  )
+
+
+
+
+})
+
+
+
 
 test_that("Handles edge cases", {
   skip()
@@ -261,14 +277,46 @@ test_that("repair allele frequency works", {
   skip("requires local")
   dbsnp_path <- "~/Downloads/dbSNP155/"
 
-  tidyGWAS(
+  expect_no_error(tidyGWAS(
     dplyr::select(tbl, -EAF),
     dbsnp_path = dbsnp_path,
     impute_freq = "EUR"
+  ))
+
+
+  expect_no_error(tidyGWAS(
+    dplyr::select(tbl, -EAF),
+    dbsnp_path = dbsnp_path,
+    impute_freq = "AFR"
+  ))
+
+})
+
+
+
+test_that("allele freq flag check works", {
+
+
+  tidyGWAS(
+    tbl,
+    dbsnp_path = dbsnp_path,
+    flag_discrep_freq = "AMR"
   )
 
 })
 
+
+
+test_that("Filter EAF works", {
+
+
+  tidyGWAS(
+    tbl = dplyr::select(test_sumstat, -EAF),
+    dbsnp_path = dbsnp_path
+    # min_EAF = 0.25
+  )
+
+})
 
 
 

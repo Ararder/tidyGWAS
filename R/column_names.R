@@ -1,10 +1,104 @@
-#' GWAS summary statistic header dictionary
-#'
-#' A list showing interpretations for a range of possible GWAS summary statistic column names.
-#' @export
-#'
-ss_head_dict<-list(
-  SNP=c(
+
+
+
+
+formats <- list(
+  tidyGWAS = list(
+    CHR = "CHR",
+    POS = "POS",
+    RSID = "RSID",
+    EffectAllele = "EffectAllele",
+    OtherAllele = "OtherAllele",
+    B = "B",
+    OR = "OR",
+    SE = "SE",
+    Z = "Z",
+    EAF = "EAF",
+    P = "P",
+    N = "N",
+    CaseN = "CaseN",
+    ControlN = "ControlN",
+    EffectiveN =" EffectiveN",
+    INFO = "INFO"
+  ),
+  SSF  = list(
+    CHR = "chromosome",
+    POS = "base_pair_location",
+    RSID = "rsid",
+    EffectAllele = "effect_allele",
+    OtherAllele = "other_allele",
+    B = "beta",
+    SE = "standard_error",
+    EAF = "effect_allele_frequency",
+    P = "p_value",
+    N = "n"
+  ),
+
+  REGENIE = list(
+    CHR = "CHROM",
+    POS = "GENPOS",
+    RSID = "ID",
+    EffectAllele = "ALLELE1",
+    OtherAllele = "ALLELE0",
+    EAF = "A1FREQ",
+    B = "BETA",
+    CaseN = "N_CASES",
+    ControlN = "N_CONTROLS",
+    INFO = "INFO",
+    SE = "SE",
+    N = "N"
+  ),
+  # source: https://yanglab.westlake.edu.cn/software/gcta/index.html#DataResource
+  fastGWA = list(
+    CHR = "CHR",
+    POS = "POS",
+    RSID = "SNP",
+    EffectAllele = "A1",
+    OtherAllele = "A2",
+    EAF = "AF1",
+    B = "BETA",
+    N = "N",
+    P = "P",
+    SE = "SE"
+  ),
+  plink = list(
+    POS = "BP",
+    RSID = "SNP",
+    EffectAllele = "A1",
+    OtherAllele = "A2",
+    EAF = "MAF",
+    N = "NMISS"
+
+  ),
+  plink_glm = list(
+    CHR = "#CHROM",
+    RSID = "ID",
+    EffectAllele = "A1",
+    OtherAllele = "REF",
+    EAF = "A1_FREQ",
+    SE = "LOG(OR)_SE",
+    Z = "Z_STAT",
+    N = "OBS_CT"
+  ),
+  FINNGEN = list(
+    CHR = "#chrom",
+    POS = "pos",
+    RSID = "rsids",
+    EffectAllele = "alt",
+    OtherAllele = "ref",
+    EAF = "af_alt",
+    P = "pval",
+    B = "beta",
+    SE = "sebeta",
+    EAF = "af_alt"
+  )
+
+)
+
+# copy-pasted from https://github.com/opain/GenoUtils/blob/main/R/constants.R
+# all credit to Oliver Pain
+colname_dict <- list(
+  RSID = c(
     "SNP",
     "PREDICTOR",
     "SNPID",
@@ -27,7 +121,7 @@ ss_head_dict<-list(
     "VARIANT_ID",
     "HM_RSID"
   ),
-  A1 = c(
+  EffectAllele = c(
     "A1",
     "ALLELE1",
     "ALLELE_1",
@@ -52,7 +146,7 @@ ss_head_dict<-list(
     "TESTED_ALLELE",
     "HM_EFFECT_ALLELE"
   ),
-  A2 = c(
+  OtherAllele = c(
     "A2",
     "ALLELE2",
     "ALLELE_2",
@@ -77,7 +171,7 @@ ss_head_dict<-list(
     "NONCODED_ALLELE",
     "HM_OTHER_ALLELE"
   ),
-  BETA = c(
+  B = c(
     "BETA",
     "B",
     "EFFECT_BETA",
@@ -173,7 +267,7 @@ ss_head_dict<-list(
     "N_TOTAL_SUM",
     "OBS_CT"
   ),
-  N_CAS = c(
+  CaseN = c(
     "N_CAS",
     "NCASE",
     "N_CASE",
@@ -184,7 +278,7 @@ ss_head_dict<-list(
     "CASES",
     "CASES_N"
   ),
-  N_CON = c(
+  ControlN = c(
     "N_CON",
     "NCONTROL",
     "N_CONTROL",
@@ -202,7 +296,7 @@ ss_head_dict<-list(
   #        "NEFFECTIVE",
   #        "NE"
   #    ),
-  FREQ = c(
+  EAF = c(
     "FRQ",
     "FREQ",
     "MAF",
@@ -227,16 +321,16 @@ ss_head_dict<-list(
     "HM_EFFECT_ALLELE_FREQUENCY",
     "A1_FREQ"
   ),
-  FRQ_A = c(
-    "FRQ_A",
-    "FREQ_A",
-    "F_A"
-  ),
-  FRQ_U = c(
-    "FRQ_U",
-    "FREQ_U",
-    "F_U"
-  ),
+  # FRQ_A = c(
+  #   "FRQ_A",
+  #   "FREQ_A",
+  #   "F_A"
+  # ),
+  # FRQ_U = c(
+  #   "FRQ_U",
+  #   "FREQ_U",
+  #   "F_U"
+  # ),
   CHR = c(
     "#CHR",
     "#CHROM",
@@ -262,7 +356,7 @@ ss_head_dict<-list(
     "HG19CHRC",
     "HM_CHROM"
   ),
-  BP = c(
+  POS = c(
     "ORIGBP",
     "BP",
     "POS",

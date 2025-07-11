@@ -60,17 +60,36 @@ test_that("validate parse_tbl", {
   # can read csv file
   expect_equal(test_sumstat, tbl)
 
-  expect_equal(tbl, parse_tbl(test_sumstat)$tbl)
+  expect_equal(tbl, parse_input(test_sumstat)$tbl)
 
-  # can handle data.frame
-  expect_equal(tbl, parse_tbl(as.data.frame(test_sumstat))$tbl)
+
 
   # errors if not passed a filepath or data.frame
-  expect_error(parse_tbl("list"))
+  expect_error(parse_input("list"))
 
   #
-  expect_error(parse_tbl())
+  expect_error(parse_input())
 
 
 })
 
+
+
+#
+test_that("add_freq_diff_flag runs", {
+  # tbl <-
+
+  main <- tidyGWAS::tidyGWAS(
+    tbl = tbl,
+    dbsnp_path = dbsnp_path
+  )
+
+
+  expect_no_error(add_freq_diff_flag(main, "EUR",dbsnp_path = dbsnp_path))
+  expect_no_error(add_freq_diff_flag(main, "EAS",dbsnp_path = dbsnp_path))
+  expect_no_error(add_freq_diff_flag(main, "AMR",dbsnp_path = dbsnp_path))
+  expect_no_error(add_freq_diff_flag(main, "SAS",dbsnp_path = dbsnp_path))
+  expect_no_error(add_freq_diff_flag(main, "AFR",dbsnp_path = dbsnp_path))
+
+
+})

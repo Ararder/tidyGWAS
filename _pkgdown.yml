@@ -10,6 +10,7 @@ reference:
   - validate_rsid
   - infer_build
   - repair_ids
+  - set_default_dbsnp_path
 - subtitle: Interact with GWAS catalog and Open Targets
   contents:
   - from_gwas_catalog

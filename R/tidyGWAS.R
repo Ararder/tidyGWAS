@@ -59,9 +59,10 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param impute_freq_file filepath to a .parquet file with custom allele frequencies.
 #'  The file needs to be a tabular dataframe with columns RSID, EffectAllele, OtherAllele, EAF.
 #'  EAF should correspond to the frequency of the EffectAllele.
+#' @param min_EAF Apply a filter on allele frequency prior to applying the algorithm. Useful to speed up cleaning of very large files
+#' @param flag_discrep_freq Should variants with allele frequency discrepancies be flagged?
 #' @param impute_n Should N be imputed if it's missing?
 #' @param allow_duplications Should duplicated variants be allowed? Useful if the munged sumstats are QTL sumstats
-#' @param min_EAF Apply a filter on allele frequency prior to applying the algorithm. Useful to speed up cleaning of very large files
 #' @param build If you are sure of what genome build ('37' or '38'), can be used to skip [infer_build()] and speed up computation
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
 #' @param indel_strategy Should indels be kept or removed?
@@ -76,11 +77,14 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @export
 #'
 #' @examples \dontrun{
-#' tidyGWAS(tbl = "my_dataframe", logfile = "true", name = "test_run", outdir = "gwas_sumstat_dir")
+#' tidyGWAS(
+#'   tbl = "path/to/GWAS_trait_X_.tsv.gz", logfile = TRUE,
+#'   output_dir = "/store/GWAS/tidyGWAS/trait_X"
+#'   )
 #' }
 tidyGWAS <- function(
     tbl,
-    dbsnp_path,
+    dbsnp_path = file.path(Sys.getenv("HOME"), ".config/dbSNP155"),
     ...,
     column_names = NULL,
     output_format = c("hivestyle","parquet", "csv"),
@@ -91,8 +95,9 @@ tidyGWAS <- function(
     impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
     impute_freq_file = NULL,
     impute_n = FALSE,
-    allow_duplications = FALSE,
     min_EAF = NULL,
+    flag_discrep_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
+    allow_duplications = FALSE,
     build = c("NA","37", "38"),
     default_build = c("37", "38"),
     indel_strategy = c("keep", "remove"),
@@ -105,11 +110,26 @@ tidyGWAS <- function(
 
   # parse arguments ---------------------------------------------------------
   rlang::check_required(tbl)
-  rlang::check_required(dbsnp_path)
+  (rlang::is_scalar_character(tbl) | "data.frame" %in% class(tbl)) || cli::cli_abort(
+    "tbl must be a character vector with length 1, or a data.frame"
+  )
+
+  if(missing(dbsnp_path)) {
+    file.exists(dbsnp_path) || cli::cli_abort(
+      "Attempting to use dbSNP default path, but it does not exist.
+      Either pass the filepath to dbsnp_path or set the default filepath with
+      {.code {tidyGWAS::set_default_dbsnp_path}}."
+    )
+  } else {
+    rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a single character string")
+    file.exists(dbsnp_path) || cli::cli_abort("The dbsnp_path provided does not exist")
+  }
+
   if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
   if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
   impute_freq <- rlang::arg_match(impute_freq)
+  flag_discrep_freq <- rlang::arg_match(flag_discrep_freq)
   if(!is.null(impute_freq_file) & impute_freq != "None")  {
     cli::cli_abort(
       "If `impute_freq_file` is provided, `impute_freq` must be `None`.
@@ -117,17 +137,14 @@ tidyGWAS <- function(
       impute_freq_file is used to pass a custom file - Using both are imcompatible."
     )
   }
-  if(!is.null(impute_freq_file)) stopifnot(rlang::is_scalar_character(impute_freq))
-  if(!is.null(impute_freq_file)) stopifnot(file.exists(impute_freq))
+  if(!is.null(impute_freq_file)) stopifnot(rlang::is_scalar_character(impute_freq) && file.exists(impute_freq))
 
 
-  if(!is.null(min_EAF) & !rlang::is_scalar_double(min_EAF)) {
-
-    cli::cli_abort("`min_EAF` should be a single numeric value, or NULL")
+  if(!is.null(min_EAF)) {
+    rlang::is_scalar_double(min_EAF) || rlang::abort("min_EAF must be a single value of type double")
+    if(min_EAF <= 0 | min_EAF >= 0.5) rlang::abort("min_EAF must be a double in the range 0 <= min_EAF <= 0.5")
 
   }
-
-
 
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
@@ -142,12 +159,15 @@ tidyGWAS <- function(
   indel_strategy <- rlang::arg_match(indel_strategy)
 
 
+  # -------------------------------------------------------------------------
+
+
   # welcome message ----------------------------------------------------------
   start_time <- Sys.time()
 
   # check input data.frame --------------------------------------------------
   cli::cli_inform("Parsing input summary statistics...")
-  tbl <- parse_tbl(tbl, ...)
+  tbl <- parse_input(tbl, ...)
   filename <- tbl$filename
   md5 <- tbl$md5
   # has to be last, overwriting tbl here
@@ -191,8 +211,6 @@ tidyGWAS <- function(
   tbl <- select_correct_columns(tbl)
 
   if(!is.null(min_EAF)) {
-    rlang::is_scalar_double(min_EAF) || rlang::abort("min_EAF must be a single value of type double")
-    if(min_EAF <= 0 | min_EAF >= 0.5) rlang::abort("min_EAF must be a double in the range 0 <= min_EAF <= 0.5")
     "EAF" %in% colnames(tbl) || rlang::abort("EAF column is missing from the data.frame. Cannot prefilter on allele frequency without EAF")
     cli::cli_inform("Filtering rows with EAF < {min_EAF}")
     n_eaf <- nrow(tbl)
@@ -361,6 +379,12 @@ tidyGWAS <- function(
 
   # all removed rows should be able to be tracked
   identify_removed_rows(dplyr::select(main,rowid), filepaths)
+
+
+  if(flag_discrep_freq != "None") {
+    main <- add_freq_diff_flag(main, flag_discrep_freq,dbsnp_path)
+
+  }
 
 
   # end of pipeline  ---------------------------------------------------------

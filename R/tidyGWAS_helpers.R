@@ -1,49 +1,8 @@
-parse_tbl <- function(tbl, ...) {
-  # -------------------------------------------------------------------------
+utils::globalVariables(c("discrep_freq", "base_EAF"))
 
-  if ("character" %in% class(tbl)) {
-    if (stringr::str_detect(tbl, "^GCST\\d+$")) {
-      cli::cli_alert_success(
-        "Detected a study ID: {.emph {tbl}}. Fetching data from the GWAS Catalog"
-      )
-
-      fp <- from_gwas_catalog(study_id = tbl)
-      gwas <- arrow::read_delim_arrow(fp, delim = "\t")
-    } else {
-      file.exists(tbl) || cli::cli_abort(
-        "File {.file {tbl}} does not exist. Please provide a valid file path."
-      )
-      rlang::is_scalar_character(tbl) || cli::cli_abort(
-        "tbl must be a character vector with length 1, or a data.frame"
-      )
-      gwas <- arrow::read_delim_arrow(tbl, ...)
-    }
-  filename <- basename(tbl)
-  md5 <- tools::md5sum(tbl)
-  tbl <- gwas
-  if(length(colnames(gwas)) <= 3) {
-    cli::cli_abort(
-      "Only {ncols} columns in the file. At least 3 columns are required.
-      Did you forgot to use the `delim` argument to specify the delimiter?"
-    )
-  }
-
-  # -------------------------------------------------------------------------
-  } else if ("data.frame" %in% class(tbl)) {
-    md5 <- NULL
-    tbl <- dplyr::tibble(tbl)
-    filename <- "raw"
-  } else {
-    stop("tbl is not a character vector or a data.frame")
-  }
-
-  if (!"rowid" %in% colnames(tbl)) {
-    tbl$rowid <- 1:nrow(tbl)
-  }
-
-  list("tbl" = tbl, "filename" = filename, "md5" = md5)
+remove_note <- function(x) {
+  R.utils::dataFrame()
 }
-
 
 identify_removed_rows <- function(finished, filepaths) {
   # read in file before any munging was done
@@ -372,10 +331,6 @@ select_correct_columns <- function(tbl) {
   tbl
 }
 
-download_ref <- function(filepath) {
-  rlang::is_scalar_character(filepath)
-  stopifnot("The directory does not exist" = dir.exists(filepath))
-}
 
 
 apply_dbsnp_filter <- function(tbl, filepaths) {
@@ -394,4 +349,79 @@ apply_dbsnp_filter <- function(tbl, filepaths) {
   }
 
   tbl
+}
+
+
+read_freq_ref <- function(flag_discrep_freq, dbsnp_path) {
+
+  df_eaf <- arrow::open_dataset(paste0(dbsnp_path, "/EAF_REF_1KG")) |>
+    dplyr::filter(.data[["ancestry"]] == flag_discrep_freq) |>
+    dplyr::select(CHR, POS_38 = POS, EffectAllele, OtherAllele, EAF) |>
+    dplyr::collect()
+
+
+
+}
+
+add_freq_diff_flag <- function(main, flag_discrep_freq, dbsnp_path) {
+
+  df_eaf <- read_freq_ref(flag_discrep_freq,dbsnp_path) |>
+    dplyr::distinct()
+
+
+  sub <- dplyr::select(main, CHR, POS_38, EffectAllele, OtherAllele, base_EAF = EAF)
+
+
+
+
+
+  full_sub <-
+    dplyr::inner_join(sub, df_eaf, by = c("CHR","POS_38", "EffectAllele" ="OtherAllele", "OtherAllele" = "EffectAllele")) |>
+    dplyr::mutate(EAF = 1-EAF) |>
+    dplyr::select(c("CHR","POS_38", "EffectAllele", "OtherAllele", "base_EAF", "EAF")) |>
+    dplyr::bind_rows(dplyr::inner_join(sub, df_eaf, by = c("CHR","POS_38", "EffectAllele", "OtherAllele"))) |>
+    dplyr::mutate(
+      diff = abs(base_EAF - EAF),
+      discrep_freq = dplyr::if_else(diff >= 0.2, TRUE, FALSE)
+    ) |>
+    dplyr::select(CHR,POS_38, EffectAllele, OtherAllele, discrep_freq)
+
+  final <- dplyr::left_join(main, full_sub, by = c("CHR","POS_38", "EffectAllele", "OtherAllele"))
+
+  counts <- dplyr::count(final, .data[["discrep_freq"]])
+
+  cli::cli_alert_success(
+    "Matched {sum(counts[1,2]$n, counts[2,2]$n)}/{nrow(final)} variants with reference data allele frequency."
+    )
+
+  cli::cli_alert_info(
+    "{round(counts[2,2]$n / nrow(final),1)*100}% ({counts[2,2]$n}) variants with absolute allele frequency difference of >= 20%"
+  )
+
+  final
+}
+
+#' Save the filepath for the dbSNP reference data
+#'
+#' @param dbsnp_path filepath to dbSNP
+#'
+#' @returns NULL
+#' @export
+#'
+#' @examples \dontrun{
+#' set_default_dbsnp_path("data/local/dbSNP155")
+#' }
+set_default_dbsnp_path <- function(dbsnp_path) {
+  rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a character string.")
+  file.exists(dbsnp_path) || cli::cli_abort("dbsnp_path must be a valid file path.")
+
+  target <- file.path(Sys.getenv("HOME"), ".config", "dbSNP155")
+
+  if(!file.exists(dirname(target))) dir.create(dirname(target))
+
+  file.symlink(from = dbsnp_path, to = target)
+  cli::cli_alert_success(
+    "Set dbSNP155 path to {.file {dbsnp_path}}.
+    You can change this by running {.code set_default_dbsnp_path()} again."
+  )
 }
