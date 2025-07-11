@@ -419,7 +419,7 @@ set_default_dbsnp_path <- function(dbsnp_path) {
 
   if(!file.exists(dirname(target))) dir.create(dirname(target))
 
-  file.symlink(from = dbsnp_path, to = target)
+  file.symlink(from = path.expand(dbsnp_path), to = target)
   cli::cli_alert_success(
     "Set dbSNP155 path to {.file {dbsnp_path}}.
     You can change this by running {.code set_default_dbsnp_path()} again."
