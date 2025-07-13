@@ -59,6 +59,7 @@ test_that("indels handled correctly", {
     dbsnp_path,
     indel_strategy = "keep"
   )
+  dplyr::filter(cleaned, indel)
   expect_true(nrow(cleaned) == nrow(pval_as_char_df) -161)
 
 })
@@ -246,7 +247,15 @@ test_that("Handles edge cases", {
 
 })
 
+test_that("indels are correctly handled", {
 
+  out <- tidyGWAS(
+    tbl = pval_as_char_df,
+    dbsnp_path = dbsnp_path
+  )
+  dplyr::filter(out, !indel)
+
+})
 
 test_that("setup_pipeline_paths works", {
 

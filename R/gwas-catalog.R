@@ -38,7 +38,7 @@ from_gwas_catalog <- function(study_id, quiet = FALSE) {
     }
   )
 
-  picked <- .pick_sumstats(urls, FALSE)
+  picked <- .pick_sumstats(urls)
 
   meta_file <- fs::path(workdir, fs::path_file(picked$yaml))
   gwas_file <- fs::path(workdir, fs::path_file(picked$gwas))

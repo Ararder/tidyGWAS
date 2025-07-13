@@ -6,17 +6,15 @@
 \usage{
 meta_analyze(
   dset,
-  by = c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele"),
-  method = c("ivw"),
-  ref = c("REF_37", "REF_38")
+  by = c("CHR", "POS_37", "RSID", "EffectAllele", "OtherAllele"),
+  ref = c("REF_37", "REF_38"),
+  impl = c("old", "new")
 )
 }
 \arguments{
 \item{dset}{an \code{\link[arrow:open_dataset]{arrow::open_dataset()}} object}
 
 \item{by}{a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")}
-
-\item{method}{method to use for performing meta-analysis. Currently, only IVW (based on standard errors) is supported.}
 
 \item{ref}{either "REF_37" or "REF_38", depending on which column you want to use to standardize reference allele}
 }

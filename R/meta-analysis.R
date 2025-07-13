@@ -13,7 +13,6 @@ utils::globalVariables(
 #'
 #'
 #' @param dset an [arrow::open_dataset()] object
-#' @param method method to use for performing meta-analysis. Currently, only IVW (based on standard errors) is supported.
 #' @param by a character vector of column names to group by. Default is c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele")
 #' @param ref either "REF_37" or "REF_38", depending on which column you want to use to standardize reference allele
 #' @return a [dplyr::tibble()]
@@ -24,11 +23,13 @@ utils::globalVariables(
 #' res <- meta_analyze(dset)
 #' }
 #'
-meta_analyze <- function(dset, by = c("CHR", "POS", "RSID", "EffectAllele", "OtherAllele"), method = c("ivw"), ref = c("REF_37", "REF_38")) {
-  method <- rlang::arg_match(method)
+meta_analyze <- function(dset, by = c("CHR", "POS_37", "RSID", "EffectAllele", "OtherAllele"), ref = c("REF_37", "REF_38"), impl = c("old", "new")) {
   ref <- rlang::arg_match(ref)
+  impl <- rlang::arg_match(impl)
+
   purrr::map(c(1:22), \(chrom) meta_analyze_by_chrom(dset, chrom = chrom, by = by, ref = ref)) |>
     purrr::list_rbind()
+
 }
 
 
@@ -66,13 +67,15 @@ meta_analyze_by_chrom <- function(dset, chrom, by, ref) {
   cols <- c(by, stats)
 
   q1 <- dplyr::filter(dset, CHR == {{ chrom }}) |>
-    dplyr::rename(REF = dplyr::all_of(ref))
+   dplyr::rename(REF = dplyr::all_of(ref))
 
   if("indel" %in% names(arrow::schema(dset))) {
-    q1 <- dplyr::filter(q1, is.na(indel) | !indel)
+     q1 <- dplyr::filter(q1, is.na(indel) | !indel)
   }
 
-  q1 |>
+  dset |>
+    dplyr::filter(CHR == {{ chrom }}) |>
+    dplyr::rename(REF = !!ref) |>
     align_to_ref() |>
     dplyr::select(dplyr::any_of(cols)) |>
     dplyr::mutate(
@@ -87,6 +90,8 @@ meta_analyze_by_chrom <- function(dset, chrom, by, ref) {
     dplyr::mutate(P  = stats::pnorm(-abs(B/SE)) *2)
 
 }
+
+
 
 
 handle_info_eaf <- function(query) {

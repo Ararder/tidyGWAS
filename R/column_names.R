@@ -290,12 +290,12 @@ colname_dict <- list(
     "CONTROLS",
     "CONTROLS_N"
   ),
-  #    NEF = c(
-  #        "NEF",
-  #        "NEFF",
-  #        "NEFFECTIVE",
-  #        "NE"
-  #    ),
+    EffectiveN = c(
+         "NEF",
+         "NEFF",
+         "NEFFECTIVE",
+         "NE"
+     ),
   EAF = c(
     "FRQ",
     "FREQ",

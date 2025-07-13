@@ -401,27 +401,27 @@ add_freq_diff_flag <- function(main, flag_discrep_freq, dbsnp_path) {
   final
 }
 
-#' Save the filepath for the dbSNP reference data
+#' #' Save the filepath for the dbSNP reference data
+#' #'
+#' #' @param dbsnp_path filepath to dbSNP
+#' #'
+#' #' @returns NULL
+#' #' @export
+#' #'
+#' #' @examples \dontrun{
+#' #' set_default_dbsnp_path("data/local/dbSNP155")
+#' #' }
+#' set_default_dbsnp_path <- function(dbsnp_path) {
+#'   rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a character string.")
+#'   file.exists(dbsnp_path) || cli::cli_abort("dbsnp_path must be a valid file path.")
 #'
-#' @param dbsnp_path filepath to dbSNP
+#'   target <- file.path(Sys.getenv("HOME"), ".config", "dbSNP155")
 #'
-#' @returns NULL
-#' @export
+#'   if(!file.exists(dirname(target))) dir.create(dirname(target))
 #'
-#' @examples \dontrun{
-#' set_default_dbsnp_path("data/local/dbSNP155")
+#'   file.symlink(from = path.expand(dbsnp_path), to = target)
+#'   cli::cli_alert_success(
+#'     "Set dbSNP155 path to {.file {dbsnp_path}}.
+#'     You can change this by running {.code set_default_dbsnp_path()} again."
+#'   )
 #' }
-set_default_dbsnp_path <- function(dbsnp_path) {
-  rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a character string.")
-  file.exists(dbsnp_path) || cli::cli_abort("dbsnp_path must be a valid file path.")
-
-  target <- file.path(Sys.getenv("HOME"), ".config", "dbSNP155")
-
-  if(!file.exists(dirname(target))) dir.create(dirname(target))
-
-  file.symlink(from = path.expand(dbsnp_path), to = target)
-  cli::cli_alert_success(
-    "Set dbSNP155 path to {.file {dbsnp_path}}.
-    You can change this by running {.code set_default_dbsnp_path()} again."
-  )
-}

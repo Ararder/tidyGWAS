@@ -84,7 +84,7 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' }
 tidyGWAS <- function(
     tbl,
-    dbsnp_path = file.path(Sys.getenv("HOME"), ".config/dbSNP155"),
+    dbsnp_path,
     ...,
     column_names = NULL,
     output_format = c("hivestyle","parquet", "csv"),
@@ -114,16 +114,11 @@ tidyGWAS <- function(
     "tbl must be a character vector with length 1, or a data.frame"
   )
 
-  if(missing(dbsnp_path)) {
-    file.exists(dbsnp_path) || cli::cli_abort(
-      "Attempting to use dbSNP default path, but it does not exist.
-      Either pass the filepath to dbsnp_path or set the default filepath with
-      {.code {tidyGWAS::set_default_dbsnp_path}}."
-    )
-  } else {
-    rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a single character string")
-    file.exists(dbsnp_path) || cli::cli_abort("The dbsnp_path provided does not exist")
-  }
+
+  rlang::check_required(dbsnp_path)
+  rlang::is_scalar_character(dbsnp_path) || cli::cli_abort("dbsnp_path must be a single character string")
+  file.exists(dbsnp_path) || cli::cli_abort("The dbsnp_path provided does not exist")
+
 
   if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
@@ -229,7 +224,7 @@ tidyGWAS <- function(
 
   indels <- tbl$indels
   if(nrow(indels) == 0) indels <- NULL
-  tbl <- dplyr::mutate(tbl$main, indel = FALSE)
+  tbl <- tbl[["main"]]
 
 
   # 2 Drop na -----------------------------------------------------------------
@@ -362,7 +357,10 @@ tidyGWAS <- function(
       indels <- dplyr::rename(indels, !!!renamed_pos)
     }
 
-    main <- dplyr::bind_rows(main, dplyr::mutate(indels, indel = TRUE))
+    main <- dplyr::bind_rows(
+      dplyr::mutate(main, indel = FALSE),
+      dplyr::mutate(indels, indel = TRUE)
+    )
 
   }
 

@@ -6,7 +6,7 @@
 \usage{
 tidyGWAS(
   tbl,
-  dbsnp_path = file.path(Sys.getenv("HOME"), ".config/dbSNP155"),
+  dbsnp_path,
   ...,
   column_names = NULL,
   output_format = c("hivestyle", "parquet", "csv"),
