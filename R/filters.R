@@ -1,7 +1,5 @@
 remove_rows_with_na <- function(tbl, columns, filepath) {
 
-
-
   tmp <- tidyr::drop_na(tbl, dplyr::all_of(columns))
   na_rows <- dplyr::anti_join(tbl, tmp, by = "rowid") |>
     dplyr::select(rowid)

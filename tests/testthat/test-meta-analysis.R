@@ -7,9 +7,7 @@ test_that("meta-analysis works with variable number of columns", {
   n <- c(10, 15, 10)
   dset <- setup_test_data_meta_analysis(EAF = c(0.1, 0.3, 0.3), N = n)
 
-  res <- meta_analyze(dset)
-  res2 <- meta_analyse2(dset, ref = "REF_37")
-  expect_no_error(res2 <- meta_analyse2(dset, ref = "REF_37"))
+  res <- meta_analyse(dset)
 
   expect_true(!"INFO" %in% colnames(res))
 
@@ -22,21 +20,6 @@ test_that("meta-analysis works with variable number of columns", {
 
 
 
-test_that("regression test", {
-  ea <- c(0.1, 0.3, 0.3)
-  n <- c(10, 15, NA)
-  info <- c(0.6, 0.85, 1.3)
-  dset <- setup_test_data_meta_analysis(EAF = ea, N = n, INFO = info)
-
-
-  res2 <- meta_analyse2(dset)
-  res <- meta_analyze(dset)
-
-  expect_true(res$B == res2$B)
-  expect_true(res$P == res2$P)
-
-
-})
 
 
 
@@ -47,7 +30,7 @@ test_that("meta-analysis handles missing values in calculation of INFO/EAF", {
   dset <- setup_test_data_meta_analysis(EAF = ea, N = n, INFO = info)
 
 
-  res <- meta_analyze(dset)
+  res <- meta_analyse(dset)
 
 
 
@@ -70,7 +53,7 @@ test_that("meta-analysis works with EAF and not INFO", {
   n <- c(10, 15, 10)
 
   dset <- setup_test_data_meta_analysis(EAF = vals, N = n)
-  res <- meta_analyse2(dset)
+  res <- meta_analyse(dset)
 
   expect_true(!"INFO" %in% colnames(res))
   expected <- sum(vals * n) / sum(n)
@@ -87,7 +70,7 @@ test_that("meta-analysis works with INFO and not EAF", {
   n <- c(10, 15, 10)
 
   dset <- setup_test_data_meta_analysis(INFO = vals, N = n)
-  res <- meta_analyze(dset)
+  res <- meta_analyse(dset)
 
   expect_true(!"EAF" %in% colnames(res))
   expected <- sum(vals * n) / sum(n)
@@ -96,15 +79,6 @@ test_that("meta-analysis works with INFO and not EAF", {
 
 })
 
-
-test_that("meta-analysis works with variable number of columns", {
-
-  dset <- setup_test_data_meta_analysis()
-  expect_no_error(res <- meta_analyze(dset))
-
-
-
-})
 
 
 
@@ -146,7 +120,7 @@ test_that("meta-analysis correctly handles missing vallues in INFO and EAF", {
         ) |>
       dplyr::arrange(RSID, EffectAllele, OtherAllele)
 
-  res <- meta_analyse2(ds) |> dplyr::arrange(RSID, EffectAllele, OtherAllele)
+  res <- meta_analyse(ds) |> dplyr::arrange(RSID, EffectAllele, OtherAllele)
 
   expect_equal(res$EAF, eaf_truth$EAF, tolerance = 1e-5)
   expect_equal(res$INFO, eaf_truth$INFO, tolerance = 1e-4)
