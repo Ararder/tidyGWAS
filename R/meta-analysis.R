@@ -1,4 +1,4 @@
-utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df"))
+utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w"))
 
 #' Improved meta-analysis using tidyGWAS:ed files
 #' [meta_analyse()] will:
@@ -110,6 +110,7 @@ by_chrom <- function(ds, chrom, ref) {
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(
+      B_w = B,
       B   = B / W,
       SE  = 1 / sqrt(W),
       dplyr::across(dplyr::any_of("EAF"), ~.x / N_EAF),
@@ -123,12 +124,12 @@ by_chrom <- function(ds, chrom, ref) {
     dplyr::collect() |>
     dplyr::mutate(
       P       = stats::pnorm(-abs(B / SE)) * 2,
-      Q        = WB2 - (B^2) / W,
+      Q        = WB2 - (B_w^2) / W,
       Q_df     = pmax(n_contributions - 1L, 0L),
       Q_pval   = stats::pchisq(Q, df = Q_df, lower.tail = FALSE),
       I2       = dplyr::if_else(Q > 0,pmax((Q - Q_df) / Q, 0),0)
     ) |>
-    dplyr::select(-c("W","WB2"))
+    dplyr::select(-c("W","WB2", "B_w"))
 
 }
 
