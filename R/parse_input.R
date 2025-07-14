@@ -29,11 +29,12 @@ parse_input <- function(tbl, ...) {
   } else if(is_url(tbl)) {
 
 
-    cli::cli_alert_info(
-      "Detected a URL: {.emph {tbl}}. Attempting to download the file."
-    )
     tempdir <- tempdir()
     dest <- file.path(tempdir, basename(tbl))
+    cli::cli_alert_info(
+      "Detected a URL: {.emph {tbl}}. Attempting to download the file.,
+      Saving to {.path {dest}}
+      ")
 
 
     curl::curl_download(
@@ -66,7 +67,7 @@ parse_input <- function(tbl, ...) {
     gwas$rowid <- 1:nrow(gwas)
   }
 
-  list("tbl" = gwas, "filename" = filename, "md5" = md5)
+  list("tbl" = dplyr::tibble(gwas), "filename" = filename, "md5" = md5)
 }
 
 

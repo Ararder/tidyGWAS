@@ -1,4 +1,5 @@
 
+
 test_that("meta-analysis works with variable number of columns", {
 
 
@@ -46,7 +47,6 @@ test_that("meta-analysis handles missing values in calculation of INFO/EAF", {
   dset <- setup_test_data_meta_analysis(EAF = ea, N = n, INFO = info)
 
 
-  res2 <- meta_analyse2(dset)
   res <- meta_analyze(dset)
 
 
@@ -70,7 +70,7 @@ test_that("meta-analysis works with EAF and not INFO", {
   n <- c(10, 15, 10)
 
   dset <- setup_test_data_meta_analysis(EAF = vals, N = n)
-  res <- meta_analyze(dset)
+  res <- meta_analyse2(dset)
 
   expect_true(!"INFO" %in% colnames(res))
   expected <- sum(vals * n) / sum(n)
@@ -87,7 +87,7 @@ test_that("meta-analysis works with INFO and not EAF", {
   n <- c(10, 15, 10)
 
   dset <- setup_test_data_meta_analysis(INFO = vals, N = n)
-  res <- meta_analyze2(dset)
+  res <- meta_analyze(dset)
 
   expect_true(!"EAF" %in% colnames(res))
   expected <- sum(vals * n) / sum(n)
@@ -108,71 +108,49 @@ test_that("meta-analysis works with variable number of columns", {
 
 
 
-test_that("benchmark new version", {
-  skip()
-  two <- arrow::open_dataset("~/sumstats/iq/tidyGWAS_hivestyle")
-  one <- arrow::open_dataset("~/sumstats/aers_plus/tidyGWAS_hivestyle", schema = arrow::schema(two))
-  dset <- c(one,two)
-
-
-
-  by = c("RSID", "EffectAllele", "OtherAllele")
-  ref = "REF_37"
-
-  tictoc::tic("old")
-  k <- meta_analyze_by_chrom(dset, chrom = "2", by = c("POS_38", "RSID", "EffectAllele", "OtherAllele"), ref =  "REF_37")
-  tictoc::toc()
-
-  tictoc::tic("old")
-  k2 <- meta_analyze(dset, ref="REF_37", impl = "old")
-  tictoc::toc()
-
-  tictoc::tic("new")
-  k2 <- meta_analyze(dset, ref="REF_37", impl = "new")
-  tictoc::toc()
-
-
-
-
-})
 
 
 # -------------------------------------------------------------------------
 # complex tests
-ds <- setup_test_data_meta_analysis(
+ds <- setup_test_data_meta_analysis2(
   test_sumstat,
   n_variants_per_chr = 5,
   n_traits = 10,
   frac_missing_N = 0.1,
   frac_missing_EAF = 0.1,
   frac_missing_INFO = 0.1,
-  drop_N_for_traits = 1,
+  drop_N_for_traits = FALSE,
   drop_EAF_for_traits = FALSE,
   drop_INFO_for_traits = FALSE,
   outdir = tempfile()
 )
 
 
-test_that("meta-analysis correctly calculates N", {
-  df <- ds |> dplyr::collect() |>
+test_that("meta-analysis correctly handles missing vallues in INFO and EAF", {
+  df <- ds |> dplyr::collect()
 
   eaf_truth <-
     df |>
-    dplyr::filter(RSID == "rs80311739") |>
-    dplyr::select(RSID, EAF, EffectiveN) |>
-    dplyr::mutate(
-      t = EAF * EffectiveN,
-      n_w_eaf = dplyr::if_else(is.na(EAF), 0, EffectiveN)
-      ) |>
-    dplyr::summarise(
-      EAF = sum(t, na.rm=TRUE) / sum(n_w_eaf,na.rm=TRUE)
-      )
+      dplyr::group_by(RSID, EffectAllele,OtherAllele) |>
+      dplyr::select(RSID, EffectAllele, OtherAllele,EAF, N, INFO) |>
+      dplyr::mutate(
+        t = EAF * N,
+        i = INFO * N,
+        n_w_eaf = dplyr::if_else(is.na(EAF), 0, N),
+        n_w_info = dplyr::if_else(is.na(INFO), 0, N)
+        ) |>
+      dplyr::summarise(
+        EAF = sum(t, na.rm=TRUE) / sum(n_w_eaf,na.rm=TRUE),
+        INFO = sum(i, na.rm = TRUE) / sum(n_w_info, na.rm = TRUE),
+        N = sum(N, na.rm = TRUE)
+        ) |>
+      dplyr::arrange(RSID, EffectAllele, OtherAllele)
 
-  res <- meta_analyse2(ds)
+  res <- meta_analyse2(ds) |> dplyr::arrange(RSID, EffectAllele, OtherAllele)
 
-  dplyr::filter(res, RSID == "rs80311739")
-
-
+  expect_equal(res$EAF, eaf_truth$EAF, tolerance = 1e-5)
+  expect_equal(res$INFO, eaf_truth$INFO, tolerance = 1e-4)
+  expect_equal(res$N, eaf_truth$N)
 
 
 })

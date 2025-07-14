@@ -89,7 +89,7 @@ setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {
 
 
 
-setup_test_data_meta_analysis <- function(
+setup_test_data_meta_analysis2 <- function(
     test_sumstat,
     n_variants_per_chr   = 5,
     n_traits             = 10,

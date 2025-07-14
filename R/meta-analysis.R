@@ -23,9 +23,8 @@ utils::globalVariables(
 #' res <- meta_analyze(dset)
 #' }
 #'
-meta_analyze <- function(dset, by = c("CHR", "POS_37", "RSID", "EffectAllele", "OtherAllele"), ref = c("REF_37", "REF_38"), impl = c("old", "new")) {
+meta_analyze <- function(dset, by = c("CHR", "POS_37", "RSID", "EffectAllele", "OtherAllele"), ref = c("REF_37", "REF_38")) {
   ref <- rlang::arg_match(ref)
-  impl <- rlang::arg_match(impl)
 
   purrr::map(c(1:22), \(chrom) meta_analyze_by_chrom(dset, chrom = chrom, by = by, ref = ref)) |>
     purrr::list_rbind()

@@ -1,5 +1,12 @@
 utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df"))
+
 #' Improved meta-analysis using tidyGWAS:ed files
+#' [meta_analyse2()] will:
+#' - flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with `ref`
+#' - variant id is constructed using RSID:EffectAllele:OtherAllele (Which is now RSID:REF:ALT)
+#' - EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
+#' - CaseN, N, ControlN and EffectiveN are all summed and carried forward
+#'
 #'
 #' @param ds a dataset object, see [arrow::open_dataset()]
 #' @param min_EAF Filter on minimal EAF (effect allele frequency) value. (0 - 0.5)
@@ -16,23 +23,26 @@ meta_analyse2 <- function(ds, min_EAF = NULL, ref = c("REF_38", "REF_37"), chrom
   ref <- rlang::arg_match(ref)
   schema <- arrow::schema(ds)
   dataset_names <- names(schema)
+
+  mandatory <- c(ref, "CHR", "RSID","POS_37","POS_38", "EffectAllele", "OtherAllele", "B", "SE")
+  all(mandatory %in% dataset_names) ||
+    cli::cli_abort(
+      "The dataset is missing mandatory columns: {.arg {mandatory[!mandatory %in% dataset_names]}} ",
+    )
+
   chr_type <- schema$CHR
   if(!schema$CHR$type == arrow::int32()) {
     chromosomes <- as.character(chromosomes)
   }
 
-  mandatory <- c(ref, "CHR", "RSID", "EffectAllele", "OtherAllele", "B", "SE")
-  all(mandatory %in% dataset_names) ||
-    cli::cli_abort(
-      "The dataset is missing mandatory columns: {.arg {mandatory[!mandatory %in% dataset_names]}} ",
-    )
+  # variant identity columns cannot be NA
+  ds <- dplyr::filter(ds, dplyr::if_all(dplyr::all_of(c("CHR", "RSID", "EffectAllele","OtherAllele")), ~!is.na(.x)))
 
   # to not break earlier versions of tidyGWAS
   if("indel" %in% dataset_names) {
     ds <- dplyr::filter(ds, is.na(indel) | !indel)
   }
 
-  ds <- dplyr::filter(ds, dplyr::if_all(dplyr::all_of(c("CHR", "RSID", "EffectAllele","OtherAllele")), ~!is.na(.x)))
 
   if(!is.null(min_EAF)) {
     "EAF" %in% dataset_names ||
@@ -42,17 +52,17 @@ meta_analyse2 <- function(ds, min_EAF = NULL, ref = c("REF_38", "REF_37"), chrom
   }
 
   if(!("N" %in% dataset_names)) {
-    cli::cli_warn("No N in columns. Cannot average INFO and EAF")
+    cli::cli_alert_warning("No N in columns. Cannot average INFO and EAF")
     ds <- dplyr::select(ds, -dplyr::any_of(c("EAF", "INFO")))
   }
 
-  # ----------------------------------------------------------
-  # 3. Run the per‑chromosome meta‑analysis in parallel
-  # ----------------------------------------------------------
+
+  # loop --------------------------------------------------------------------
+
   purrr::map(
     chromosomes,
-    \(.x) by_chrom(ds, chrom = .x, ref=ref),
-    .progress = list(type = "tasks")
+    \(.x) by_chrom(ds, chrom = .x, ref = ref),
+    .progress = list(type = "tasks", name = "Meta-analyzing per chromosome...")
   ) |>
     purrr::list_rbind()
 }
@@ -68,23 +78,27 @@ by_chrom <- function(ds, chrom, ref) {
     dplyr::rename(REF = !!ref) |>
     align_to_ref() |>
     dplyr::select(dplyr::any_of(cols)) |>
+
+    # here is the core meta-analysis logic
+    # -------------------------------------------------------------------------
     dplyr::mutate(
       W       = 1 / (SE^2),
       B       = B * W,
       WB2  = (B^2) / W,
-      dplyr::across(dplyr::any_of(c("EAF", "INFO")), ~ if_else(is.na(N), 0, N),  .names = "N_{.col}"),
-      dplyr::across(dplyr::any_of(c("EAF", "INFO")),  ~ if_else(is.na(N), 0, .x)),
-      dplyr::across(dplyr::any_of("EAF"), ~.x * N_EAF),
-      dplyr::across(dplyr::any_of("INFO"), ~.x * N_INFO)
+      dplyr::across(dplyr::any_of(c("EAF", "INFO")), ~.x * N)
     ) |>
     dplyr::group_by(dplyr::across(dplyr::all_of(by))) |>
     dplyr::summarise(
-      POS_38 = min(POS_38),
-      POS_37 = min(POS_37),
       n_contributions = dplyr::n(),
-      WB2 = sum(WB2),
+      # denominator for INFO and N has to handle potential missing values in N.
+      # if EAF is missing but N is present, cannot include N in denominator
+      dplyr::across(dplyr::any_of(c("EAF")), ~  sum(dplyr::if_else(is.na(.x), 0, N), na.rm = TRUE),  .names = "N_{.col}"),
+      dplyr::across(dplyr::any_of(c("INFO")), ~ sum(dplyr::if_else(is.na(.x), 0, N), na.rm = TRUE),  .names = "N_{.col}"),
+      dplyr::across(dplyr::any_of(c("POS_38", "POS_37")), ~ min(.x)),
+      # yes, this needs to be outside of the across
+      WB2 = sum(WB2, na.rm = TRUE),
       dplyr::across(dplyr::any_of(c("W", "B")), sum),
-      dplyr::across(dplyr::any_of(c("EAF", "INFO","N_EAF", "N_INFO","CaseN", "ControlN", "N", "EffectiveN")), ~sum(.x, na.rm=T))
+      dplyr::across(dplyr::any_of(c("EAF", "INFO","CaseN", "ControlN", "N", "EffectiveN")), ~ sum(.x, na.rm=TRUE))
     ) |>
     dplyr::ungroup() |>
     dplyr::mutate(
@@ -92,8 +106,11 @@ by_chrom <- function(ds, chrom, ref) {
       SE  = 1 / sqrt(W),
       dplyr::across(dplyr::any_of("EAF"), ~.x / N_EAF),
       dplyr::across(dplyr::any_of("INFO"), ~.x / N_INFO),
-      CHR = {{chrom}}
+      CHR = {{ chrom }}
     ) |>
+
+    # -------------------------------------------------------------------------
+
     dplyr::select(-dplyr::any_of(c("N_INFO", "N_EAF"))) |>
     dplyr::collect() |>
     dplyr::mutate(

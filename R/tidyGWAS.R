@@ -140,14 +140,12 @@ tidyGWAS <- function(
     if(min_EAF <= 0 | min_EAF >= 0.5) rlang::abort("min_EAF must be a double in the range 0 <= min_EAF <= 0.5")
 
   }
-
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
   stopifnot(rlang::is_bool(logfile))
   stopifnot(rlang::is_bool(allow_duplications))
   stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
   stopifnot("The `output_dir` specified already exists" = !dir.exists(output_dir))
-  stopifnot("the filepath for dbSNP does not exist" = file.exists(dbsnp_path))
   output_format <-  rlang::arg_match(output_format)
   build <-          rlang::arg_match(build)
   default_build <- rlang::arg_match(default_build)
@@ -361,7 +359,8 @@ tidyGWAS <- function(
       dplyr::mutate(main, indel = FALSE),
       dplyr::mutate(indels, indel = TRUE)
     )
-
+  } else {
+    main$indel <- FALSE
   }
 
 
@@ -380,7 +379,7 @@ tidyGWAS <- function(
 
 
   if(flag_discrep_freq != "None") {
-    main <- add_freq_diff_flag(main, flag_discrep_freq,dbsnp_path)
+    main <- add_freq_diff_flag(main, flag_discrep_freq, dbsnp_path)
 
   }
 

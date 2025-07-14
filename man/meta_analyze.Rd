@@ -7,8 +7,7 @@
 meta_analyze(
   dset,
   by = c("CHR", "POS_37", "RSID", "EffectAllele", "OtherAllele"),
-  ref = c("REF_37", "REF_38"),
-  impl = c("old", "new")
+  ref = c("REF_37", "REF_38")
 )
 }
 \arguments{
