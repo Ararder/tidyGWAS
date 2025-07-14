@@ -48,7 +48,7 @@ meta_analyse2 <- function(ds, min_EAF = NULL, ref = c("REF_38", "REF_37"), chrom
     "EAF" %in% dataset_names ||
     rlang::abort("`min_EAF` is set, but the dataset does not contain an `EAF` column")
     rlang::is_scalar_double(min_EAF) || rlang::abort("`min_EAF` must be a single numeric value.")
-    ds <- dplyr::filter(ds, EAF >= min_EAF & EAF <= min_EAF)
+    ds <- dplyr::filter(ds, EAF >= min_EAF & EAF <= (1-min_EAF))
   }
 
   if(!("N" %in% dataset_names)) {
@@ -120,7 +120,7 @@ by_chrom <- function(ds, chrom, ref) {
       Q_pval   = stats::pchisq(Q, df = Q_df, lower.tail = FALSE),
       I2       = dplyr::if_else(Q > 0,pmax((Q - Q_df) / Q, 0),0)
     ) |>
-    dplyr::select(-"W", "WB2")
+    dplyr::select(-c("W","WB2"))
 
 }
 
