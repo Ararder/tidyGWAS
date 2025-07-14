@@ -13,19 +13,24 @@
 \usage{
 meta_analyse(
   ds,
+  chromosomes = c(1:22),
   min_EAF = NULL,
   ref = c("REF_38", "REF_37"),
-  chromosomes = c(1:22)
+  safe_mode = FALSE
 )
 }
 \arguments{
 \item{ds}{a dataset object, see \code{\link[arrow:open_dataset]{arrow::open_dataset()}}}
 
+\item{chromosomes}{Which chrosomes to apply meta-analysis across. Default is autosomes: 1:22}
+
 \item{min_EAF}{Filter on minimal EAF (effect allele frequency) value. (0 - 0.5)}
 
 \item{ref}{Reference genome version to use for reference allele}
 
-\item{chromosomes}{Which chrosomes to apply meta-analysis across. Default is autosomes: 1:22}
+\item{safe_mode}{Apply additional filters to ensure no missing/inf/NaN across key columns?
+This is set to FALSE by default because these filters should already be
+guaranteed with the use of \code{\link[=tidyGWAS]{tidyGWAS()}}}
 }
 \value{
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}

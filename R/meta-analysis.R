@@ -12,6 +12,9 @@ utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w"))
 #' @param min_EAF Filter on minimal EAF (effect allele frequency) value. (0 - 0.5)
 #' @param ref Reference genome version to use for reference allele
 #' @param chromosomes Which chrosomes to apply meta-analysis across. Default is autosomes: 1:22
+#' @param safe_mode Apply additional filters to ensure no missing/inf/NaN across key columns?
+#'  This is set to FALSE by default because these filters should already be
+#'  guaranteed with the use of [tidyGWAS()]
 #'
 #' @returns a [dplyr::tibble()]
 #' @export
@@ -19,8 +22,9 @@ utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w"))
 #' @examples \dontrun{
 #' meta_analyse2(ds, min_EAF = 0.01)
 #' }
-meta_analyse <- function(ds, min_EAF = NULL, ref = c("REF_38", "REF_37"), chromosomes = c(1:22)) {
+meta_analyse <- function(ds, chromosomes = c(1:22), min_EAF = NULL, ref = c("REF_38", "REF_37"), safe_mode = FALSE) {
   ref <- rlang::arg_match(ref)
+  rlang::is_scalar_logical(safe_mode) || cli::cli_abort("`safe_mode` must be a single logical value.")
   schema <- arrow::schema(ds)
   dataset_names <- names(schema)
 
@@ -35,8 +39,11 @@ meta_analyse <- function(ds, min_EAF = NULL, ref = c("REF_38", "REF_37"), chromo
     chromosomes <- as.character(chromosomes)
   }
 
-  # variant identity columns cannot be NA
-  ds <- dplyr::filter(ds, dplyr::if_all(dplyr::all_of(c("CHR", "RSID", "EffectAllele","OtherAllele")), ~!is.na(.x)))
+  # # variant identity columns cannot be NA
+  if(safe_mode) {
+    ds <- dplyr::filter(ds, dplyr::if_all(dplyr::all_of(c("CHR", "RSID", "EffectAllele","OtherAllele")), ~!is.na(.x))) |>
+      dplyr::filter(dplyr::if_all(dplyr::all_of(c("B", "SE")), ~ is.finite(.x)))
+  }
 
   # to not break earlier versions of tidyGWAS
   if("indel" %in% dataset_names) {
@@ -82,7 +89,6 @@ by_chrom <- function(ds, chrom, ref) {
 
   ds |>
     dplyr::filter(CHR == chrom) |>
-    dplyr::filter(dplyr::if_all(dplyr::all_of(c("B", "SE")), ~ is.finite(.x))) |>
     dplyr::rename(REF = !!ref) |>
     align_to_ref() |>
     dplyr::select(dplyr::any_of(cols)) |>
