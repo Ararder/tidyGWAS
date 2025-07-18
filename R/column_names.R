@@ -89,8 +89,7 @@ formats <- list(
     EAF = "af_alt",
     P = "pval",
     B = "beta",
-    SE = "sebeta",
-    EAF = "af_alt"
+    SE = "sebeta"
   )
 
 )

@@ -1,4 +1,4 @@
-utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w"))
+utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w", "Q_pval"))
 
 #' Improved meta-analysis using tidyGWAS:ed files
 #' [meta_analyse()] will:
@@ -89,8 +89,7 @@ by_chrom <- function(ds, chrom, ref) {
 
   ds |>
     dplyr::filter(CHR == chrom) |>
-    dplyr::rename(REF = !!ref) |>
-    align_to_ref() |>
+    align_to_ref(dset = _, ref = ref) |>
     dplyr::select(dplyr::any_of(cols)) |>
 
     # here is the core meta-analysis logic
@@ -133,23 +132,42 @@ by_chrom <- function(ds, chrom, ref) {
       Q        = WB2 - (B_w^2) / W,
       Q_df     = pmax(n_contributions - 1L, 0L),
       Q_pval   = stats::pchisq(Q, df = Q_df, lower.tail = FALSE),
+      Q_pval   = dplyr::if_else(Q_df == 0, 1, Q_pval),
       I2       = dplyr::if_else(Q > 0,pmax((Q - Q_df) / Q, 0),0)
     ) |>
     dplyr::select(-c("W","WB2", "B_w"))
 
 }
 
-align_to_ref <- function(dset) {
+#' Align EffectAllele to always be the reference genome allele
+#' [align_to_ref()] will:
+#' 1. Filter any variants where EffectAllele or OtherAllele is not the reference genome allele
+#' 2. Flip EffectAllele such that it is always the reference genome allele
+#' 3. If OtherAllele is the reference genome allele, direction of B,Z and EAF are flipped.
+#'
+#'
+#' @param dset object createed by [arrow::open_dataset()] or [dplyr::tibble()]
+#' @param ref Reference genome allele to align to. Varies in ~0.5% of locations
+#'
+#' @returns a [dplyr::tibble()] or arrow query depending on whether dset is a tibble or arrow dataset
+#' @export
+#'
+#' @examples \dontrun{
+#' align_to_ref(tidygwas_df, ref = "REF_38")
+#' }
+align_to_ref <- function(dset, ref = c("REF_38", "REF_37")) {
+  ref <- rlang::arg_match(ref)
   # EffectAllele is harmonized to always be the reference allele
   dset |>
     # This can happen if meta-analyzing datasets that were originally on different genome builds
-    dplyr::filter(EffectAllele == REF | OtherAllele == REF) |>
+    dplyr::filter(EffectAllele == .data[[ref]] | OtherAllele == .data[[ref]]) |>
     dplyr::mutate(
-      EA_is_ref = dplyr::if_else(EffectAllele == REF, TRUE,FALSE),
+      EA_is_ref = dplyr::if_else(EffectAllele == .data[[ref]], TRUE,FALSE),
       tmp = EffectAllele,
       EffectAllele = dplyr::if_else(EA_is_ref, EffectAllele, OtherAllele),
       OtherAllele = dplyr::if_else(EA_is_ref, OtherAllele, tmp),
       B = dplyr::if_else(EA_is_ref, B, B*-1),
+      dplyr::across(dplyr::any_of("Z"),  ~ dplyr::if_else(EA_is_ref, .x, .x * -1)),
       dplyr::across(dplyr::any_of(c("EAF")), ~dplyr::if_else(EA_is_ref, .x, 1-.x))
     ) |>
     dplyr::select(-dplyr::all_of(c("EA_is_ref", "tmp")))
