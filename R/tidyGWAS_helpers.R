@@ -129,7 +129,8 @@ standardize_column_order <- function(tbl) {
     "EffectiveN",
     "Z",
     "INFO",
-    "indel"
+    "indel",
+    "discrep_freq"
   )
   end <- c("rowid", "multi_allelic", "REF_37", "REF_38")
 

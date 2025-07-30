@@ -54,6 +54,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param CaseN manually input number of cases
 #' @param ControlN manually input number of controls
 #' @param N manually input sample size
+#' @param est_ancestry Should [ancestry_comp()] be run at the end of tidyGWAS to
+#' estimate the ancestry of the summary statistics?
 #' @param impute_freq one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
 #'  Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used
 #' @param impute_freq_file filepath to a .parquet file with custom allele frequencies.
@@ -92,6 +94,7 @@ tidyGWAS <- function(
     CaseN = NULL,
     ControlN = NULL,
     N = NULL,
+    est_ancestry = FALSE,
     impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
     impute_freq_file = NULL,
     impute_n = FALSE,
@@ -100,7 +103,7 @@ tidyGWAS <- function(
     allow_duplications = FALSE,
     build = c("NA","37", "38"),
     default_build = c("37", "38"),
-    indel_strategy = c("keep", "remove"),
+    indel_strategy = c("keep","qc","remove"),
     convert_p = 2.225074e-308,
     repair_cols = TRUE,
     logfile = FALSE
@@ -123,6 +126,10 @@ tidyGWAS <- function(
   if(!is.null(CaseN)) stopifnot(rlang::is_scalar_integerish(CaseN))
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
   if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
+  rlang::is_scalar_logical(est_ancestry) || cli::cli_abort("est_ancestry must be one of `TRUE` or `FALSE")
+  if(est_ancestry) {
+    cli::cli
+  }
   impute_freq <- rlang::arg_match(impute_freq)
   flag_discrep_freq <- rlang::arg_match(flag_discrep_freq)
   if(!is.null(impute_freq_file) & impute_freq != "None")  {
@@ -198,6 +205,7 @@ tidyGWAS <- function(
   } else {
     check_columns(column_names, tbl)
     tbl <- dplyr::rename(tbl, !!!column_names)
+    tbl <- guess_names(tbl)
   }
 
 
@@ -214,18 +222,10 @@ tidyGWAS <- function(
 
 
 
-  # 1) detect indels ----------------------------------------------------------
-  cli::cli_h2("1) Scanning for indels")
-
-  tbl <- remove_rows_with_na(tbl, c("EffectAllele", "OtherAllele"), filepaths$removed_missing_alleles)
-  tbl <- detect_indels(tbl, indel_strategy = indel_strategy, filepaths = filepaths, convert_p = convert_p)
-
-  indels <- tbl$indels
-  if(nrow(indels) == 0) indels <- NULL
-  tbl <- tbl[["main"]]
 
 
-  # 2 Drop na -----------------------------------------------------------------
+  # 1 Drop na -----------------------------------------------------------------
+  cli::cli_h2("1) Scanning for rows with NA in critical columns")
   if(all(c("RSID", "CHR", "POS") %in% colnames(tbl))) {
     tbl$RSID <- NULL
     columns <- c("CHR", "POS")
@@ -234,21 +234,29 @@ tidyGWAS <- function(
   } else {
     columns <- c("CHR", "POS")
   }
+  columns <- c(columns, "EffectAllele", "OtherAllele")
 
-  cli::cli_h2("2) Scanning for rows with NA in critical columns")
   tbl <- remove_rows_with_na(tbl, columns, filepath = filepaths$removed_missing_critical)
 
 
-  # 3) Remove duplicated SNPs --------------------------------------------------
+
+  # 2) Remove duplicated SNPs --------------------------------------------------
   if(allow_duplications) {
     cli::cli_alert_warning("Skipping the check for duplicated variants, as `allow_duplications` is set to TRUE")
 
   } else {
-    cli::cli_h2("3) Scanning for rows with duplications")
-    tbl <- remove_duplicates(tbl, filepath = filepaths$removed_duplicates)
+    cli::cli_h2("2) Scanning for rows with duplications")
+    tbl <- remove_duplicates(tbl,columns = columns, filepath = filepaths$removed_duplicates)
 
   }
 
+  # 3) detect indels ----------------------------------------------------------
+  cli::cli_h2("3) Scanning for indels")
+  tbl <- detect_indels(tbl, indel_strategy = indel_strategy, filepaths = filepaths, convert_p = convert_p, dbsnp_path = dbsnp_path)
+
+  indels <- tbl$indels
+  if(nrow(indels) == 0) indels <- NULL
+  tbl <- tbl[["main"]]
 
 
   # MAP TO DBSNP ------------------------------------------------------------
@@ -379,6 +387,7 @@ tidyGWAS <- function(
 
 
   if(flag_discrep_freq != "None") {
+    cli::cli_h2("7) Adding allele frequency discrepancies flag")
     main <- add_freq_diff_flag(main, flag_discrep_freq, dbsnp_path)
 
   }

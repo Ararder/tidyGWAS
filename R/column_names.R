@@ -21,6 +21,15 @@ formats <- list(
     EffectiveN =" EffectiveN",
     INFO = "INFO"
   ),
+  METAL = list(
+    RSID = "MarkerName",
+    EffectAllele ="Allele1",
+    OtherAllele = "Allele2",
+    EAF = "Freq1",
+    N = "Weight",
+    Z = "Zscore",
+    P = "P-value"
+  ),
   SSF  = list(
     CHR = "chromosome",
     POS = "base_pair_location",

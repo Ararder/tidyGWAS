@@ -36,6 +36,8 @@ Imports:
     ldsR (>= 0.2.0)
 Suggests: 
     knitr,
+    Matrix,
+    quadprog,
     readr,
     rmarkdown,
     testthat (>= 3.0.0),
@@ -47,5 +49,5 @@ VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
 URL: https://ararder.github.io/tidyGWAS/
-Remotes:  
+Remotes: 
     ararder/ldsR

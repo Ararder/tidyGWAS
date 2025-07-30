@@ -1,7 +1,25 @@
 
 
+# tidyGWAS 1.0.0
+This version comes with major changes to tidyGWAS.
+
+1. File-parsing is now done with data.table. No need to use the `delim` argument 
+2. tidyGWAS now accepts four possible inputs to `tbl`
+  a) local filepath, 
+  b) in-memory data.frame
+  c) a GWAS catalogs study id (will download and process)
+  d) a URL to a downloadable file (will download and process)
+3. Column name guessing is now done automatically, and in most cases you should
+not need to provide the column_names argument
+4. INDELS are now supported, but requires you to update the reference data, see 
+the zenodo repository. Set indel_strategy ="qc" to apply the same QC strategy to indels
+5. tidyGWAS can now estimate ancestry proportions of the cleaned summary statistics
+by the function decribed in https://academic.oup.com/bioinformatics/article/38/13/3477/6590645
+
+
+
+
 # tidyGWAS 0.9.9.2
-Version bumping. 1.0 will come when manuscript is accepted.
 Updates:
 1. Added experimental support for automatic column name guessing
 2. Added experimental support for downloading and cleaning files directly from

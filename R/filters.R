@@ -76,7 +76,7 @@ remove_duplicates <- function(tbl, columns = NULL, filepath) {
 
 
 
-detect_indels <- function(tbl, indel_strategy, filepaths, convert_p) {
+detect_indels <- function(tbl, indel_strategy, filepaths, convert_p, dbsnp_path) {
 
   cli::cli_ol(c(
     "EffectAllele or OtherAllele, character length > 1: A vs AA",
@@ -107,6 +107,28 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p) {
       filter_func = make_callback(filepaths$removed_validate_indels),
       convert_p = convert_p
     )
+
+  } else if(nrow(indels) > 0 & indel_strategy == "qc") {
+    indels <- validate_sumstat(
+      tbl = indels,
+      remove_cols = c("EffectAllele", "OtherAllele"),
+      filter_func = make_callback(filepaths$removed_validate_indels),
+      convert_p = convert_p
+    )
+
+    if(all(c("CHR","POS") %in% colnames(indels))) {
+      match_by <- "chr:pos"
+    } else {
+      match_by <- "rsid"
+    }
+
+    indels <- map_indels_dbsnp(
+      indels,
+      by = match_by,
+      dbsnp_path = dbsnp_path
+    )
+
+
 
   }
 

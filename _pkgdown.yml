@@ -24,8 +24,13 @@ reference:
 
 - subtitle: Meta-analysis
   contents:
-  - meta_analyze
-  - meta_analyze_by_chrom
+  - meta_analyse
+  - deprec_meta_analyze
+  - align_to_ref
+
+- subtitle: Ancestry estimation
+  contents:
+  - ancestry_comp
 
 - subtitle: Helpful functions
   contents:

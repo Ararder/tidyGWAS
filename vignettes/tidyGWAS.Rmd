@@ -184,10 +184,13 @@ tryCatch(
 )
 ```
 
-Note that you have the set all argments by hand. If you use `column_names` no
-attempt will be made at guessing column names.
+If you use column_names, those columns will be renamed, following by an automatic attempt at parsing the remaining column names.
 
 ```{r}
+testdf <- arrow::read_tsv_arrow(system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"))
+
+# nonsense names
+names(testdf) <- c("CHROM_X", "BP_NEW", "RsID", "A1", "A2", "B","SE", "EAF","INFO", "P", "CaseN", "ControlN", "rowid")
 out <- tempfile()
 tidyGWAS(
   tbl = testdf,
@@ -196,9 +199,7 @@ tidyGWAS(
   column_names = list(
     CHR = "CHROM_X",
     POS = "BP_NEW",
-    RSID = "RsID",
-    EffectAllele = "A1",
-    OtherAllele = "A2"
+    RSID = "RsID"
   )
 )
 ```
