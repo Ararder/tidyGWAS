@@ -131,8 +131,8 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p, dbsnp_path)
     rm_rows <- dplyr::anti_join(indels, indels_qc, by = "rowid")
 
     if(!is.null(rm_rows)) {
-      arrow::write_parquet(indels, filepaths$removed_indels)
-      cli::cli_alert_warning("Removed {nrow(indels)} rows when matching indels to dbSNP")
+      arrow::write_parquet(rm_rows, filepaths$removed_indels)
+      cli::cli_alert_warning("Removed {nrow(rm_rows)} rows when matching indels to dbSNP")
       cli::cli_inform("{.file {filepaths$removed_indels}}")
     }
 

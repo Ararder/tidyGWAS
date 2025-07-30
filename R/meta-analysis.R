@@ -79,6 +79,18 @@ meta_analyse <- function(ds, chromosomes = c(1:22), min_EAF = NULL, ref = c("REF
 
 
 
+#' Meta analyse a chromosome, one at a time!
+#'
+#' @param ds an [arrow::open_dataset()] object
+#' @param chrom chromosome
+#' @param ref reference allele
+#'
+#' @returns a [dplyr::tibble()]
+#' @export
+#'
+#' @examples \dontrun{
+#' by_chrom(ds, chrom = 1, ref = "REF_38")
+#' }
 by_chrom <- function(ds, chrom, ref) {
 
   by = c("RSID", "EffectAllele", "OtherAllele")

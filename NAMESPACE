@@ -2,6 +2,7 @@
 
 export(align_to_ref)
 export(ancestry_comp)
+export(by_chrom)
 export(check_rest_avail)
 export(create_lake)
 export(deprec_meta_analyze)
