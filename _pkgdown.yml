@@ -4,12 +4,10 @@ template:
 reference:
 - title: tidyGWAS
 
-- subtitle: Functions using dbSNP reference data
+- subtitle: Cleaning summary statistics
   contents:
   - tidyGWAS
-  - validate_rsid
-  - infer_build
-  - repair_ids
+
 - subtitle: Interact with GWAS catalog and Open Targets
   contents:
   - from_gwas_catalog
@@ -17,14 +15,10 @@ reference:
   - get_open_targets_cs
   - check_rest_avail
 
-- subtitle: Validating columns
-  contents:
-  - repair_stats
-  - validate_sumstat
-
 - subtitle: Meta-analysis
   contents:
   - meta_analyse
+  - create_lake
   - deprec_meta_analyze
   - align_to_ref
 
@@ -38,5 +32,10 @@ reference:
   - flag_indels
   - flag_invalid_rsid
   - strand_flip
-  - create_lake
+  - validate_rsid
+  - infer_build
+  - repair_ids
+  - repair_stats
+  - validate_sumstat
+
 

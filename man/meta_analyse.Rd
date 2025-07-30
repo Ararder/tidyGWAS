@@ -29,7 +29,7 @@ guaranteed with the use of \code{\link[=tidyGWAS]{tidyGWAS()}}}
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
-@d@description
+@description
 \code{\link[=meta_analyse]{meta_analyse()}} will:
 \itemize{
 \item flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with \code{ref}

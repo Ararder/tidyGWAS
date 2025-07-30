@@ -2,7 +2,7 @@ utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w", "Q_pval")
 
 #' Improved meta-analysis using tidyGWAS:ed files
 #'
-#'  @d@description
+#'  @description
 #'  [meta_analyse()] will:
 #' - flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with `ref`
 #' - variant id is constructed using RSID:EffectAllele:OtherAllele (Which is now RSID:REF:ALT)
@@ -45,11 +45,6 @@ meta_analyse <- function(ds, chromosomes = c(1:22), min_EAF = NULL, ref = c("REF
   if(safe_mode) {
     ds <- dplyr::filter(ds, dplyr::if_all(dplyr::all_of(c("CHR", "RSID", "EffectAllele","OtherAllele")), ~!is.na(.x))) |>
       dplyr::filter(dplyr::if_all(dplyr::all_of(c("B", "SE")), ~ is.finite(.x)))
-  }
-
-  # to not break earlier versions of tidyGWAS
-  if("indel" %in% dataset_names) {
-    ds <- dplyr::filter(ds, is.na(indel) | !indel)
   }
 
 
@@ -149,7 +144,7 @@ by_chrom <- function(ds, chrom, ref) {
 #' 3. If OtherAllele is the reference genome allele, direction of B,Z and EAF are flipped.
 #'
 #'
-#' @param dset object createed by [arrow::open_dataset()] or [dplyr::tibble()]
+#' @param dset object created by [arrow::open_dataset()] or [dplyr::tibble()]
 #' @param ref Reference genome allele to align to. Varies in ~0.5% of locations
 #'
 #' @returns a [dplyr::tibble()] or arrow query depending on whether dset is a tibble or arrow dataset

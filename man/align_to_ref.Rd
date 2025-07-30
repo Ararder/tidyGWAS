@@ -7,7 +7,7 @@
 align_to_ref(dset, ref = c("REF_38", "REF_37"))
 }
 \arguments{
-\item{dset}{object createed by \code{\link[arrow:open_dataset]{arrow::open_dataset()}} or \code{\link[dplyr:reexports]{dplyr::tibble()}}}
+\item{dset}{object created by \code{\link[arrow:open_dataset]{arrow::open_dataset()}} or \code{\link[dplyr:reexports]{dplyr::tibble()}}}
 
 \item{ref}{Reference genome allele to align to. Varies in ~0.5\% of locations}
 }
