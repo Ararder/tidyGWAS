@@ -46,7 +46,6 @@ from_gwas_catalog <- function(study_id, quiet = FALSE) {
   # download meta file and print it?
   curl::curl_download(url = picked$yaml, destfile = meta_file)
   cli::cli_inform("meta data available at {.path {meta_file}}")
-  # meta <- yaml::read_yaml(meta_file)
 
   cli::cli_alert_info("Downloading GWAS summary statistics {.path {gwas_file}}")
   curl::curl_download(url = picked$gwas, destfile = gwas_file, quiet = quiet)

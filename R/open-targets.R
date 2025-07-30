@@ -65,7 +65,7 @@ get_open_targets_cs <- function(
     extra_pages <- seq(page_size, total - 1L, by = page_size) / page_size
     for (i in extra_pages) {
       pg <- fetch_page(i)
-      rows <- vctrs::vec_c(rows, pg$variant$gwasCredibleSets$rows)
+      rows <- c(rows, pg$variant$gwasCredibleSets$rows)
     }
   }
 

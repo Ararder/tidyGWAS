@@ -5,11 +5,6 @@ utils::globalVariables(
 
 #' Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS
 #' This function is depreciated. Use [meta_analyse()]
-#' [deprec_meta_analyze()] will:
-#' - flip the effect allele to the reference allele (using either GRCh37 or GRCh38), control with `ref`
-#' - variant id is constructed using `by` columns
-#' - EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
-#' - CaseN, N, ControlN and EffectiveN are all summed and carried forward
 #'
 #'
 #' @param dset an [arrow::open_dataset()] object

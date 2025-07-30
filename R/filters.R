@@ -122,12 +122,19 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p, dbsnp_path)
       match_by <- "rsid"
     }
 
-    indels <- map_indels_dbsnp(
+
+    indels_qc <- map_indels_dbsnp(
       indels,
       by = match_by,
       dbsnp_path = dbsnp_path
     )
+    rm_rows <- dplyr::anti_join(indels, indels_qc, by = "rowid")
 
+    if(!is.null(rm_rows)) {
+      arrow::write_parquet(indels, filepaths$removed_indels)
+      cli::cli_alert_warning("Removed {nrow(indels)} rows when matching indels to dbSNP")
+      cli::cli_inform("{.file {filepaths$removed_indels}}")
+    }
 
 
   }

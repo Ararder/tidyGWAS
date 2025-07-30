@@ -3,14 +3,7 @@
 \name{deprec_meta_analyze}
 \alias{deprec_meta_analyze}
 \title{Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS
-This function is depreciated. Use \code{\link[=meta_analyse]{meta_analyse()}}
-\code{\link[=deprec_meta_analyze]{deprec_meta_analyze()}} will:
-\itemize{
-\item flip the effect allele to the reference allele (using either GRCh37 or GRCh38), control with \code{ref}
-\item variant id is constructed using \code{by} columns
-\item EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
-\item CaseN, N, ControlN and EffectiveN are all summed and carried forward
-}}
+This function is depreciated. Use \code{\link[=meta_analyse]{meta_analyse()}}}
 \usage{
 deprec_meta_analyze(
   dset,
@@ -31,13 +24,6 @@ a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 \description{
 Perform meta-analysis of GWAS summary statistics datasets cleaned by tidyGWAS
 This function is depreciated. Use \code{\link[=meta_analyse]{meta_analyse()}}
-\code{\link[=deprec_meta_analyze]{deprec_meta_analyze()}} will:
-\itemize{
-\item flip the effect allele to the reference allele (using either GRCh37 or GRCh38), control with \code{ref}
-\item variant id is constructed using \code{by} columns
-\item EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
-\item CaseN, N, ControlN and EffectiveN are all summed and carried forward
-}
 }
 \examples{
 \dontrun{

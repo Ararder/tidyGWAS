@@ -1,7 +1,9 @@
 utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w", "Q_pval"))
 
 #' Improved meta-analysis using tidyGWAS:ed files
-#' [meta_analyse()] will:
+#'
+#'  @d@description
+#'  [meta_analyse()] will:
 #' - flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with `ref`
 #' - variant id is constructed using RSID:EffectAllele:OtherAllele (Which is now RSID:REF:ALT)
 #' - EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
@@ -140,6 +142,7 @@ by_chrom <- function(ds, chrom, ref) {
 }
 
 #' Align EffectAllele to always be the reference genome allele
+#' @description
 #' [align_to_ref()] will:
 #' 1. Filter any variants where EffectAllele or OtherAllele is not the reference genome allele
 #' 2. Flip EffectAllele such that it is always the reference genome allele

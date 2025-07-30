@@ -2,13 +2,7 @@
 % Please edit documentation in R/meta-analysis.R
 \name{align_to_ref}
 \alias{align_to_ref}
-\title{Align EffectAllele to always be the reference genome allele
-\code{\link[=align_to_ref]{align_to_ref()}} will:
-\enumerate{
-\item Filter any variants where EffectAllele or OtherAllele is not the reference genome allele
-\item Flip EffectAllele such that it is always the reference genome allele
-\item If OtherAllele is the reference genome allele, direction of B,Z and EAF are flipped.
-}}
+\title{Align EffectAllele to always be the reference genome allele}
 \usage{
 align_to_ref(dset, ref = c("REF_38", "REF_37"))
 }
@@ -21,7 +15,6 @@ align_to_ref(dset, ref = c("REF_38", "REF_37"))
 a \code{\link[dplyr:reexports]{dplyr::tibble()}} or arrow query depending on whether dset is a tibble or arrow dataset
 }
 \description{
-Align EffectAllele to always be the reference genome allele
 \code{\link[=align_to_ref]{align_to_ref()}} will:
 \enumerate{
 \item Filter any variants where EffectAllele or OtherAllele is not the reference genome allele
