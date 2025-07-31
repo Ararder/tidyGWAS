@@ -6,7 +6,7 @@
 \usage{
 tidyGWAS(
   tbl,
-  dbsnp_path = file.path(Sys.getenv("HOME"), ".config/dbSNP155"),
+  dbsnp_path,
   ...,
   column_names = NULL,
   output_format = c("hivestyle", "parquet", "csv"),
@@ -14,6 +14,7 @@ tidyGWAS(
   CaseN = NULL,
   ControlN = NULL,
   N = NULL,
+  est_ancestry = FALSE,
   impute_freq = c("None", "EUR", "AMR", "AFR", "SAS", "EAS"),
   impute_freq_file = NULL,
   impute_n = FALSE,
@@ -22,7 +23,7 @@ tidyGWAS(
   allow_duplications = FALSE,
   build = c("NA", "37", "38"),
   default_build = c("37", "38"),
-  indel_strategy = c("keep", "remove"),
+  indel_strategy = c("keep", "qc", "remove"),
   convert_p = 2.225074e-308,
   repair_cols = TRUE,
   logfile = FALSE
@@ -54,6 +55,9 @@ meaning that tidyGWAS output will not be saved by default over R sessions.}
 \item{ControlN}{manually input number of controls}
 
 \item{N}{manually input sample size}
+
+\item{est_ancestry}{Should \code{\link[=ancestry_comp]{ancestry_comp()}} be run at the end of tidyGWAS to
+estimate the ancestry of the summary statistics?}
 
 \item{impute_freq}{one of c("None", "EUR", "AMR", "AFR", "SAS", "EAS"). If None, no imputation is done.
 Otherwise precomputed alleles frequence from 1000KG, selected ancestry is used}

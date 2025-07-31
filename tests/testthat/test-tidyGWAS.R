@@ -59,6 +59,7 @@ test_that("indels handled correctly", {
     dbsnp_path,
     indel_strategy = "keep"
   )
+  dplyr::filter(cleaned, indel)
   expect_true(nrow(cleaned) == nrow(pval_as_char_df) -161)
 
 })
@@ -67,7 +68,8 @@ test_that("POS column is removed if exist in indels",{
 
     res <- tidyGWAS(
       tbl = pval_as_char_df,
-      dbsnp_path = dbsnp_path
+      dbsnp_path = dbsnp_path,
+      indel_strategy = "keep"
     )
     expect_false("POS" %in% colnames(res))
 
@@ -209,12 +211,17 @@ test_that("minimum number of columns", {
 
 test_that("add EAF flag", {
 
-  test_tbl <- dplyr::mutate(test_sumstat, EAF = EAF + 0.2)
+  out <- tempfile()
   main <- tidyGWAS(
-    tbl = test_tbl,
+    tbl = test_sumstat,
     dbsnp_path = dbsnp_path,
-    flag_discrep_freq = "AMR"
+    flag_discrep_freq = "AFR",
+    output_dir = out
   )
+
+
+  df <- arrow::open_dataset(paste0(out, "/tidyGWAS_hivestyle")) |> dplyr::collect()
+  expect_true("discrep_freq" %in% colnames(df))
 
 
 
@@ -246,7 +253,15 @@ test_that("Handles edge cases", {
 
 })
 
+test_that("indels are correctly handled", {
 
+  out <- tidyGWAS(
+    tbl = pval_as_char_df,
+    dbsnp_path = dbsnp_path
+  )
+  dplyr::filter(out, !indel)
+
+})
 
 test_that("setup_pipeline_paths works", {
 

@@ -21,6 +21,15 @@ formats <- list(
     EffectiveN =" EffectiveN",
     INFO = "INFO"
   ),
+  METAL = list(
+    RSID = "MarkerName",
+    EffectAllele ="Allele1",
+    OtherAllele = "Allele2",
+    EAF = "Freq1",
+    N = "Weight",
+    Z = "Zscore",
+    P = "P-value"
+  ),
   SSF  = list(
     CHR = "chromosome",
     POS = "base_pair_location",
@@ -89,14 +98,14 @@ formats <- list(
     EAF = "af_alt",
     P = "pval",
     B = "beta",
-    SE = "sebeta",
-    EAF = "af_alt"
+    SE = "sebeta"
   )
 
 )
 
 # copy-pasted from https://github.com/opain/GenoUtils/blob/main/R/constants.R
-# all credit to Oliver Pain
+# with some additions
+# Full credit to Oliver Pain
 colname_dict <- list(
   RSID = c(
     "SNP",
@@ -265,7 +274,8 @@ colname_dict <- list(
     "TOTAL_SAMPLE_SIZE",
     "TOTALSAMPLESIZE",
     "N_TOTAL_SUM",
-    "OBS_CT"
+    "OBS_CT",
+    "NMISS"
   ),
   CaseN = c(
     "N_CAS",
@@ -290,16 +300,16 @@ colname_dict <- list(
     "CONTROLS",
     "CONTROLS_N"
   ),
-  #    NEF = c(
-  #        "NEF",
-  #        "NEFF",
-  #        "NEFFECTIVE",
-  #        "NE"
-  #    ),
+    EffectiveN = c(
+         "NEF",
+         "NEFF",
+         "NEFFECTIVE",
+         "NE"
+     ),
   EAF = c(
     "FRQ",
     "FREQ",
-    "MAF",
+    # "MAF", this is not EAF
     "AF",
     "CEUAF",
     "FREQ1",
@@ -309,8 +319,8 @@ colname_dict <- list(
     "FREQ.ALLELE1.HAPMAPCEU",
     "EFFECT_ALLELE_FREQ",
     "FREQ.A1",
-    "MA_FREQ",
-    "MAF_NW",
+    # "MA_FREQ",
+    # "MAF_NW",
     "FREQ_A1",
     "A1FREQ",
     "CODED_ALLELE_FREQUENCY",

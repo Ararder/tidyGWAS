@@ -1,35 +1,42 @@
+# tidyGWAS 1.0.0
 
+This version comes with major changes to tidyGWAS.
+
+1.  File-parsing is now done with data.table. No need to use the `delim` argument
+2.  tidyGWAS now accepts four possible inputs to `tbl`
+
+<!-- -->
+
+a)  local filepath,
+b)  in-memory data.frame
+c)  a GWAS catalogs study id (will download and process)
+d)  a URL to a downloadable file (will download and process)
+
+<!-- -->
+
+3.  Column name guessing is now done automatically, and in most cases you should not need to provide the column_names argument
+4.  INDELS are now supported, but requires you to update the reference data, see the zenodo repository. Set indel_strategy ="qc" to apply the same QC strategy to indels
+5.  tidyGWAS can now estimate ancestry proportions of the cleaned summary statistics by the function decribed in <https://academic.oup.com/bioinformatics/article/38/13/3477/6590645>
 
 # tidyGWAS 0.9.9.2
-Version bumping. 1.0 will come when manuscript is accepted.
-Updates:
-1. Added experimental support for automatic column name guessing
-2. Added experimental support for downloading and cleaning files directly from
-GWAS catalog, using only study_id
 
+Updates: 1. Added experimental support for automatic column name guessing 2. Added experimental support for downloading and cleaning files directly from GWAS catalog, using only study_id
 
 # tidyGWAS 0.9.9
-Added reference allele frequencies to the dbSNP155 reference data from zenodo.
-Added the options to impute allele frequenecy from this reference data.
 
+Added reference allele frequencies to the dbSNP155 reference data from zenodo. Added the options to impute allele frequenecy from this reference data.
 
 # tidyGWAS 0.9.7
-added functionality for QTL summary statistics by providing the option to not
-remove duplicated variants.
 
-in addition, added the option to provide a custom reference file for allele frequency,
-that will impute the allele frequency from the reference file if allele frequency is missing.
+added functionality for QTL summary statistics by providing the option to not remove duplicated variants.
+
+in addition, added the option to provide a custom reference file for allele frequency, that will impute the allele frequency from the reference file if allele frequency is missing.
 
 Added the option to impute N using SE and allele frequency.
 
-
 # tidyGWAS 0.9.6
 
-Added values that tidyGWAS detects as correct columns:
-24 -> "Y"
-25 -> "XY"
-26 -> "MT"
-
+Added values that tidyGWAS detects as correct columns: 24 -\> "Y" 25 -\> "XY" 26 -\> "MT"
 
 # tidyGWAS 0.9.0
 

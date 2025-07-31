@@ -53,6 +53,15 @@ docker run arvhar/tidygwas:latest
 
 ```
 
+# NEWS
+
+With the release of **tidyGWAS 1.0**, the package now supports automatic
+column-name guessing as well as automatic detection of file delimiter,
+using `data.table::fread()`. This means that the `delim` argument has
+been superseded and it's often no longer nessecary to pass the names of
+the input column names with the `column_names` argument. But remember
+to double check the logfile that the column names were parsed correctly.
+
 # Quick start
 
 This is what a typical call to `tidyGWAS()` will look like. A detailed
@@ -66,16 +75,7 @@ outdir <- paste0(gwas_folder, "gwasName")
 
 cleaned <- tidyGWAS(
   tbl = "/filepath/to/sumstats", 
-  # we read in a tab-separated file, so provide tab as delimiter
-  delim = "\t",
   dbsnp_path = dsnp_path,
-  # 
-  column_names = list(
-    "CHR" = "CHROM",
-    "POS" = "BP",
-    "EffectAllele" = "A1",
-    "B" = "Effect"
-  ),
   # Number of samples are missing, so manually impute
   CaseN = 54000,
   ControlN = 73000,
@@ -86,24 +86,21 @@ cleaned <- tidyGWAS(
 
 # Tutorial
 
-Provide tidyGWAS either with an in-memory `dplyr::tibble()` or a
-filepath.
+tidyGWAS now supports directly downloading files from GWAS catalog or
+providing URLs.
 
-1.  Here a filepath to a gzipped tsv file is passed, along with `delim`
-    = `"\t"`. tidyGWAS uses `arrow::read_delim_arrow()` to read in files
-    from disk. If you have trouble with parsing the file correctly, use
-    another package such as `data.table::fread()` or
-    `readr::read_table()` to first read in the into memory, and then
-    pass the in-memory data.frame to tidyGWAS.
-2.  `dbsnp_path = dbsnp_path` gives the filepath to the reference data.
-3.  `output_dir = out` gives the filepath to the output directory that
-    tidyGWAS will create. The directory cannot exist yet - to protect
-    for accidently overwriting files. If no argument is passed to
-    `output_dir`, tidyGWAS will create a folder in the R tempdir,
-    meaning that any cleaned summary statistics will deleted if the R
-    session is ended.
+The first argument to tidyGWAS is `tbl`, and should be one off
 
-```{r}
+1.  A [GWAS catalog](https://www.ebi.ac.uk/gwas/) study id. For example,
+    "[GCST90101808](https://www.ebi.ac.uk/gwas/studies/GCST90101808)".
+    The full summary statistics needs to be available.
+2.  A webpage URL to a downloadable file. For example, the FinnGEN R[12
+    depression](https://storage.googleapis.com/finngen-public-data-r12/summary_stats/release/finngen_R12_F5_DEPRESSIO.gz)
+    release
+3.  A local filepath. For example "\~/summary_stats/raw/trait_x.tsv.gz"
+4.  An in-memory data.frame.
+
+```{r, eval = FALSE}
 library(tidyGWAS)
 # we use the dummy version of dbSNP that comes with the package
 dbsnp_path <- system.file("extdata/dbSNP155", package = "tidyGWAS")
@@ -113,12 +110,101 @@ gwas <- system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS")
 # store the results in a temporary directory
 out <- tempfile()
 
+# using a GWAS catalog study ID
+tidyGWAS(
+  tbl = "GCST90101808",
+  dbsnp_path = dbsnp_path,
+  output_dir = "finnGEN_MDD_R12"
+)
+
+# using a URL
+tidyGWAS(
+  tbl = "https://storage.googleapis.com/finngen-public-data-r12/summary_stats/release/finngen_R12_F5_DEPRESSIO.gz",
+  dbsnp_path = dbsnp_path,
+  output_dir = "finnGEN_MDD_R12"
+)
+
+# using a local flepath
+gwas <- system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS")
 tidyGWAS(
   tbl = gwas,
   dbsnp_path = dbsnp_path,
-  output_dir = out
+  output_dir = "test_sumstat"
+)
+
+# or an in-memory data.frame
+df = read.table(gwas)
+tidyGWAS(
+  tbl = df,
+  dbsnp_path = dbsnp_path,
+  output_dir = "test_sumstat"
+)
+
+
+```
+
+## An example call
+Here's what the output of tidyGWAS looks like, using the test file provided
+with tidyGWAS
+```{r}
+library(tidyGWAS)
+tidyGWAS(
+  tbl = system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"),
+  dbsnp_path = system.file("extdata/dbSNP155", package = "tidyGWAS"),
+  output_dir = tempfile()
 )
 ```
+
+
+
+## Manually setting column names
+
+tidyGWAS will attempt to guess the column names of the input file.
+Always take a look at the logfile if it's the first time you are using
+that particular format. Sometimes the automatic parsing fails, like in the example
+below
+
+```{r}
+testdf <- arrow::read_tsv_arrow(system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"))
+
+# nonsense names
+names(testdf) <- c("CHROM_X", "BP_NEW", "RsID", "A1", "A2", "B","SE", "EAF","INFO", "P", "CaseN", "ControlN", "rowid")
+
+# Wit
+tryCatch(
+  tidyGWAS(
+    tbl = testdf,
+    dbsnp_path = system.file("extdata/dbSNP155", package = "tidyGWAS"),
+    output_dir = tempfile()
+  ),
+  error = function(e) {
+    message("tidyGWAS failed: ", e$message)
+    NULL
+  }
+)
+```
+
+If you use column_names, those columns will be renamed, following by an automatic attempt at parsing the remaining column names.
+
+```{r}
+testdf <- arrow::read_tsv_arrow(system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"))
+
+# nonsense names
+names(testdf) <- c("CHROM_X", "BP_NEW", "RsID", "A1", "A2", "B","SE", "EAF","INFO", "P", "CaseN", "ControlN", "rowid")
+out <- tempfile()
+tidyGWAS(
+  tbl = testdf,
+  dbsnp_path = system.file("extdata/dbSNP155", package = "tidyGWAS"),
+  output_dir = out,
+  column_names = list(
+    CHR = "CHROM_X",
+    POS = "BP_NEW",
+    RSID = "RsID"
+  )
+)
+```
+
+
 
 ### Output files
 
@@ -149,54 +235,6 @@ That's a lot of files!
 
     `df <- arrow::open_dataset(paste0(out, "/tidyGWAS_hivestyle")) |> dplyr::collect()`
 
-### Setting column names
-
-Almost certainly, the summary statistics you want to clean will not have
-the same column name that the example file had.
-
-```{r}
-sumstats <- read.table(gwas, header=T) |> dplyr::tibble()
-head(sumstats)
-```
-
-```{r}
-colnames(sumstats)
-```
-
-To prevent parsing files wrong `tidyGWAS()` will not guess which columns
-are which. Therefore, tidyGWAS requires the colum names to be the same
-as it's native format or a mapping between tidyGWAS column names and the
-column names in the input file. This is done using the `column_names`
-argument, which takes a named list, where the names are the tidyGWAS
-columns and the values the corresponding column in the input file.
-
-```{r, eval = FALSE}
-# what if the names were all wrong?
-sumstats_with_wrong_names <- dplyr::rename(
-  sumstats, 
-  CHROM = CHR, 
-  BP = POS,
-  ID = RSID,
-  A1 = EffectAllele, 
-  A2 = OtherAllele,
-  EFFECT = B
-)
-
-tidyGWAS(
-  tbl = sumstats_with_wrong_names, 
-  dbsnp_path = dbsnp_path,
-  column_names = list(
-    CHR = "CHROM",
-    POS = "BP",
-    RSID = "ID",
-    EffectAllele = "A1",
-    OtherAllele = "A2",
-    B = "EFFECT"
-  )
-  )
-
-```
-
 ### The tidyGWAS columns
 
 tidyGWAS uses the following column names:
@@ -225,6 +263,8 @@ tidyGWAS uses the following column names:
 
 -   N
 
+-   EffectiveN
+
 -   INFO
 
 -   Z
@@ -232,13 +272,14 @@ tidyGWAS uses the following column names:
 **Note**:
 
 If your RSID column is in the format CHR:BP:A1:A2, you can still pass it
-as an RSID column.
+as an RSID column. tidyGWAS automatically detects and splits apart the
+values.
 
 ### Inputting sample size columns
 
 Often, the sample size column is missing from the summary statistics,
 and you provide it manually. tidyGWAS has three arguments that can be
-used to manually set the sample size, if it's missing from the original
+used to manually set the sample size if it's missing from the original
 file:
 
 -   `CaseN`
@@ -264,43 +305,20 @@ cleaned <- tidyGWAS(
 ### Reading in files
 
 If you pass a filepath to tidyGWAS, it will attempt to read in the file
-with `arrow::read_delim_arrow()`
+with `data.table::fread()`. If you need to pass custom arguments to fread to make
+the parsing correct, you can the arguments through `...`.
 
-The default delimiter is white space, so to read in comma-separated
-files or tab-separated files, you can provide the `delim` argument to
-`arrow::read_delim_arrow()` through `...`
 
 ```{r, eval=FALSE}
 
 cleaned <- tidyGWAS(
   tbl = "filepath/to/gwas/ondisk.csv",
-  # here we specify the delimiter to for csv files
-  delim = ",",
+  # fread has argument `skip`. Let's pretend i want to skip the first 100 rows
+  skip = 100.
   dbsnp_path = dbsnp_path,
 )
 ```
 
-There's a lot of different field delimiters used in the wild, and
-sometimes you can struggle with inputting the correct delimiter. In such
-cases, it's often much more convenient to use the effective
-`data.table::fread()` or `readr::read_table()` to first read in the
-summary statistics into memory before passing it to tidyGWAS.
-
-```{r, eval=FALSE}
-# use readr
-sumstats <- readr::read_table("path/to/sumstats.gz.vcf")
-# or data.table
-sumstats <- data.table::fread("path/to/sumstats.gz.vcf")
-
-output <- "my_gwas_dir"
-
-cleaned <- tidyGWAS(
-  tbl = sumstats,
-  dbsnp_path = dbsnp_path,
-  outdir = output
-)
-
-```
 
 # Hivestyle-partitioning {#hivestyle-partitioning}
 
@@ -337,7 +355,7 @@ addition to saving and validating all valid columns in the input file.
 
 8.  All other valid columns in the input summary statistics file
 
-9. If possible `repair_stats()` will add statistics columns such as
+9.  If possible `repair_stats()` will add statistics columns such as
     `B, P, SE, Z`, if they are missing and possible to repair.
 
 # Parallel computation
@@ -359,16 +377,14 @@ export OMP_NUM_THREADS=8
 outdir=$(pwd)
 gwas=$outdir/my_gwas.tsv.gz
 dbsnp_files="dbSNP155"
-Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],outdir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)" $gwas $dbsnp_files $outdir
+Rscript -e "tidyGWAS(commandArgs(trailingOnly = TRUE)[1],  dbsnp_path = commandArgs(trailingOnly = TRUE)[2],output_dir = commandArgs(trailingOnly = TRUE)[3], logfile=TRUE)" $gwas $dbsnp_files $outdir
 
 ```
 
 # Computational cost and memory usage
 
 Memory use and time scales with the size of the summary statistics. From
-running tidyGWAS, here's an estimation. Especially, if the summary statistics are
-missing CHR and POS, tidyGWAS will require additional memory.
-1.  10 million rows ~ 5-15gb
-2.  40 million rows 10-40gb
-3.  60 million rows 65-85gb
-
+running tidyGWAS, here's an estimation. Especially, if the summary
+statistics are missing CHR and POS, tidyGWAS will require additional
+memory. 1. 10 million rows \~ 5-15gb 2. 40 million rows 10-40gb 3. 60
+million rows 65-85gb

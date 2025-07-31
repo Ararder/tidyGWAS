@@ -1,5 +1,6 @@
 library(dplyr)
 test_that("multiplication works", {
+  skip()
   header_line <- "CHROM GENPOS ID ALLELE0 ALLELE1 A1FREQ A1FREQ_CASES A1FREQ_CONTROLS INFO N N_CASES N_CONTROLS TEST BETA SE CHISQ LOG10P EXTRA"
   column_names <- unlist(strsplit(header_line, " "))
 

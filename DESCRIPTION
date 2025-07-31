@@ -1,7 +1,7 @@
 Package: tidyGWAS
 Type: Package
 Title: Quality control for GWAS summary statistics with minimal filtering
-Version: 0.9.9.2
+Version: 1.0.0
 Author: Arvid Harder
 Maintainer: Arvid Harder <arvid.harder@gmail.com>
 Description: 
@@ -29,12 +29,14 @@ Imports:
     jsonlite,
     xml2,
     fs,
-    vctrs,
     rvest,
     data.table,
-    R.utils
+    R.utils,
+    ldsR (>= 0.2.0)
 Suggests: 
     knitr,
+    Matrix,
+    quadprog,
     readr,
     rmarkdown,
     testthat (>= 3.0.0),
@@ -45,4 +47,6 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Depends: 
     R (>= 2.10)
-URL: http://arvidharder.com/tidyGWAS/
+URL: https://ararder.github.io/tidyGWAS/
+Remotes: 
+    ararder/ldsR

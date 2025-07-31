@@ -205,6 +205,7 @@ check_incompat_alleles <- function(tbl, dbsnp_df, build = c("37", "38")) {
   no_strand_flip <- flag_incompat_alleles(tbl, dbsnp_df)
   failed <- dplyr::anti_join(tbl, no_strand_flip, by = "rowid")
   strand_flip <- flag_incompat_alleles(strand_flip(dplyr::anti_join(tbl, no_strand_flip, by = "rowid")), dbsnp_df)
+  cli::cli_alert_info("{nrow(strand_flip)} rows had EffectAllele and OtherAllele not matching dbSNP REF/ALT alleles,but which matched after strand-flipping")
   merged <- dplyr::bind_rows(no_strand_flip, strand_flip)
 
   # finished ----------------------------------------------------------------
