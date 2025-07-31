@@ -21,6 +21,7 @@ reference:
   - create_lake
   - deprec_meta_analyze
   - align_to_ref
+  - by_chrom
 
 - subtitle: Ancestry estimation
   contents:
