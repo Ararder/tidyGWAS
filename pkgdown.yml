@@ -5,7 +5,7 @@ articles:
   articles/meta-analysis: meta-analysis.html
   tidyGWAS: tidyGWAS.html
   transforming_dbsnp_to_parquet: transforming_dbsnp_to_parquet.html
-last_built: 2025-08-21T11:43Z
+last_built: 2025-08-21T14:58Z
 urls:
   reference: https://ararder.github.io/tidyGWAS/reference
   article: https://ararder.github.io/tidyGWAS/articles
