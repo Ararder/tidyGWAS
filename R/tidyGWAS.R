@@ -347,12 +347,6 @@ tidyGWAS <- function(
 
 
 
-  # apply filters -----------------------------------------------------------
-
-  main <-
-    flag_duplicates(main, column = "rsid") |>
-    dplyr::rename(multi_allelic = dup_rsid)
-
 
   # merge back indels -------------------------------------------------------
 
@@ -370,6 +364,12 @@ tidyGWAS <- function(
   } else {
     main$indel <- FALSE
   }
+
+
+  main <-
+    flag_duplicates(main, column = "rsid") |>
+    dplyr::rename(multi_allelic = dup_rsid)
+
 
 
   # 6) repair missing statistics columns ------------------------------------

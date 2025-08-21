@@ -6,8 +6,14 @@ test_that("multiplication works", {
   indel_strategy <- "qc"
   tbl <- pval_as_char_df
   filepaths <- setup_pipeline_paths(tempfile(), "raw")
+  tbl <- arrow::read_parquet("~/Downloads/s_uncat.fastGWA.parquet")
   convert_p <- 0
 
+  res <- tidyGWAS(
+    tbl,
+    dbsnp_path = dbsnp_path,
+    indel_strategy = "qc",
+  )
 
   res <- detect_indels(
     tbl = tbl,

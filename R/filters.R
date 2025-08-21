@@ -136,6 +136,8 @@ detect_indels <- function(tbl, indel_strategy, filepaths, convert_p, dbsnp_path)
       cli::cli_inform("{.file {filepaths$removed_indels}}")
     }
 
+    indels <- indels_qc
+
 
   }
 

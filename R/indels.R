@@ -8,10 +8,11 @@ map_indels_dbsnp <- function(tbl, by = "chr:pos", dbsnp_path) {
     # aligning to both builds
     p1 <- fs::path(dbsnp_path, "dbSNP157_indels", "37")
     p2 <- fs::path(dbsnp_path, "dbSNP157_indels", "38")
+    cli::cli_inform("looking for dbsnp files in {p1} and {p2}")
     file.exists(p1) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
     file.exists(p2) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
-    dset_37 <- arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels/", "37"))
-    dset_38 <- arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels/", "38"))
+    dset_37 <- arrow::open_dataset(p1)
+    dset_38 <- arrow::open_dataset(p2)
 
     ref_37 <- match_by(tbl, "RSID", dset_37)
     ref_38 <- match_by(tbl, "RSID", dset_38)
@@ -32,14 +33,14 @@ map_indels_dbsnp <- function(tbl, by = "chr:pos", dbsnp_path) {
 
     tbl <- dplyr::select(tbl, -dplyr::any_of(c("RSID")))
     build <- get_build(tbl, dbsnp_path)
-    dset <- arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels/", build))
+    dset <- arrow::open_dataset(fs::path(dbsnp_path, "dbSNP157_indels", build))
 
     ref_data <- match_by(tbl, c("CHR", "POS"), dset)
 
 
     other_build <- ifelse(build == "38", "37", "38")
-    other_path <- arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels/",  other_build))
-    other_b <- match_by(dplyr::select(ref_data, RSID, OtherAllele, EffectAllele), c("RSID"), other_path)
+    other_path <- arrow::open_dataset(fs::path(dbsnp_path, "dbSNP157_indels",  other_build))
+    other_b <- match_by(dplyr::select(ref_data, RSID, OtherAllele, EffectAllele), "RSID", other_path)
 
     suffix  <- c(paste0("_", build), paste0("_", other_build))
 
@@ -109,8 +110,8 @@ get_build <- function(tbl, dbsnp_path, n_snps = 10000) {
   if(nrow(subset) != n_snps) subset <- dplyr::slice_sample(tbl, n = {{ n_snps }})
 
 
-  p37 <- paste0(dbsnp_path, "dbSNP157_indels/37")
-  p38 <- paste0(dbsnp_path, "dbSNP157_indels/38")
+  p37 <- fs::path(dbsnp_path, "dbSNP157_indels","37")
+  p38 <- fs::path(dbsnp_path, "dbSNP157_indels","38")
   file.exists(p37) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
   file.exists(p38) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
 
