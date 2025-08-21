@@ -6,8 +6,8 @@ map_indels_dbsnp <- function(tbl, by = "chr:pos", dbsnp_path) {
     tbl <- dplyr::select(tbl, -dplyr::any_of(c("CHR", "POS")))
 
     # aligning to both builds
-    p1 <- paste0(dbsnp_path, "dbSNP157_indels/", "37")
-    p2 <- paste0(dbsnp_path, "dbSNP157_indels/", "38")
+    p1 <- fs::path(dbsnp_path, "dbSNP157_indels", "37")
+    p2 <- fs::path(dbsnp_path, "dbSNP157_indels", "38")
     file.exists(p1) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
     file.exists(p2) || cli::cli_abort("Could not find the expected indel reference data. Have you updated the reference data?")
     dset_37 <- arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels/", "37"))

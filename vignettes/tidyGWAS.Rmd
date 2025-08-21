@@ -32,7 +32,7 @@ slightly edited version of dbSNP v155, that is available
 [here](https://zenodo.org/records/14697504).
 
 ```{bash, eval = FALSE}
-wget https://zenodo.org/records/14697504/files/dbSNP155.tar
+wget https://zenodo.org/records/16639374/files/dbSNP155.tar
 tar -xvf dbSNP155.tar
 
 ```

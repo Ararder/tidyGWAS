@@ -29,10 +29,9 @@ guaranteed with the use of \code{\link[=tidyGWAS]{tidyGWAS()}}}
 a \code{\link[dplyr:reexports]{dplyr::tibble()}}
 }
 \description{
-@description
 \code{\link[=meta_analyse]{meta_analyse()}} will:
 \itemize{
-\item flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with \code{ref}
+\item Flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with \code{ref}
 \item variant id is constructed using RSID:EffectAllele:OtherAllele (Which is now RSID:REF:ALT)
 \item EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
 \item CaseN, N, ControlN and EffectiveN are all summed and carried forward

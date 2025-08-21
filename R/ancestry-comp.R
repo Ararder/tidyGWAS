@@ -1,18 +1,20 @@
 utils::globalVariables(c("ancestry", "est"))
-#' Estimate ancestry composition from GWAS data based on reference data from
-#' https://doi.org/10.1093/bioinformatics/btac348
+#' Estimate ancestry composition from allele frequencies
 #'
-#' This is almost a straight copy from the `bigsnpr` package, all credit to @privefl.
-#' https://github.com/privefl/bigsnpr/blob/master/R/ancestry-summary.R
 #'
-#' [ancestry_comp()] requires additional reference data.
+#' This function implements the `bigsnpr::snp_ancestry_summary()`
+#' written by Florian Prive.
+#'
+#' The function and reference data is based on
+#' <https://doi.org/10.1093/bioinformatics/btac348>
+#'
+#' [ancestry_comp()] requires additional reference data. This data is
+#' only available if you have downloaded the updated reference tidyGWAS data
 #' The reference file `ancestry_data.parquet` is expected to exist in the
 #' same dbSNP folder that is used with [tidyGWAS()]
 #'
 #' @param tbl a data.frame with atleast columns `RSID`, `EffectAllele`, `OtherAllele`, and `EAF`.
-#' @param dbsnp_path filepath to the dbSNP reference data. [ancestry_comp()] expects you
-#' to download the nessecary allele frequency data.
-#' for this, and provide it the filepath to where you have stored dbSNP data.
+#' @param dbsnp_path filepath to the dbSNP reference data. Same path as for [tidyGWAS()]
 #' @param min_cor minimum correlation between predicted and observed allele frequencies.
 #' @param sum_to_one Force ancestry coefficients to sum to 1?
 #'

@@ -2,17 +2,14 @@
 % Please edit documentation in R/ancestry-comp.R
 \name{ancestry_comp}
 \alias{ancestry_comp}
-\title{Estimate ancestry composition from GWAS data based on reference data from
-https://doi.org/10.1093/bioinformatics/btac348}
+\title{Estimate ancestry composition from allele frequencies}
 \usage{
 ancestry_comp(tbl, dbsnp_path, min_cor = 0.4, sum_to_one = TRUE)
 }
 \arguments{
 \item{tbl}{a data.frame with atleast columns \code{RSID}, \code{EffectAllele}, \code{OtherAllele}, and \code{EAF}.}
 
-\item{dbsnp_path}{filepath to the dbSNP reference data. \code{\link[=ancestry_comp]{ancestry_comp()}} expects you
-to download the nessecary allele frequency data.
-for this, and provide it the filepath to where you have stored dbSNP data.}
+\item{dbsnp_path}{filepath to the dbSNP reference data. Same path as for \code{\link[=tidyGWAS]{tidyGWAS()}}}
 
 \item{min_cor}{minimum correlation between predicted and observed allele frequencies.}
 
@@ -22,11 +19,15 @@ for this, and provide it the filepath to where you have stored dbSNP data.}
 a tibble with columns \code{est} and \code{ancestry}
 }
 \description{
-This is almost a straight copy from the \code{bigsnpr} package, all credit to @privefl.
-https://github.com/privefl/bigsnpr/blob/master/R/ancestry-summary.R
+This function implements the \code{bigsnpr::snp_ancestry_summary()}
+written by Florian Prive.
 }
 \details{
-\code{\link[=ancestry_comp]{ancestry_comp()}} requires additional reference data.
+The function and reference data is based on
+\url{https://doi.org/10.1093/bioinformatics/btac348}
+
+\code{\link[=ancestry_comp]{ancestry_comp()}} requires additional reference data. This data is
+only available if you have downloaded the updated reference tidyGWAS data
 The reference file \code{ancestry_data.parquet} is expected to exist in the
 same dbSNP folder that is used with \code{\link[=tidyGWAS]{tidyGWAS()}}
 }

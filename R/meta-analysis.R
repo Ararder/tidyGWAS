@@ -2,9 +2,9 @@ utils::globalVariables(c("WB2", "n_contributions", "Q", "Q_df", "B_w", "Q_pval")
 
 #' Improved meta-analysis using tidyGWAS:ed files
 #'
-#'  @description
+#'
 #'  [meta_analyse()] will:
-#' - flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with `ref`
+#' - Flip the effect allele to be the reference allele (using either GRCh37 or GRCh38), control with `ref`
 #' - variant id is constructed using RSID:EffectAllele:OtherAllele (Which is now RSID:REF:ALT)
 #' - EAF (allele frequency) and INFO (imputation quality) are weighted by sample size, if present
 #' - CaseN, N, ControlN and EffectiveN are all summed and carried forward
