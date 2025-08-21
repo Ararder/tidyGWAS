@@ -75,13 +75,12 @@
 weighted meta-analysis of summary statistics from multiple GWAS, using
 [tidyGWAS::meta_analysis()]. The decisions and strategies for tidyGWAS
 is described here.</p>
-<p><code>[tidyGWAS::meta_analysis()]</code> requires summary statistics
-to first be cleaned with [tidyGWAS::tidyGWAS()], and for the
+<p><code>tidyGWAS::meta_analysis()</code> requires summary statistics to
+first be cleaned with <code><a href="../reference/tidyGWAS.html">tidyGWAS::tidyGWAS()</a></code>, and for the
 output_format to be ‘hivestyle’.</p>
-<p>[tidyGWAS::meta_analysis()] will first apply a set of filter across
-all variants:</p>
+<p><code>tidyGWAS::meta_analysis()</code> will first apply a set of
+filter across all variants:</p>
 <ol style="list-style-type: decimal">
-<li>Indels are removed</li>
 <li>B and SE are required to be real numeric values (not NA, Inf or
 NaN)</li>
 <li>No missing values in (CHR,RSID, A1,A2)</li>
