@@ -84,12 +84,30 @@ test_that("add_freq_diff_flag runs", {
     dbsnp_path = dbsnp_path
   )
 
+  # add_freq_diff_flag(main, "EUR",dbsnp_path = dbsnp_path)
+
 
   expect_no_error(add_freq_diff_flag(main, "EUR",dbsnp_path = dbsnp_path))
   expect_no_error(add_freq_diff_flag(main, "EAS",dbsnp_path = dbsnp_path))
   expect_no_error(add_freq_diff_flag(main, "AMR",dbsnp_path = dbsnp_path))
   expect_no_error(add_freq_diff_flag(main, "SAS",dbsnp_path = dbsnp_path))
   expect_no_error(add_freq_diff_flag(main, "AFR",dbsnp_path = dbsnp_path))
+
+
+})
+
+test_that("add_freq_diff_flag runs in full call", {
+
+
+  main <- tidyGWAS::tidyGWAS(
+    tbl = tbl,
+    dbsnp_path = dbsnp_path,
+    flag_discrep_freq = "EAS"
+  )
+
+
+
+
 
 
 })

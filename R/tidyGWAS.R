@@ -127,9 +127,6 @@ tidyGWAS <- function(
   if(!is.null(ControlN))  stopifnot(rlang::is_scalar_integerish(ControlN))
   if(!is.null(N)) stopifnot(rlang::is_scalar_integerish(N))
   rlang::is_scalar_logical(est_ancestry) || cli::cli_abort("est_ancestry must be one of `TRUE` or `FALSE")
-  if(est_ancestry) {
-    cli::cli
-  }
   impute_freq <- rlang::arg_match(impute_freq)
   flag_discrep_freq <- rlang::arg_match(flag_discrep_freq)
   if(!is.null(impute_freq_file) & impute_freq != "None")  {
@@ -379,6 +376,14 @@ tidyGWAS <- function(
     cli::cli_h2("6) Repairing missings statistics columns if possible")
     main <- repair_stats(main,dbsnp_path = dbsnp_path, impute_freq = impute_freq, impute_freq_file = impute_freq_file, impute_n = impute_n)
 
+  }
+
+  if(est_ancestry) {
+    cli::cli_h2("Estimating ancestry composition")
+    anc_res <- ancestry_comp(main, dbsnp_path)
+    data.table::fwrite(anc_res, fs::path(filepaths$base, "ancestry_estimates.tsv"), sep ="\t")
+    cli::cli_inform(("printing top five ancestries"))
+    cli::cat_print(head(anc_res),)
   }
 
 

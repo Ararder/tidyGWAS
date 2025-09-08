@@ -391,6 +391,7 @@ add_freq_diff_flag <- function(main, flag_discrep_freq, dbsnp_path) {
 
   counts <- dplyr::count(final, .data[["discrep_freq"]])
 
+  cli::cli_alert_info("Using allele frequencies from: {flag_discrep_freq}")
   cli::cli_alert_success(
     "Matched {sum(counts[1,2]$n, counts[2,2]$n)}/{nrow(final)} variants with reference data allele frequency."
     )

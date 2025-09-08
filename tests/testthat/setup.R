@@ -4,7 +4,7 @@ test_sumstat$CHR <- as.character(test_sumstat$CHR)
 load(test_path("data/b38_t1d_chr_pos_rsid_pvalue_as_character.rds"))
 pval_as_char_df$rowid <- 1:nrow(pval_as_char_df)
 dbsnp_path <- test_path("fixtures/dbSNP155")
-
+filepaths <- setup_pipeline_paths(tempfile(), "raw")
 
 
 # default args
@@ -20,6 +20,8 @@ indel_strategy <- "keep"
 default_build <- "37"
 allow_duplications <- FALSE
 repair_cols <- TRUE
+impute_freq <- "None"
+impute_freq_file <- NULL
 
 
 setup_test_data_meta_analysis <- function(EAF = NULL, INFO = NULL, N = NULL) {

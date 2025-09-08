@@ -64,6 +64,25 @@ test_that("indels handled correctly", {
 
 })
 
+
+test_that("Indels are harmonised and aligned when set to qc",{
+
+  expect_no_error(res <- tidyGWAS(
+    tbl = pval_as_char_df,
+    dbsnp_path = dbsnp_path,
+    indel_strategy = "qc"
+  ))
+
+  expect_no_error(res <- tidyGWAS(
+    tbl = tbl,
+    dbsnp_path = dbsnp_path,
+    indel_strategy = "qc"
+  ))
+
+
+})
+
+
 test_that("POS column is removed if exist in indels",{
 
     res <- tidyGWAS(
@@ -325,14 +344,19 @@ test_that("allele freq flag check works", {
 test_that("Filter EAF works", {
 
 
-  tidyGWAS(
-    tbl = dplyr::select(test_sumstat, -EAF),
-    dbsnp_path = dbsnp_path
-    # min_EAF = 0.25
-  )
+  expect_no_error(tidyGWAS(tbl = tbl,dbsnp_path = dbsnp_path, min_EAF = 0.25))
 
 })
 
+#
 
+test_that("Ancestry_comp works", {
+
+  output_dir <- tempfile()
+  expect_no_error(res <- tidyGWAS(tbl,dbsnp_path = dbsnp_path,est_ancestry = TRUE, output_dir = output_dir))
+
+  expect_true(file.exists(fs::path(output_dir, "ancestry_estimates.tsv")))
+
+})
 
 

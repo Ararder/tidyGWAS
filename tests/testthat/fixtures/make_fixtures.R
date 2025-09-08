@@ -1,4 +1,4 @@
-
+library(tidyverse)
 
 # setup_local_dbsnp -------------------------------------------------------
 dbsnp_path <- "~/Downloads/dbSNP155_v2/" # on my local macbook
@@ -79,4 +79,46 @@ all |>
 
 
 arrow::open_dataset(test_path("fixtures/dbSNP155/EAF_REF_1KG/")) |> dplyr::collect()
+
+# make ancestry file
+rs <- dplyr::bind_rows(tbl, dplyr::select(pval_as_char_df, -CHR, -P)) |>
+  dplyr::distinct(RSID)
+df <- arrow::read_parquet("~/Downloads/dbSNP155/ancestry_data.parquet")
+out <- dplyr::semi_join(df, rs)
+
+arrow::write_parquet(out, test_path("fixtures/dbSNP155/ancestry_data.parquet"))
+
+
+
+
+
+
+# make indels data
+dbsnp_path <- "~/Downloads/dbSNP155/"
+kk <- bind_rows(select(pval_as_char_df, CHR, POS, EffectAllele, OtherAllele)) |> mutate(CHR = as.character(CHR))
+matches <- map_indels_dbsnp(kk, dbsnp_path, by = "chr:pos")
+
+kk2 <- bind_rows(select(test_sumstat, CHR, POS, EffectAllele, OtherAllele)) |> mutate(CHR = as.character(CHR))
+matches2 <- map_indels_dbsnp(kk2, dbsnp_path, by = "chr:pos")
+
+all_variants <- bind_rows(matches, matches2)
+
+
+
+arrow::open_dataset(paste0(dbsnp_path, "dbSNP157_indels", "/37"))
+bind_rows()
+arrow::write_dataset()
+
+test
+all_variants |>
+  select(CHR, POS = POS_38, RSID, ALT = EffectAllele, REF = REF_38) |>
+  arrow::write_dataset(test_path("fixtures/dbSNP155/dbSNP157_indels/38/"))
+
+
+all_variants |>
+  select(CHR, POS = POS_37, RSID, ALT = EffectAllele, REF = REF_37) |>
+  arrow::write_dataset(test_path("fixtures/dbSNP155/dbSNP157_indels/37/"))
+
+
+
 
