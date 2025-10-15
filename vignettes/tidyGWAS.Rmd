@@ -29,7 +29,7 @@ remotes::install_github("ararder/tidyGWAS")
 
 Secondly, you will need to download the reference data. tidyGWAS uses a
 slightly edited version of dbSNP v155, that is available
-[here](https://zenodo.org/records/14697504).
+[here](https://zenodo.org/records/16639374).
 
 ```{bash, eval = FALSE}
 wget https://zenodo.org/records/16639374/files/dbSNP155.tar

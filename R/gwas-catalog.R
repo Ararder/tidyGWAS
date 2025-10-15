@@ -53,16 +53,24 @@ from_gwas_catalog <- function(study_id, quiet = FALSE) {
   gwas_file
 }
 
-scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
+.scrape <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
   html_raw <- curl::curl_fetch_memory(url)$content
   page <- xml2::read_html(rawToChar(html_raw))
   hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
-
   hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
-  non_harmonised <- file.path(url, hrefs[!grepl("harmonised/", hrefs)])
+
+}
 
 
-  non_harmonised
+scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
+  files <- .scrape(url)
+
+  if(any(grepl("harmonised/", files))) {
+    harmonised <- .scrape(file.path(url, files[grepl("harmonised/", files)]))
+    harmonised <- file.path(url, files[grepl("harmonised/", files)], harmonised)
+    files <- c(file.path(url, files[!grepl("harmonised/", files)]), harmonised)
+  }
+  files
 }
 
 check_sumstats_avail <- function(
