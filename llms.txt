@@ -1,0 +1,133 @@
+# tidyGWAS
+
+Interested in the trying tidyGWAS out? Check out the get [started
+page](https://ararder.github.io/tidyGWAS/articles/tidyGWAS.html).
+
+Genome-wide summary statistics are becoming a staple in many different
+genetics and genomics analysis pipelines. Often, the specific filters
+suggested for pipelines can be different, requiring each pipeline to
+have a step where summary statistics are “munged”.
+
+tidyGWAS aims to provide a standardized format *before* any pipeline
+specific munging is done. With that in mind, tidyGWAS is conservative in
+removing rows, and by default keeps both indels and multi-allelic
+variants.
+
+`tidyGWAS` does the following:
+
+1.  Detection of duplicated rows (based on RSID_REF_ALT or
+    CHR_POS_REF_ALT)
+
+2.  Standardized column names
+
+3.  Automatic updating of
+    [merged](https://www.ncbi.nlm.nih.gov/books/NBK573473/) RSIDs
+
+4.  Detection and optional removal of deletions/insertions (“indels”)
+
+5.  Detection of non rsID values in RSID column, and automatic parsing
+    of the common CHR:POS or CHR:POS:REF:ALT format
+
+6.  Standardization of CHR values (ex: “23” -\> “X”, “chr1” -\> “1”)
+
+7.  Validation of standard GWAS columns, B, SE, P, N, FREQ, Z, CaseN,
+    ControlN, A1, A2
+
+    1.  Extremely small pvalues are by default converted to
+        2.225074e-308 (minimum pvalue in R)
+
+8.  Imputation of missing columns: RSID from CHR:POS or CHR:POS from
+    RSID. Any of B,SE, P, Z, N and EAF if missing and possible
+
+9.  Validation of CHR:POS:RSID by matching with dbSNP v.155
+
+10. Cleaned sumstats are provided with coordinates on both GRCh37 and
+    GRCh38, with TRUE/FALSE flags for indels and variants that are
+    multi-allelic in the dataset
+
+From working with standardized GWAS formats, we’ve found that having
+both GRCh37 and GRCh38 coordinates, and standardized column names
+significantly speeds up downstream analysis.
+
+The computationally intensive part of aligning summary statistics with
+dbSNP 155 (\> 940 million rows) for both GRCh37 and GRCh38 (in total 1.8
+billion rows) is implemented using the [Apache Arrow
+R](https://arrow.apache.org/docs/r/) implementation, allowing for the
+full function to run in \<3 minutes, using less than 16gb, with ~7
+million rows on a Macbook Pro M2.
+
+# Package index
+
+## tidyGWAS
+
+### Cleaning summary statistics
+
+- [`tidyGWAS()`](https://ararder.github.io/tidyGWAS/reference/tidyGWAS.md)
+  : Execute validation and quality control of GWAS summmary statistics
+
+### Interact with GWAS catalog and Open Targets
+
+- [`from_gwas_catalog()`](https://ararder.github.io/tidyGWAS/reference/from_gwas_catalog.md)
+  : Download summary statistics from GWAS catalog
+- [`from_gwas_catalog_region()`](https://ararder.github.io/tidyGWAS/reference/from_gwas_catalog_region.md)
+  : Query a specific region of interest for a using a gwas catalog
+  study_id
+- [`get_open_targets_cs()`](https://ararder.github.io/tidyGWAS/reference/get_open_targets_cs.md)
+  : Query Open targets for all credible sets containing the variant
+- [`check_rest_avail()`](https://ararder.github.io/tidyGWAS/reference/check_rest_avail.md)
+  : Check if API access is available for a GWAS catalog study
+
+### Meta-analysis
+
+- [`meta_analyse()`](https://ararder.github.io/tidyGWAS/reference/meta_analyse.md)
+  : Improved meta-analysis using tidyGWAS:ed files
+
+- [`create_lake()`](https://ararder.github.io/tidyGWAS/reference/create_lake.md)
+  : Create a data lake in hivestyle format
+
+- [`deprec_meta_analyze()`](https://ararder.github.io/tidyGWAS/reference/deprec_meta_analyze.md)
+  :
+
+  Perform meta-analysis of GWAS summary statistics datasets cleaned by
+  tidyGWAS This function is depreciated. Use
+  [`meta_analyse()`](https://ararder.github.io/tidyGWAS/reference/meta_analyse.md)
+
+- [`align_to_ref()`](https://ararder.github.io/tidyGWAS/reference/align_to_ref.md)
+  : Align EffectAllele to always be the reference genome allele
+
+- [`by_chrom()`](https://ararder.github.io/tidyGWAS/reference/by_chrom.md)
+  : Meta analyse a chromosome, one at a time!
+
+### Ancestry estimation
+
+- [`ancestry_comp()`](https://ararder.github.io/tidyGWAS/reference/ancestry_comp.md)
+  : Estimate ancestry composition from allele frequencies
+
+### Helpful functions
+
+- [`flag_duplicates()`](https://ararder.github.io/tidyGWAS/reference/flag_duplicates.md)
+  : Find all rows which are part of a set of duplicated rows
+- [`flag_indels()`](https://ararder.github.io/tidyGWAS/reference/flag_indels.md)
+  : Detect "indels" in GWAS summary statistics
+- [`flag_invalid_rsid()`](https://ararder.github.io/tidyGWAS/reference/flag_invalid_rsid.md)
+  : Detect entries that are not valid rsID's in GWAS summary statistics
+- [`strand_flip()`](https://ararder.github.io/tidyGWAS/reference/strand_flip.md)
+  : Strand flip alleles
+- [`validate_rsid()`](https://ararder.github.io/tidyGWAS/reference/validate_rsid.md)
+  : Validate format of the RSID column in a GWAS summary statistics file
+- [`infer_build()`](https://ararder.github.io/tidyGWAS/reference/infer_build.md)
+  : Infer what genome build a GWAS summary statistics file is on.
+- [`repair_ids()`](https://ararder.github.io/tidyGWAS/reference/repair_ids.md)
+  : Augment a data.frame with information from dbSNP
+- [`repair_stats()`](https://ararder.github.io/tidyGWAS/reference/repair_stats.md)
+  : Repair statistics column in a GWAS summary statistics tibble
+- [`validate_sumstat()`](https://ararder.github.io/tidyGWAS/reference/validate_sumstat.md)
+  : Validate statistics columns in a GWAS summary statistics file
+
+# Articles
+
+### All vignettes
+
+- [meta-analysis](https://ararder.github.io/tidyGWAS/articles/meta-analysis.md):
+- [tidyGWAS](https://ararder.github.io/tidyGWAS/articles/tidyGWAS.md):
+- [get-to-know-dbsnp](https://ararder.github.io/tidyGWAS/articles/transforming_dbsnp_to_parquet.md):

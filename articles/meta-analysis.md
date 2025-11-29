@@ -1,0 +1,82 @@
+# meta-analysis
+
+``` r
+library(tidyGWAS)
+```
+
+## Implementation details
+
+tidyGWAS implements functionality to perform inverse-variance weighted
+meta-analysis of summary statistics from multiple GWAS, using
+\[tidyGWAS::meta_analysis()\]. The decisions and strategies for tidyGWAS
+is described here.
+
+`tidyGWAS::meta_analysis()` requires summary statistics to first be
+cleaned with
+[`tidyGWAS::tidyGWAS()`](https://ararder.github.io/tidyGWAS/reference/tidyGWAS.md),
+and for the output_format to be ‘hivestyle’.
+
+`tidyGWAS::meta_analysis()` will first apply a set of filter across all
+variants:
+
+1.  B and SE are required to be real numeric values (not NA, Inf or NaN)
+2.  No missing values in (CHR,RSID, A1,A2)
+3.  EffectAllele or OtherAllele has to be the same as the REF\* allele.
+
+All alleles are then flipped, such that EffectAllele corresponds to the
+REF allele. Effect sizes and allele frequencies are flipped accordingly.
+
+Variant identity is then defined based on RSID:REF:ALT. This will handle
+multi-allelics, but will not handle differences in strand alignment
+across summary statistics.
+
+Columns N,CaseN, ControlN, EffectiveN are summed across studies, with NA
+values removed.
+
+Columns INFO and EAF are averaged across studies. For a value to be
+included in the average, both INFO/EAF and N needs to be present. For
+example, if a summary statistics file has INFO, but not N, the final
+sample-size weighted will not include that specific study, as the INFO
+column could not be weighted by sample size.
+
+tidyGWAS then performs fixed-effects meta-analysis using
+inverse-variance weighting with weights calculated based on the standard
+error. An optional argument to weigh by sample size is forthcoming.
+
+A few things to keep in mind:
+
+#### Choice of reference allele
+
+The reference allele varies at a locations between GRCh37 and GRCH38.
+For example, out of 13,372,985 variants with MAF \>= 0.005 in the EUR
+subpopulation of 1000G, 64892 variants differ in reference allele
+(~0.05% of variants) between builds.
+
+tidyGWAS returns the reference allele from both GRCh37 and GRCh38, and
+users can choose which reference allele to use. Since the reference
+allele differs, either the alignment of EffectAllele will be different,
+or, the variant that is about to be meta_analyzed will be removed, in
+the case that neither EffectAllele or OtherAllele is equal to the
+reference allele.
+
+#### Strand alignment and ambigious SNPs
+
+tidyGWAS does not perform any strand alignment beyond flipping the
+effect allele to always be the reference allele. If some variants are on
+different strands, they will be considered as different variants.
+
+#### Multi-allelic variants
+
+Since tidyGWAS uses RSID:REF:ALT to identify variants, it can handle
+multi-allelic variants, and the estimation of P and B should be correct.
+However, representation of allele frequency (EAF) for multi-allelic
+variants has not been standardised in the field. Some formatas will
+contain the minor allele frequency only, while other studies choose to
+calculate the frequency of the effect allele as (N_A1 / (N_A1 +N_A2)).
+When tidyGWAS flips allele frequencies during harmonisation of the
+effect allele, this can introduce errors in allele frequencies for
+multi-allelic variants.
+
+## Tutorial
+
+tidyGWAS relies on the arrow package to read and

@@ -1,0 +1,188 @@
+# get-to-know-dbsnp
+
+## Converting dbSNP to .parquet files
+
+dbSNP data was accessed and munged through the `BSgenome` package. Takes
+about 10~30 minutes per chromosome, with a peak memory usage of ~80gb
+for chromosome 2
+
+``` r
+library(arrow)
+library(BSgenome)
+library(glue)
+
+chr <- commandArgs(trailingOnly = TRUE)[1]
+build <- commandArgs(trailingOnly = TRUE)[2]
+
+if(build == "37") {
+  snps <- SNPlocs.Hsapiens.dbSNP155.GRCh37::SNPlocs.Hsapiens.dbSNP155.GRCh37
+  genome <- BSgenome.Hsapiens.1000genomes.hs37d5::BSgenome.Hsapiens.1000genomes.hs37d5
+  grch <- "GRCh37"
+} else if(build == "38") {
+
+  snps <- SNPlocs.Hsapiens.dbSNP155.GRCh38::SNPlocs.Hsapiens.dbSNP155.GRCh38
+  genome <- BSgenome.Hsapiens.NCBI.GRCh38::BSgenome.Hsapiens.NCBI.GRCh38
+  grch <- "GRCh38"
+}
+outpath <- glue("~/arvhar/snp_level_annotatations/dbSNP155/{grch}")
+
+# IUPAC ambuigity codes, to update FASTA files from ref genome
+updated <-
+  stringr::str_split(Biostrings::IUPAC_CODE_MAP, "") |>
+  purrr::map(\(x) stringr::str_flatten(x, collapse=",")) |>
+  purrr::map_chr(stringr::str_c) |>
+  purrr::set_names(names(Biostrings::IUPAC_CODE_MAP))
+
+
+
+print(glue("converting data for chr {chr}"))
+
+tictoc::tic(glue::glue("finished reading in chr: {chr}"))
+all_snps <- snpsBySeqname(snps, seqnames = chr, genome = genome, drop.rs.prefix=TRUE)
+tictoc::toc()
+
+
+dt <- data.table::as.data.table(all_snps)
+dt <- dplyr::mutate(dt, ref_allele = updated[ref_allele], alt_alleles = updated[alt_alleles])
+dt <- tidyr::separate_longer_delim(dt, ref_allele, delim =",")
+
+dt <- dplyr::select(dt, CHR = seqnames, POS =pos, RSID = RefSNP_id, REF = ref_allele, ALT = alt_alleles)
+
+# storing as integer speeds up computation later on
+dt <- dplyr::mutate(dt, RSID = as.integer(stringr::str_sub(start = 3, RSID)))
+
+print(glue("Writing data to {outpath}"))
+write_dataset(dplyr::group_by(dt, CHR), outpath)
+```
+
+## Pruning duplicates
+
+``` r
+remove_dups <- function(kk) {
+    start <- nrow(kk)
+
+    step1 <- distinct(kk, .keep_all=TRUE)
+    n_step1 <- nrow(step1)
+    cli::cli_alert("removed {start-n_step1} rows as pure duplicates")
+
+    step2 <- mutate(step1, dup_rsid = duplicated(step1[,"RSID"]) | duplicated(step1[,"RSID"], fromLast = TRUE)) |> 
+        filter(!dup_rsid)
+    step2$dup_rsid <- NULL
+    n_step2 <- nrow(step2)
+    cli::cli_alert("removed {n_step1-n_step2} rows with duplicated RSIDs") 
+
+    step3 <- distinct(arrange(step2, RSID), CHR, POS, .keep_all=TRUE)
+    n_step3 <- nrow(step3)
+    cli::cli_alert("removed {n_step2 - n_step3} rows with duplicated CHR-POS") 
+    cli::cli_alert_warning("removed a total of {start - n_step3} rows")
+    step3
+  
+
+}
+
+clean_dbsnp <- function(chr) {
+    tictoc::tic(glue::glue("time to clean {chr}"))
+    df1 <- arrow::open_dataset("~/ki-pgi-storage/Data/downstreamGWAS/reference/dbSNP155/GRCh37") |> 
+        filter(CHR == chr) |> 
+        dplyr::collect()
+
+    df1 <- remove_dups(df1)
+    n_df1 <- nrow(df1)
+
+    df2 <- arrow::open_dataset("~/ki-pgi-storage/Data/downstreamGWAS/reference/dbSNP155/GRCh38") |> 
+        filter(CHR == chr) |> 
+        dplyr::collect()
+
+    df2 <- remove_dups(df2)
+    n_df2 <- nrow(df2)
+
+    
+    ###################### MERGE ######################
+    out <- inner_join(df1, df2, by = "RSID", suffix = c("_37", "_38"))
+    
+    cli::cli_alert("removed {n_df2 - nrow(out)} rows from GRCh38, and {n_df1 - nrow(out)} from GRCH37 after merging across genome builds")
+
+    final <- filter(out, CHR_37 == CHR_38) |> 
+        rename(CHR = CHR_38)
+    
+    cli::cli_alert("removed {nrow(out) - nrow(final)} rows with different chromosome numbers across genonme builds")
+    
+    final |> 
+        select(-CHR_37) |> 
+        relocate(CHR, POS_38, POS_37, RSID, REF_38, REF_37, ALT_38, ALT_37) |> 
+        group_by(CHR) |> 
+        arrow::write_dataset("dbSNP155_v2")
+
+    tictoc::toc()
+}
+
+
+
+tr <- c(1:22, "X", "Y", "MT")
+withr::local_message_sink("logfile.txt")
+for(x in tr) {
+    clean_dbsnp(x)
+}
+```
+
+### Transforming refsnp-merged to parquet
+
+``` r
+library(arrow)
+library(tidyverse)
+
+# wget https://ftp.ncbi.nlm.nih.gov/snp/latest_release/JSON/refsnp-merged.json.bz2
+ref <- read_json_arrow("~/refsnp-merged.json.bz2", col_select = c("refsnp_id", "merged_snapshot_data"))
+
+RSID = ref$merged_snapshot_data$merged_into
+test <- map_chr(ref$merged_snapshot_data$merged_into, \(x) stringr::str_flatten(x))
+
+old_RSID = ref$refsnp_id
+tmp = data.frame(old_RSID, test)
+tmp$old_RSID = as.integer(tmp$old_RSID)
+tmp$test = as.integer(tmp$test)  
+write_parquet(tmp, "~/part0", compression = "gzip")
+
+# write out as parquet
+```
+
+## Noteworthy aspects of dbSNP155
+
+dbSNP version: 155 This section is a work of progress, and summarises
+all the idiosyncracies of dbSNP data.
+
+### Issue 1) - same CHR:POS can map to multiple SNPs
+
+In this particular example, the three SNPs have been merged into
+rs10157617. If you check the history tab however, you can see that this
+merge happened in dbSNP 156. So - the issue has not yet been fixed in
+the data tidyGWAS is using.
+
+##### Solution
+
+For the case where the same CHR:POS maps to multiple RSIDs, tidyGWAS
+selects the RSID with the smallest rs number, to mimic how dbSNP
+performs merges.
+
+``` r
+# on GRCh38
+#  CHR        POS RSID         ref_allele alt_alleles
+#   <chr>    <int> <chr>        <chr>      <list>     
+# 1 1     39491595 rs10157617   T          <chr [2]>  
+# 2 1     39491595 rs1638449573 T          <chr [1]>  
+# 3 1     39491595 rs1638449625 T          <chr [1]>  
+# 4 1     39491595 rs1638449683 T          <chr [1]>  
+```
+
+#### 2) Some SNPs only have CHR:POS on GRCh37
+
+Some SNPs only have CHR and POS on GRCh37, and have not yet been mapped
+to GRCh38. in
+[`tidyGWAS()`](https://ararder.github.io/tidyGWAS/reference/tidyGWAS.md)
+this will simply show up as rows where CHR and POS is missing, but
+CHR_37 and POS_37 is not!
+
+#### 3) some RSIDs map to multiple CHR:POS
+
+See [here](https://www.ncbi.nlm.nih.gov/snp/docs/rs_multi_mapping/) for
+NCBI discussion
