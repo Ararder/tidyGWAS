@@ -142,9 +142,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:34:14.270319
+#> Starting at 2025-11-29 11:50:40.418185
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/RtmpRYimIr/file1b62d057865
+#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7bba9964b
 #> 
 #> 
 #> 
@@ -243,7 +243,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/RtmpRYimIr/file1b62d057865/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/Rtmp2qwFE4/file1a7bba9964b/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -270,9 +270,9 @@ tidyGWAS(
 #> 
 #> ℹ A total of 21 rows were removed
 #> 
-#> ℹ Total running time: 3.8s
+#> ℹ Total running time: 3.7s
 #> 
-#> Saving metadata from analysis to /tmp/RtmpRYimIr/file1b62d057865/metadata.yaml
+#> Saving metadata from analysis to /tmp/Rtmp2qwFE4/file1a7bba9964b/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -322,9 +322,9 @@ tryCatch(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:34:18.247211
+#> Starting at 2025-11-29 11:50:44.335313
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/RtmpRYimIr/file1b62765d05d
+#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7b4c118c15
 #> 
 #> 
 #> 
@@ -397,9 +397,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:34:18.591913
+#> Starting at 2025-11-29 11:50:44.674695
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/RtmpRYimIr/file1b6234d4c157
+#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7b47f6f2b9
 #> 
 #> 
 #> 
@@ -502,7 +502,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/RtmpRYimIr/file1b6234d4c157/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/Rtmp2qwFE4/file1a7b47f6f2b9/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -529,9 +529,9 @@ tidyGWAS(
 #> 
 #> ℹ A total of 21 rows were removed
 #> 
-#> ℹ Total running time: 3.2s
+#> ℹ Total running time: 3.1s
 #> 
-#> Saving metadata from analysis to /tmp/RtmpRYimIr/file1b6234d4c157/metadata.yaml
+#> Saving metadata from analysis to /tmp/Rtmp2qwFE4/file1a7b47f6f2b9/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -557,7 +557,7 @@ tidyGWAS returns all its output in a directory.
 
 ``` r
 fs::dir_tree(out)
-#> /tmp/RtmpRYimIr/file1b6234d4c157
+#> /tmp/Rtmp2qwFE4/file1a7b47f6f2b9
 #> ├── metadata.yaml
 #> ├── pipeline_info
 #> │   ├── removed_nodbsnp.parquet
