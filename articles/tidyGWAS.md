@@ -38,7 +38,7 @@ docker run arvhar/tidygwas:latest
 With the release of **tidyGWAS 1.0**, the package now supports automatic
 column-name guessing as well as automatic detection of file delimiter,
 using
-[`data.table::fread()`](https://rdatatable.gitlab.io/data.table/reference/fread.html).
+[`data.table::fread()`](https://rdrr.io/pkg/data.table/man/fread.html).
 This means that the `delim` argument has been superseded and it’s often
 no longer nessecary to pass the names of the input column names with the
 `column_names` argument. But remember to double check the logfile that
@@ -142,9 +142,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:50:40.418185
+#> Starting at 2026-02-12 11:30:30.787062
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7bba9964b
+#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e7347be66b
 #> 
 #> 
 #> 
@@ -243,7 +243,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/Rtmp2qwFE4/file1a7bba9964b/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/Rtmp5aii2C/file1e7347be66b/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -270,9 +270,9 @@ tidyGWAS(
 #> 
 #> ℹ A total of 21 rows were removed
 #> 
-#> ℹ Total running time: 3.7s
+#> ℹ Total running time: 3.8s
 #> 
-#> Saving metadata from analysis to /tmp/Rtmp2qwFE4/file1a7bba9964b/metadata.yaml
+#> Saving metadata from analysis to /tmp/Rtmp5aii2C/file1e7347be66b/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -322,9 +322,9 @@ tryCatch(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:50:44.335313
+#> Starting at 2026-02-12 11:30:34.798128
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7b4c118c15
+#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e731f054212
 #> 
 #> 
 #> 
@@ -397,9 +397,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2025-11-29 11:50:44.674695
+#> Starting at 2026-02-12 11:30:35.158765
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp2qwFE4/file1a7b47f6f2b9
+#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e736341b34
 #> 
 #> 
 #> 
@@ -502,7 +502,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/Rtmp2qwFE4/file1a7b47f6f2b9/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/Rtmp5aii2C/file1e736341b34/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -529,9 +529,9 @@ tidyGWAS(
 #> 
 #> ℹ A total of 21 rows were removed
 #> 
-#> ℹ Total running time: 3.1s
+#> ℹ Total running time: 3.2s
 #> 
-#> Saving metadata from analysis to /tmp/Rtmp2qwFE4/file1a7b47f6f2b9/metadata.yaml
+#> Saving metadata from analysis to /tmp/Rtmp5aii2C/file1e736341b34/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -557,7 +557,7 @@ tidyGWAS returns all its output in a directory.
 
 ``` r
 fs::dir_tree(out)
-#> /tmp/Rtmp2qwFE4/file1a7b47f6f2b9
+#> /tmp/Rtmp5aii2C/file1e736341b34
 #> ├── metadata.yaml
 #> ├── pipeline_info
 #> │   ├── removed_nodbsnp.parquet
@@ -701,7 +701,7 @@ cleaned <- tidyGWAS(
 
 If you pass a filepath to tidyGWAS, it will attempt to read in the file
 with
-[`data.table::fread()`](https://rdatatable.gitlab.io/data.table/reference/fread.html).
+[`data.table::fread()`](https://rdrr.io/pkg/data.table/man/fread.html).
 If you need to pass custom arguments to fread to make the parsing
 correct, you can the arguments through `...`.
 
