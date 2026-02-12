@@ -25,6 +25,8 @@ formats <- list(
     RSID = "MarkerName",
     EffectAllele ="Allele1",
     OtherAllele = "Allele2",
+    B = "Effect",
+    SE = "StdErr",
     EAF = "Freq1",
     N = "Weight",
     Z = "Zscore",
