@@ -76,8 +76,13 @@ explain_removed_rows <- function(filepaths) {
 }
 
 
-write_finished_tidyGWAS <- function(df, output_format, filepaths) {
-  df <- standardize_column_order(df)
+write_finished_tidyGWAS <- function(
+    df,
+    output_format,
+    filepaths,
+    extra_columns = character()
+    ) {
+  df <- standardize_column_order(df, extra_columns = extra_columns)
 
   if (output_format == "hivestyle") {
     arrow::write_dataset(dplyr::group_by(df, CHR), filepaths$cleaned)
@@ -101,9 +106,10 @@ tidyGWAS_new_columns <- c(
   "REF_37",
   "indel",
   "multi_allelic",
+  "discrep_freq",
   "rowid"
 )
-standardize_column_order <- function(tbl) {
+standardize_column_order <- function(tbl, extra_columns = character()) {
   char_cols <- c("CHR", "EffectAllele", "OtherAllele")
   integer_cols <- c(
     "N",
@@ -139,6 +145,7 @@ standardize_column_order <- function(tbl) {
     dplyr::all_of(first),
     dplyr::any_of(second),
     dplyr::all_of(end),
+    dplyr::all_of(extra_columns)
   ) |>
     dplyr::mutate(
       dplyr::across(dplyr::any_of(char_cols), ~ as.character(.)),
@@ -146,6 +153,46 @@ standardize_column_order <- function(tbl) {
       dplyr::across(dplyr::any_of(double), ~ as.double(.)),
       dplyr::across(dplyr::any_of(logical), ~ as.logical(.))
     )
+}
+
+
+restore_extra_columns <- function(main, extra_tbl, extra_columns) {
+  if (is.null(extra_tbl)) {
+    return(main)
+  }
+
+  collisions <- intersect(extra_columns, setdiff(colnames(main), "rowid"))
+  if (length(collisions) > 0) {
+    cli::cli_abort(
+      "Cannot keep column(s) {.val {collisions}} because tidyGWAS creates output column(s) with the same name."
+    )
+  }
+
+  dplyr::left_join(main, extra_tbl, by = "rowid")
+}
+
+
+validate_keep_columns <- function(tbl, extra_columns = character()) {
+  if (!"rowid" %in% colnames(tbl)) {
+    cli::cli_abort("The input must contain a {.field rowid} column.")
+  }
+
+  if (anyNA(tbl$rowid)) {
+    cli::cli_abort("The {.field rowid} column cannot contain missing values.")
+  }
+
+  if (anyDuplicated(tbl$rowid)) {
+    cli::cli_abort("The {.field rowid} column must contain unique values.")
+  }
+
+  collisions <- intersect(extra_columns, tidyGWAS_new_columns)
+  if (length(collisions) > 0) {
+    cli::cli_abort(
+      "Cannot keep column(s) {.val {collisions}} because tidyGWAS reserves these output column names."
+    )
+  }
+
+  tbl
 }
 
 

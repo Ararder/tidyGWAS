@@ -26,6 +26,7 @@ tidyGWAS(
   indel_strategy = c("keep", "qc", "remove"),
   convert_p = 2.225074e-308,
   repair_cols = TRUE,
+  keep_columns = FALSE,
   logfile = FALSE
 )
 }
@@ -85,6 +86,9 @@ tidyGWAS needs to decide on which reference genome to compare alleles with.}
 \item{convert_p}{What value should be used for when P-value has been rounded to 0?}
 
 \item{repair_cols}{Should any missing statistical columns be repaired if possible? calls \code{\link[=repair_stats]{repair_stats()}} if TRUE}
+
+\item{keep_columns}{Should input columns that are not part of the tidyGWAS
+standard format be retained in the cleaned output?}
 
 \item{logfile}{Should messages be redirected to a logfile?}
 }

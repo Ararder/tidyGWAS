@@ -69,6 +69,8 @@ valid_column_names <- c(snp_cols, stats_cols, info_cols)
 #' @param convert_p What value should be used for when P-value has been rounded to 0?
 #' @param indel_strategy Should indels be kept or removed?
 #' @param repair_cols Should any missing statistical columns be repaired if possible? calls [repair_stats()] if TRUE
+#' @param keep_columns Should input columns that are not part of the tidyGWAS
+#' standard format be retained in the cleaned output?
 #' @param default_build If only RSID exists, the build cannot be inferred. Nonetheless,
 #' tidyGWAS applies a filter on incompatible alleles with GRCh37/38. In such a case,
 #' tidyGWAS needs to decide on which reference genome to compare alleles with.
@@ -106,6 +108,7 @@ tidyGWAS <- function(
     indel_strategy = c("keep","qc","remove"),
     convert_p = 2.225074e-308,
     repair_cols = TRUE,
+    keep_columns = FALSE,
     logfile = FALSE
     ) {
 
@@ -146,6 +149,7 @@ tidyGWAS <- function(
   }
   stopifnot(rlang::is_scalar_double(convert_p))
   stopifnot(rlang::is_bool(repair_cols))
+  stopifnot(rlang::is_bool(keep_columns))
   stopifnot(rlang::is_bool(logfile))
   stopifnot(rlang::is_bool(allow_duplications))
   stopifnot("logfile can only be TRUE or FALSE"= rlang::is_bool(logfile))
@@ -203,6 +207,28 @@ tidyGWAS <- function(
     check_columns(column_names, tbl)
     tbl <- dplyr::rename(tbl, !!!column_names)
     tbl <- guess_names(tbl)
+  }
+
+  extra_columns <- character()
+  extra_tbl <- NULL
+  if (keep_columns) {
+    extra_columns <- setdiff(colnames(tbl), valid_column_names)
+  }
+
+  tbl <- validate_keep_columns(tbl, extra_columns)
+
+  if (keep_columns) {
+    if (length(extra_columns) > 0) {
+      cli::cli_alert_info(
+        "Keeping {length(extra_columns)} extra column(s): {.val {extra_columns}}"
+      )
+
+      extra_tbl <- dplyr::select(
+        tbl,
+        rowid,
+        dplyr::all_of(extra_columns)
+      )
+    }
   }
 
 
@@ -405,7 +431,14 @@ tidyGWAS <- function(
 
 
 
-  write_finished_tidyGWAS(df = main, output_format = output_format, filepaths = filepaths)
+  main <- restore_extra_columns(main, extra_tbl, extra_columns)
+
+  write_finished_tidyGWAS(
+    df = main,
+    output_format = output_format,
+    filepaths = filepaths,
+    extra_columns = extra_columns
+  )
   fmt <- prettyunits::pretty_dt(Sys.time() - start_time)
   cli::cli_h1("Finished tidyGWAS")
   cli::cli_alert_info("A total of {rows_start - nrow(main)} rows were removed")
@@ -428,6 +461,7 @@ tidyGWAS <- function(
     convert_p = convert_p,
     indel_strategy = indel_strategy,
     repair_cols = repair_cols,
+    keep_columns = keep_columns,
     logfile = logfile,
     default_build = default_build,
     inferred_build = inferred_build,
