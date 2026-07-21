@@ -44,6 +44,7 @@ tidyGWAS(
   indel_strategy = c("keep", "qc", "remove"),
   convert_p = 2.225074e-308,
   repair_cols = TRUE,
+  keep_columns = FALSE,
   logfile = FALSE
 )
 ```
@@ -167,6 +168,11 @@ tidyGWAS(
   Should any missing statistical columns be repaired if possible? calls
   [`repair_stats()`](https://ararder.github.io/tidyGWAS/reference/repair_stats.md)
   if TRUE
+
+- keep_columns:
+
+  Should input columns that are not part of the tidyGWAS standard format
+  be retained in the cleaned output?
 
 - logfile:
 

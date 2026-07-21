@@ -6,6 +6,7 @@ tidyGWAS is not yet on CRAN. To install, you need to use
 `devtools::install_github()` or `remotes::install_github()`
 
 ``` r
+
 devtools::install_github("ararder/tidyGWAS")
 remotes::install_github("ararder/tidyGWAS")
 ```
@@ -52,6 +53,7 @@ will look like. A detailed explanation of the different arguments
 follows.
 
 ``` r
+
 # we setup a directory where we will store all summary statistics cleaned by tidyGWAS
 gwas_folder <- tempfile()
 # provide the filepath to the name of a directory that tidyGWAS will create.
@@ -85,6 +87,7 @@ The first argument to tidyGWAS is `tbl`, and should be one off
 4.  An in-memory data.frame.
 
 ``` r
+
 library(tidyGWAS)
 # we use the dummy version of dbSNP that comes with the package
 dbsnp_path <- system.file("extdata/dbSNP155", package = "tidyGWAS")
@@ -131,6 +134,7 @@ Here’s what the output of tidyGWAS looks like, using the test file
 provided with tidyGWAS
 
 ``` r
+
 library(tidyGWAS)
 tidyGWAS(
   tbl = system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"),
@@ -142,9 +146,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2026-02-12 11:30:30.787062
+#> Starting at 2026-07-21 10:05:01.680169
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e7347be66b
+#> ℹ Saving output in folder: /tmp/RtmpcOkxKZ/file1c71984551a
 #> 
 #> 
 #> 
@@ -243,7 +247,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/Rtmp5aii2C/file1e7347be66b/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/RtmpcOkxKZ/file1c71984551a/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -270,9 +274,9 @@ tidyGWAS(
 #> 
 #> ℹ A total of 21 rows were removed
 #> 
-#> ℹ Total running time: 3.8s
+#> ℹ Total running time: 3.6s
 #> 
-#> Saving metadata from analysis to /tmp/Rtmp5aii2C/file1e7347be66b/metadata.yaml
+#> Saving metadata from analysis to /tmp/RtmpcOkxKZ/file1c71984551a/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -300,6 +304,7 @@ that particular format. Sometimes the automatic parsing fails, like in
 the example below
 
 ``` r
+
 testdf <- arrow::read_tsv_arrow(system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"))
 
 # nonsense names
@@ -322,9 +327,9 @@ tryCatch(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2026-02-12 11:30:34.798128
+#> Starting at 2026-07-21 10:05:05.537364
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e731f054212
+#> ℹ Saving output in folder: /tmp/RtmpcOkxKZ/file1c716b2ecee9
 #> 
 #> 
 #> 
@@ -377,6 +382,7 @@ If you use column_names, those columns will be renamed, following by an
 automatic attempt at parsing the remaining column names.
 
 ``` r
+
 testdf <- arrow::read_tsv_arrow(system.file("extdata/sumstats.tsv.gz", package = "tidyGWAS"))
 
 # nonsense names
@@ -397,9 +403,9 @@ tidyGWAS(
 #> 
 #> ── Running tidyGWAS 1.0.0 ──────────────────────────────────────────────────────
 #> 
-#> Starting at 2026-02-12 11:30:35.158765
+#> Starting at 2026-07-21 10:05:05.913827
 #> with 100000 rows in input data.frame
-#> ℹ Saving output in folder: /tmp/Rtmp5aii2C/file1e736341b34
+#> ℹ Saving output in folder: /tmp/RtmpcOkxKZ/file1c7179ecba1c
 #> 
 #> 
 #> 
@@ -502,7 +508,7 @@ tidyGWAS(
 #> 
 #> ! Removed 21 rows with no dbSNP entry or with incompat alleles
 #> 
-#> /tmp/Rtmp5aii2C/file1e736341b34/pipeline_info/removed_nodbsnp.parquet
+#> /tmp/RtmpcOkxKZ/file1c7179ecba1c/pipeline_info/removed_nodbsnp.parquet
 #> 
 #> 
 #> ── 6) Repairing missings statistics columns if possible ──
@@ -531,7 +537,7 @@ tidyGWAS(
 #> 
 #> ℹ Total running time: 3.2s
 #> 
-#> Saving metadata from analysis to /tmp/Rtmp5aii2C/file1e736341b34/metadata.yaml
+#> Saving metadata from analysis to /tmp/RtmpcOkxKZ/file1c7179ecba1c/metadata.yaml
 #> # A tibble: 99,979 × 21
 #>    CHR   POS_37 EffectAllele OtherAllele rowid     B        P     SE  INFO CaseN
 #>    <chr>  <int> <chr>        <chr>       <int> <dbl>    <dbl>  <dbl> <dbl> <int>
@@ -556,8 +562,9 @@ tidyGWAS(
 tidyGWAS returns all its output in a directory.
 
 ``` r
+
 fs::dir_tree(out)
-#> /tmp/Rtmp5aii2C/file1e736341b34
+#> /tmp/RtmpcOkxKZ/file1c7179ecba1c
 #> ├── metadata.yaml
 #> ├── pipeline_info
 #> │   ├── removed_nodbsnp.parquet
@@ -687,6 +694,7 @@ file:
 
 ``` r
 
+
 cleaned <- tidyGWAS(
   tbl = sumstats, 
   dbsnp_path = dbsnp_path,
@@ -706,6 +714,7 @@ If you need to pass custom arguments to fread to make the parsing
 correct, you can the arguments through `...`.
 
 ``` r
+
 cleaned <- tidyGWAS(
   tbl = "filepath/to/gwas/ondisk.csv",
   # fread has argument `skip`. Let's pretend i want to skip the first 100 rows
@@ -764,6 +773,7 @@ than what you have requested in your HPC job (in the example below, the
 “–cpus-per-task” flag)
 
 ``` bash
+
 #SBATCH --mem=60gb
 #SBATCH --time=24:0:00
 #SBATCH --cpus-per-task 8

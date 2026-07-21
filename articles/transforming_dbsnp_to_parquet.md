@@ -7,6 +7,7 @@ about 10~30 minutes per chromosome, with a peak memory usage of ~80gb
 for chromosome 2
 
 ``` r
+
 library(arrow)
 library(BSgenome)
 library(glue)
@@ -58,6 +59,7 @@ write_dataset(dplyr::group_by(dt, CHR), outpath)
 ## Pruning duplicates
 
 ``` r
+
 remove_dups <- function(kk) {
     start <- nrow(kk)
 
@@ -128,6 +130,7 @@ for(x in tr) {
 ### Transforming refsnp-merged to parquet
 
 ``` r
+
 library(arrow)
 library(tidyverse)
 
@@ -165,6 +168,7 @@ selects the RSID with the smallest rs number, to mimic how dbSNP
 performs merges.
 
 ``` r
+
 # on GRCh38
 #  CHR        POS RSID         ref_allele alt_alleles
 #   <chr>    <int> <chr>        <chr>      <list>     
