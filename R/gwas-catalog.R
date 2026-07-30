@@ -3,6 +3,10 @@
 #' @param study_id A single character string with study ID, e.g. "GCST90475332"
 #' @param quiet TRUE/FALSE - controls progress bar for downloading
 #'
+#' @details Uses internal scraping helpers to locate harmonised summary
+#' statistics when they are available; otherwise falls back to any matching
+#' summary statistics in the study directory.
+#'
 #' @returns a filepath to downloaded summary statistics
 #' @export
 #'
@@ -58,27 +62,46 @@ from_gwas_catalog <- function(study_id, quiet = FALSE) {
   gwas_file
 }
 
+#' Scrape a directory listing and return matching entries
+#'
+#' @param url The directory URL to inspect.
+#' @param pattern Regex pattern of file names to keep (set to NULL to keep all
+#' files). Directory entries are always retained to allow recursive scraping.
+#'
+#' @return Character vector of matching file names and subdirectories.
+#' @noRd
+.href_drop_pattern <- "^\\?|^\\.{2}/|^/pub|^$"
 .scrape <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
   html_raw <- curl::curl_fetch_memory(url)$content
   page <- xml2::read_html(rawToChar(html_raw))
   hrefs <- rvest::html_attr(rvest::html_nodes(page, "a"), "href")
-  hrefs <- hrefs[!grepl("^\\?|^\\.{2}/|^/pub|^$", hrefs)]
+  hrefs <- hrefs[!is.na(hrefs) & !grepl(.href_drop_pattern, hrefs)]
 
+  dirs <- stringr::str_subset(hrefs, "/$")
+  files <- hrefs[!grepl("/$", hrefs)]
+
+  matches <- if (is.null(pattern)) files else stringr::str_subset(files, pattern)
+
+  unique(c(dirs, matches))
 }
 
 
 scrape_dir <- function(url, pattern = "\\.(gz|tsv|yaml|tbi|log|txt)$") {
-  files <- .scrape(url)
+  files <- .scrape(url, pattern)
 
   if(any(grepl("harmonised/", files))) {
-    harmonised <- .scrape(file.path(url, files[grepl("harmonised/", files)]))
-    harmonised <- file.path(url, files[grepl("harmonised/", files)], harmonised)
+    harmonised_dir <- files[grepl("harmonised/", files)][1]
+    harmonised <- .scrape(
+      file.path(url, harmonised_dir),
+      pattern
+    )
+    harmonised <- file.path(url, harmonised_dir, harmonised)
     files <- c(file.path(url, files[!grepl("harmonised/", files)]), harmonised)
   } else {
     files <- file.path(url, files)
-
   }
-files
+
+  files
 }
 
 check_sumstats_avail <- function(

@@ -14,6 +14,10 @@ from_gwas_catalog(study_id, quiet = FALSE)
 \value{
 a filepath to downloaded summary statistics
 }
+\details{
+Uses internal scraping helpers to locate harmonised summary statistics when
+available; otherwise falls back to any matching files in the study directory.
+}
 \description{
 Download summary statistics from GWAS catalog
 }
